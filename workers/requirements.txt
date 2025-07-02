@@ -1,0 +1,11 @@
+celery==5.3.4
+redis==5.0.1
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+telethon==1.31.1
+pandas==2.1.2
+numpy==1.26.1
+httpx==0.25.1
+easyocr==1.7.1
+pillow==10.1.0 

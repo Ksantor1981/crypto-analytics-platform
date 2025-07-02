@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:13
+    container_name: crypto_analytics_postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=crypto_analytics
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crypto_analytics_network
+
+  # Redis for Celery
+  redis:
+    image: redis:6
+    container_name: crypto_analytics_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - crypto_analytics_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crypto_analytics_backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres/crypto_analytics
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=development
+      - DEBUG=True
+    networks:
+      - crypto_analytics_network
+
+  # Celery worker
+  worker:
+    build:
+      context: ./workers
+      dockerfile: Dockerfile
+    container_name: crypto_analytics_worker
+    volumes:
+      - ./workers:/app
+    depends_on:
+      - redis
+      - backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres/crypto_analytics
+      - REDIS_URL=redis://redis:6379/0
+    networks:
+      - crypto_analytics_network
+
+  # ML service
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: crypto_analytics_ml
+    volumes:
+      - ./ml-service:/app
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres/crypto_analytics
+    networks:
+      - crypto_analytics_network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: crypto_analytics_frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    networks:
+      - crypto_analytics_network
+
+networks:
+  crypto_analytics_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
