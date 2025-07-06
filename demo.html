@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Крипто Аналитика - Демо Платформа</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: transform 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="gradient-bg text-white">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">🚀 Крипто Аналитика</h1>
+                <nav class="space-x-4">
+                    <a href="#dashboard" class="hover:text-gray-300">Дашборд</a>
+                    <a href="#signals" class="hover:text-gray-300">Сигналы</a>
+                    <a href="#channels" class="hover:text-gray-300">Каналы</a>
+                    <a href="#ml" class="hover:text-gray-300">ML Анализ</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        
+        <!-- Status Section -->
+        <section class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Статус Системы</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-700">Backend API</h3>
+                            <p id="backend-status" class="text-gray-600">Проверка...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-700">ML Сервис</h3>
+                            <p id="ml-status" class="text-gray-600">Проверка...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-700">Активные Сигналы</h3>
+                            <p id="signals-count" class="text-gray-600">Загрузка...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Demo Section -->
+        <section id="dashboard" class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Демо API</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Channels Section -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">📡 Каналы</h3>
+                    <button id="load-channels" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mb-4">
+                        Загрузить Каналы
+                    </button>
+                    <div id="channels-list" class="space-y-2">
+                        <!-- Channels will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Signals Section -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">⚡ Сигналы</h3>
+                    <button id="load-signals" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded mb-4">
+                        Загрузить Сигналы
+                    </button>
+                    <div id="signals-list" class="space-y-2">
+                        <!-- Signals will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ML Prediction Section -->
+        <section id="ml" class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">🤖 ML Предсказания</h2>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Тест ML Модели</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Актив</label>
+                        <select id="ml-asset" class="w-full p-2 border border-gray-300 rounded">
+                            <option value="BTC">Bitcoin (BTC)</option>
+                            <option value="ETH">Ethereum (ETH)</option>
+                            <option value="ADA">Cardano (ADA)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Направление</label>
+                        <select id="ml-direction" class="w-full p-2 border border-gray-300 rounded">
+                            <option value="LONG">LONG</option>
+                            <option value="SHORT">SHORT</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Цена входа</label>
+                        <input type="number" id="ml-entry-price" value="45000" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Цель</label>
+                        <input type="number" id="ml-target-price" value="47000" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                </div>
+                
+                <button id="predict-signal" class="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded">
+                    Получить ML Предсказание
+                </button>
+                
+                <div id="ml-result" class="mt-6 hidden">
+                    <!-- ML prediction result will be shown here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Chart -->
+        <section class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">📊 Аналитика</h2>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <canvas id="performanceChart" width="400" height="200"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="gradient-bg text-white text-center py-6">
+        <p>&copy; 2024 Крипто Аналитика. Демонстрационная версия платформы.</p>
+    </footer>
+
+    <script>
+        // API Configuration
+        const API_BASE = 'http://localhost:8000';
+        const ML_API_BASE = 'http://localhost:8001';
+
+        // Check system status on load
+        window.addEventListener('DOMContentLoaded', function() {
+            checkSystemStatus();
+            initializeChart();
+        });
+
+        // Check Backend and ML Service Status
+        async function checkSystemStatus() {
+            // Check Backend
+            try {
+                const response = await axios.get(`${API_BASE}/docs`);
+                document.getElementById('backend-status').textContent = '✅ Работает';
+                document.getElementById('backend-status').className = 'text-green-600';
+            } catch (error) {
+                document.getElementById('backend-status').textContent = '❌ Недоступен';
+                document.getElementById('backend-status').className = 'text-red-600';
+            }
+
+            // Check ML Service
+            try {
+                const response = await axios.get(`${ML_API_BASE}/docs`);
+                document.getElementById('ml-status').textContent = '✅ Работает';
+                document.getElementById('ml-status').className = 'text-green-600';
+            } catch (error) {
+                document.getElementById('ml-status').textContent = '❌ Недоступен';
+                document.getElementById('ml-status').className = 'text-red-600';
+            }
+
+            // Mock signals count
+            document.getElementById('signals-count').textContent = '🔥 15 активных';
+        }
+
+        // Load Channels
+        document.getElementById('load-channels').addEventListener('click', async function() {
+            const channelsList = document.getElementById('channels-list');
+            channelsList.innerHTML = '<p class="text-gray-500">Загрузка каналов...</p>';
+            
+            try {
+                // Since we don't have real data, we'll simulate it
+                const mockChannels = [
+                    { id: 1, name: 'Crypto Signals Pro', accuracy: 0.85, subscribers: 1250 },
+                    { id: 2, name: 'Bitcoin Analytics', accuracy: 0.78, subscribers: 890 },
+                    { id: 3, name: 'Altcoin Alerts', accuracy: 0.72, subscribers: 654 }
+                ];
+
+                channelsList.innerHTML = mockChannels.map(channel => `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                            <span class="font-semibold">${channel.name}</span>
+                            <span class="text-sm text-gray-500 ml-2">${channel.subscribers} подписчиков</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-medium ${channel.accuracy > 0.8 ? 'text-green-600' : 'text-yellow-600'}">
+                                ${(channel.accuracy * 100).toFixed(1)}% точность
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                channelsList.innerHTML = '<p class="text-red-500">Ошибка загрузки каналов</p>';
+            }
+        });
+
+        // Load Signals
+        document.getElementById('load-signals').addEventListener('click', async function() {
+            const signalsList = document.getElementById('signals-list');
+            signalsList.innerHTML = '<p class="text-gray-500">Загрузка сигналов...</p>';
+            
+            try {
+                // Mock signals data
+                const mockSignals = [
+                    { asset: 'BTC', direction: 'LONG', entry: 45000, target: 47000, status: 'active' },
+                    { asset: 'ETH', direction: 'SHORT', entry: 2800, target: 2650, status: 'completed' },
+                    { asset: 'ADA', direction: 'LONG', entry: 0.45, target: 0.52, status: 'active' }
+                ];
+
+                signalsList.innerHTML = mockSignals.map(signal => `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                            <span class="font-semibold">${signal.asset}</span>
+                            <span class="ml-2 px-2 py-1 text-xs rounded ${signal.direction === 'LONG' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${signal.direction}
+                            </span>
+                        </div>
+                        <div class="text-right text-sm">
+                            <div>Вход: $${signal.entry}</div>
+                            <div>Цель: $${signal.target}</div>
+                        </div>
+                        <div>
+                            <span class="px-2 py-1 text-xs rounded ${signal.status === 'active' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
+                                ${signal.status}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                signalsList.innerHTML = '<p class="text-red-500">Ошибка загрузки сигналов</p>';
+            }
+        });
+
+        // ML Prediction
+        document.getElementById('predict-signal').addEventListener('click', async function() {
+            const resultDiv = document.getElementById('ml-result');
+            resultDiv.innerHTML = '<p class="text-gray-500">Анализ сигнала...</p>';
+            resultDiv.classList.remove('hidden');
+
+            const signalData = {
+                asset: document.getElementById('ml-asset').value,
+                direction: document.getElementById('ml-direction').value,
+                entry_price: parseFloat(document.getElementById('ml-entry-price').value),
+                target_price: parseFloat(document.getElementById('ml-target-price').value),
+                stop_loss: parseFloat(document.getElementById('ml-entry-price').value) * 0.95,
+                channel_id: 1,
+                channel_accuracy: 0.75,
+                confidence: 0.8
+            };
+
+            try {
+                const response = await axios.post(`${ML_API_BASE}/api/v1/predictions/signal`, signalData);
+                const prediction = response.data;
+
+                resultDiv.innerHTML = `
+                    <div class="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-lg">
+                        <h4 class="font-semibold text-lg mb-3">🤖 ML Анализ</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-sm text-gray-600">Вероятность успеха:</span>
+                                <div class="text-2xl font-bold ${prediction.success_probability > 0.7 ? 'text-green-600' : prediction.success_probability > 0.5 ? 'text-yellow-600' : 'text-red-600'}">
+                                    ${(prediction.success_probability * 100).toFixed(1)}%
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-600">Уровень риска:</span>
+                                <div class="text-2xl font-bold ${prediction.risk_score < 0.3 ? 'text-green-600' : prediction.risk_score < 0.7 ? 'text-yellow-600' : 'text-red-600'}">
+                                    ${(prediction.risk_score * 100).toFixed(1)}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <span class="text-sm text-gray-600">Рекомендация:</span>
+                            <div class="text-lg font-semibold ${prediction.recommendation.includes('BUY') ? 'text-green-600' : prediction.recommendation.includes('SELL') ? 'text-red-600' : 'text-yellow-600'}">
+                                ${prediction.recommendation}
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-gray-500">
+                            Модель: ${prediction.model_version} | Время: ${new Date(prediction.prediction_timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        <strong>Ошибка:</strong> Не удалось получить предсказание ML модели.
+                        <br><small>Убедитесь, что ML сервис запущен на порту 8001</small>
+                    </div>
+                `;
+            }
+        });
+
+        // Initialize Performance Chart
+        function initializeChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн'],
+                    datasets: [{
+                        label: 'Точность сигналов (%)',
+                        data: [75, 78, 82, 79, 85, 88],
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Прибыльность (%)',
+                        data: [12, 15, 18, 16, 22, 25],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Производительность платформы'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

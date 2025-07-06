@@ -7,5 +7,6 @@ telethon==1.31.1
 pandas==2.1.2
 numpy==1.26.1
 httpx==0.25.1
+aiohttp==3.9.1
 easyocr==1.7.1
 pillow==10.1.0 

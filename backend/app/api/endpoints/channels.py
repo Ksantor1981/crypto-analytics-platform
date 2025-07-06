@@ -7,7 +7,6 @@ from datetime import datetime
 # from ...services.channel_service import ChannelService
 
 router = APIRouter(
-    prefix="/channels",
     tags=["channels"],
     responses={404: {"description": "Not found"}},
 )
