@@ -28,6 +28,7 @@ class Channel(BaseModel):
     
     # Relationships
     signals = relationship("Signal", back_populates="channel", cascade="all, delete-orphan")
+    performance_metrics = relationship("PerformanceMetric", back_populates="channel", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Channel {self.name} ({self.platform})>" 

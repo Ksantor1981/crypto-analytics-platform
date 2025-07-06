@@ -1,18 +1,25 @@
-from sqlalchemy import Column, String, Float, Integer, Enum, DateTime, ForeignKey, Text, Boolean
+from sqlalchemy import Column, String, Float, Integer, Enum, DateTime, ForeignKey, Text, Boolean, Numeric
 from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime
+from decimal import Decimal
 
 from .base import BaseModel
 
 class SignalDirection(str, enum.Enum):
-    BUY = "BUY"
-    SELL = "SELL"
+    LONG = "LONG"
+    SHORT = "SHORT"
+    BUY = "BUY"  # Keep for backward compatibility
+    SELL = "SELL"  # Keep for backward compatibility
 
 class SignalStatus(str, enum.Enum):
     PENDING = "PENDING"
-    SUCCESSFUL = "SUCCESSFUL"
-    FAILED = "FAILED"
+    ENTRY_HIT = "ENTRY_HIT"
+    TP1_HIT = "TP1_HIT"
+    TP2_HIT = "TP2_HIT"
+    TP3_HIT = "TP3_HIT"
+    SL_HIT = "SL_HIT"
+    EXPIRED = "EXPIRED"
     CANCELLED = "CANCELLED"
 
 class Signal(BaseModel):
@@ -28,23 +35,101 @@ class Signal(BaseModel):
     # Signal details
     asset = Column(String(20), nullable=False, index=True)  # e.g., BTC/USDT
     direction = Column(Enum(SignalDirection), nullable=False)
-    entry_price = Column(Float, nullable=False)
-    target_price = Column(Float, nullable=True)
-    stop_loss = Column(Float, nullable=True)
+    entry_price = Column(Numeric(20, 8), nullable=False)  # More precise than Float
+    
+    # Multiple targets support
+    tp1_price = Column(Numeric(20, 8), nullable=True)  # Target 1
+    tp2_price = Column(Numeric(20, 8), nullable=True)  # Target 2
+    tp3_price = Column(Numeric(20, 8), nullable=True)  # Target 3
+    stop_loss = Column(Numeric(20, 8), nullable=True)
+    
+    # Entry zone support (for range entries)
+    entry_price_low = Column(Numeric(20, 8), nullable=True)
+    entry_price_high = Column(Numeric(20, 8), nullable=True)
     
     # Original message
     original_text = Column(Text, nullable=True)
-    message_timestamp = Column(DateTime, default=datetime.utcnow)
+    message_timestamp = Column(DateTime(timezone=True), default=datetime.utcnow)
+    telegram_message_id = Column(String(50), nullable=True)  # For tracking
     
-    # Result
+    # Signal execution tracking
     status = Column(Enum(SignalStatus), default=SignalStatus.PENDING)
-    exit_price = Column(Float, nullable=True)
-    exit_timestamp = Column(DateTime, nullable=True)
-    profit_loss = Column(Float, nullable=True)  # In percentage
+    entry_hit_at = Column(DateTime(timezone=True), nullable=True)
+    tp1_hit_at = Column(DateTime(timezone=True), nullable=True)
+    tp2_hit_at = Column(DateTime(timezone=True), nullable=True)
+    tp3_hit_at = Column(DateTime(timezone=True), nullable=True)
+    sl_hit_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Result tracking
+    final_exit_price = Column(Numeric(20, 8), nullable=True)
+    final_exit_timestamp = Column(DateTime(timezone=True), nullable=True)
+    profit_loss_percentage = Column(Numeric(10, 4), nullable=True)  # ROI in percentage
+    profit_loss_absolute = Column(Numeric(20, 8), nullable=True)  # Absolute profit/loss
+    
+    # Signal lifecycle
+    expires_at = Column(DateTime(timezone=True), nullable=True)  # Auto-expire after X hours
+    cancelled_at = Column(DateTime(timezone=True), nullable=True)
+    cancellation_reason = Column(String(255), nullable=True)
+    
+    # Analysis flags
+    is_successful = Column(Boolean, nullable=True)  # Based on our success criteria
+    reached_tp1 = Column(Boolean, default=False)
+    reached_tp2 = Column(Boolean, default=False)
+    reached_tp3 = Column(Boolean, default=False)
+    hit_stop_loss = Column(Boolean, default=False)
     
     # ML prediction
-    ml_success_probability = Column(Float, nullable=True)
+    ml_success_probability = Column(Numeric(5, 4), nullable=True)  # 0.0 to 1.0
+    ml_predicted_roi = Column(Numeric(10, 4), nullable=True)
     is_ml_prediction_correct = Column(Boolean, nullable=True)
     
+    # Signal quality indicators
+    confidence_score = Column(Numeric(5, 2), nullable=True)  # 0-100 quality score
+    risk_reward_ratio = Column(Numeric(10, 4), nullable=True)
+    
+    @property
+    def duration_hours(self) -> float:
+        """Calculate signal duration in hours"""
+        if not self.final_exit_timestamp:
+            return None
+        duration = self.final_exit_timestamp - self.created_at
+        return duration.total_seconds() / 3600
+    
+    @property
+    def is_expired(self) -> bool:
+        """Check if signal has expired"""
+        if not self.expires_at:
+            return False
+        return datetime.utcnow() > self.expires_at
+    
+    @property
+    def best_target_hit(self) -> str:
+        """Get the highest target that was hit"""
+        if self.reached_tp3:
+            return "TP3"
+        elif self.reached_tp2:
+            return "TP2" 
+        elif self.reached_tp1:
+            return "TP1"
+        elif self.hit_stop_loss:
+            return "SL"
+        else:
+            return "NONE"
+    
+    def calculate_roi(self, exit_price: Decimal = None) -> Decimal:
+        """Calculate ROI for the signal"""
+        if not exit_price:
+            exit_price = self.final_exit_price
+        
+        if not exit_price or not self.entry_price:
+            return Decimal('0')
+        
+        if self.direction in [SignalDirection.LONG, SignalDirection.BUY]:
+            roi = ((exit_price - self.entry_price) / self.entry_price) * 100
+        else:  # SHORT/SELL
+            roi = ((self.entry_price - exit_price) / self.entry_price) * 100
+        
+        return round(roi, 4)
+    
     def __repr__(self):
-        return f"<Signal {self.asset} {self.direction} at {self.entry_price}>" 
+        return f"<Signal {self.asset} {self.direction} at {self.entry_price} - {self.status}>" 

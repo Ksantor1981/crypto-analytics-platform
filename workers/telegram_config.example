@@ -1,0 +1,29 @@
+# Telegram API Configuration
+# Get these from https://my.telegram.org/apps
+TELEGRAM_API_ID=your_api_id_here
+TELEGRAM_API_HASH=your_api_hash_here
+TELEGRAM_SESSION_NAME=crypto_analytics_session
+
+# Optional: Bot token for bot API
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+
+# Telegram Collection Settings
+TELEGRAM_MAX_MESSAGES=100
+TELEGRAM_COLLECTION_INTERVAL=3600
+TELEGRAM_MIN_CONFIDENCE=0.7
+TELEGRAM_ENABLE_OCR=false
+
+# Channels to monitor (JSON format)
+# Example: [{"username": "cryptosignals", "channel_id": -1001234567890, "name": "Crypto Signals", "category": "crypto"}]
+TELEGRAM_CHANNELS=[]
+
+# Price Monitoring Settings
+PRICE_CHECK_INTERVAL=300  # 5 minutes
+PRICE_API_TIMEOUT=10
+ENABLE_REAL_PRICE_API=true
+
+# Redis Configuration for Celery
+REDIS_URL=redis://localhost:6379/0
+
+# Database Configuration
+DATABASE_URL=postgresql://crypto_user:crypto_pass@localhost:5432/crypto_analytics 

@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 # Загружаем переменные окружения из .env файла
-load_dotenv()
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
 class Settings(BaseSettings):
     """
@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Crypto Analytics Platform"
     
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost/crypto_analytics")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://crypto_user:crypto_password@localhost:5432/crypto_analytics")
     
     # JWT
     SECRET_KEY: str = os.getenv("SECRET_KEY", "supersecretkey")
@@ -40,9 +40,18 @@ class Settings(BaseSettings):
     # ML Service
     ML_SERVICE_URL: str = os.getenv("ML_SERVICE_URL", "http://ml-service:8001")
     
+    # Stripe
+    STRIPE_PUBLISHABLE_KEY: Optional[str] = os.getenv("STRIPE_PUBLISHABLE_KEY")
+    STRIPE_SECRET_KEY: Optional[str] = os.getenv("STRIPE_SECRET_KEY")
+    STRIPE_WEBHOOK_SECRET: Optional[str] = os.getenv("STRIPE_WEBHOOK_SECRET")
+    
+    # JWT Refresh tokens
+    REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
+    
     class Config:
-        env_file = ".env"
+        env_file = "../.env"
         case_sensitive = True
+        extra = "ignore"  # Игнорировать дополнительные поля
 
 # Создаем экземпляр настроек
 settings = Settings() 

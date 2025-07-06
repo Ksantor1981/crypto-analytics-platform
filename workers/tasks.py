@@ -34,20 +34,32 @@ app.conf.update(
 @app.task(name="collect_telegram_signals")
 def collect_telegram_signals():
     """
-    Собирает сигналы из Telegram каналов
+    Собирает сигналы из Telegram каналов и сохраняет в БД
     """
     logger.info("Starting Telegram signal collection")
     
     try:
-        # В реальном проекте здесь будет код для сбора данных из Telegram
-        # Например:
-        # from telegram_collector import TelegramCollector
-        # collector = TelegramCollector()
-        # signals = collector.collect_signals()
+        # Import the Telegram collector and processor
+        from telegram.telegram_client import collect_telegram_signals_sync
+        from telegram.signal_processor import signal_processor
         
-        # Заглушка для демонстрации
-        logger.info("Successfully collected signals from Telegram")
-        return {"status": "success", "collected_signals": 10, "timestamp": datetime.now().isoformat()}
+        # Collect signals using our Telegram client
+        result = collect_telegram_signals_sync()
+        logger.info(f"Successfully collected {result.get('total_signals_collected', 0)} signals from Telegram")
+        
+        # Process and save signals to database
+        if result.get('status') == 'success' and result.get('signals'):
+            processing_result = signal_processor.process_signals(result['signals'])
+            logger.info(f"Processed {processing_result.get('processed', 0)} signals, saved {processing_result.get('saved', 0)}")
+            
+            # Merge results
+            result.update({
+                'processing_result': processing_result,
+                'signals_saved': processing_result.get('saved', 0),
+                'processing_errors': processing_result.get('errors', 0)
+            })
+        
+        return result
     
     except Exception as e:
         logger.error(f"Error collecting Telegram signals: {str(e)}")
@@ -85,15 +97,14 @@ def check_signal_results():
     logger.info("Starting signal results check")
     
     try:
-        # В реальном проекте здесь будет код для проверки результатов сигналов
-        # Например:
-        # from signal_checker import SignalResultChecker
-        # checker = SignalResultChecker()
-        # results = checker.check_pending_signals()
+        # Import the price checker
+        from exchange.price_checker import check_signal_results_sync
         
-        # Заглушка для демонстрации
-        logger.info("Successfully checked signal results")
-        return {"status": "success", "checked_signals": 15, "timestamp": datetime.now().isoformat()}
+        # Check signal execution results
+        result = check_signal_results_sync()
+        logger.info(f"Successfully checked {result.get('signals_checked', 0)} signal results")
+        
+        return result
     
     except Exception as e:
         logger.error(f"Error checking signal results: {str(e)}")
@@ -120,6 +131,48 @@ def get_ml_predictions():
     
     except Exception as e:
         logger.error(f"Error getting ML predictions: {str(e)}")
+        return {"status": "error", "error": str(e), "timestamp": datetime.now().isoformat()}
+
+# Задача для мониторинга цен в реальном времени
+@app.task(name="monitor_prices")
+def monitor_prices():
+    """
+    Мониторит цены активов в реальном времени и обновляет статусы сигналов
+    """
+    logger.info("Starting real-time price monitoring")
+    
+    try:
+        # Import the price monitor
+        from exchange.price_monitor import monitor_prices_sync
+        
+        # Monitor prices and update signal statuses
+        result = monitor_prices_sync()
+        logger.info(f"Successfully monitored prices for {result.get('assets_monitored', 0)} assets")
+        
+        return result
+    
+    except Exception as e:
+        logger.error(f"Error monitoring prices: {str(e)}")
+        return {"status": "error", "error": str(e), "timestamp": datetime.now().isoformat()}
+
+# Задача для получения статистики Telegram интеграции
+@app.task(name="get_telegram_stats")
+def get_telegram_stats():
+    """
+    Получает статистику работы Telegram интеграции
+    """
+    logger.info("Getting Telegram integration statistics")
+    
+    try:
+        from telegram.signal_processor import signal_processor
+        
+        stats = signal_processor.get_processing_stats()
+        logger.info(f"Telegram stats: {stats.get('today_signals', 0)} signals today")
+        
+        return stats
+    
+    except Exception as e:
+        logger.error(f"Error getting Telegram stats: {str(e)}")
         return {"status": "error", "error": str(e), "timestamp": datetime.now().isoformat()}
 
 # Настройка периодических задач
@@ -151,4 +204,18 @@ def setup_periodic_tasks(sender, **kwargs):
         1800.0,
         get_ml_predictions.s(),
         name="get_ml_predictions_30min",
+    )
+    
+    # Мониторинг цен каждые 5 минут
+    sender.add_periodic_task(
+        300.0,
+        monitor_prices.s(),
+        name="monitor_prices_5min",
+    )
+    
+    # Статистика Telegram интеграции каждые 2 часа
+    sender.add_periodic_task(
+        7200.0,
+        get_telegram_stats.s(),
+        name="get_telegram_stats_2h",
     ) 
