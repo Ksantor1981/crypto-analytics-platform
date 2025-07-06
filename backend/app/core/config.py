@@ -6,6 +6,25 @@ from dotenv import load_dotenv
 # Загружаем переменные окружения из .env файла
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
+def validate_required_env_vars():
+    """Validate that all required environment variables are set"""
+    required_vars = {
+        "SECRET_KEY": "JWT secret key for token signing",
+        "DATABASE_URL": "Database connection URL"
+    }
+    
+    missing_vars = []
+    for var, description in required_vars.items():
+        if not os.getenv(var):
+            missing_vars.append(f"{var} ({description})")
+    
+    if missing_vars:
+        raise ValueError(
+            f"Missing required environment variables:\n" +
+            "\n".join(f"  - {var}" for var in missing_vars) +
+            "\n\nPlease set these environment variables before starting the application."
+        )
+
 class Settings(BaseSettings):
     """
     Application settings
@@ -15,10 +34,10 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Crypto Analytics Platform"
     
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://crypto_user:crypto_password@localhost:5432/crypto_analytics")
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
     
-    # JWT
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "supersecretkey")
+    # JWT - No fallback for security
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     
@@ -48,10 +67,23 @@ class Settings(BaseSettings):
     # JWT Refresh tokens
     REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
     
+    # Rate Limiting
+    RATE_LIMIT_REQUESTS: int = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
+    RATE_LIMIT_WINDOW: int = int(os.getenv("RATE_LIMIT_WINDOW", "3600"))  # 1 hour
+    AUTH_RATE_LIMIT_REQUESTS: int = int(os.getenv("AUTH_RATE_LIMIT_REQUESTS", "5"))
+    AUTH_RATE_LIMIT_WINDOW: int = int(os.getenv("AUTH_RATE_LIMIT_WINDOW", "900"))  # 15 minutes
+    
     class Config:
         env_file = "../.env"
         case_sensitive = True
         extra = "ignore"  # Игнорировать дополнительные поля
 
+# Validate required environment variables
+validate_required_env_vars()
+
 # Создаем экземпляр настроек
-settings = Settings() 
+settings = Settings()
+
+def get_settings() -> Settings:
+    """Получить настройки приложения"""
+    return settings 

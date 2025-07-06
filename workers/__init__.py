@@ -1,0 +1,1 @@
+# Workers package for crypto analytics platform 
