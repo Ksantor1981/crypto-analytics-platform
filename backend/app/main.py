@@ -34,11 +34,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Добавляем middleware для доверенных хостов
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=settings.BACKEND_CORS_ORIGINS
-)
+# Добавляем middleware для доверенных хостов (только в продакшене)
+if settings.ENVIRONMENT == "production":
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=settings.BACKEND_CORS_ORIGINS
+    )
 
 # Создание таблиц при запуске
 @app.on_event("startup")
