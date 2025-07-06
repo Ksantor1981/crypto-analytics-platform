@@ -1,1 +1,1 @@
-# Telegram worker package 
+# Telegram integration package 
