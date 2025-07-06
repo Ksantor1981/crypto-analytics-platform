@@ -30,11 +30,13 @@ from app.schemas.signal import (
     AssetPerformance,
     TopSignal,
     SignalDirection,
-    SignalStatus
+    SignalStatus,
+    TelegramSignalCreate,
+    TelegramSignalResponse
 )
 from app.models.user import User
-from app.core.rate_limiter import limiter
 from app.core.logging import get_logger
+from app.models.signal import TelegramSignal
 from pydantic import BaseModel, Field
 
 # Настройка логирования
@@ -361,394 +363,163 @@ async def get_advanced_analytics(
         }
     }
 
-# Pydantic модели для сигналов
-class TelegramSignalCreate(BaseModel):
-    """Модель для создания сигнала из Telegram"""
-    symbol: str = Field(..., description="Торговая пара (например, BTCUSDT)")
-    signal_type: str = Field(..., description="Тип сигнала: long/short")
-    entry_price: Optional[float] = Field(None, description="Цена входа")
-    target_price: Optional[float] = Field(None, description="Целевая цена")
-    stop_loss: Optional[float] = Field(None, description="Стоп-лосс")
-    confidence: float = Field(0.5, ge=0.0, le=1.0, description="Уверенность в сигнале")
-    source: str = Field(..., description="Источник сигнала")
-    original_text: Optional[str] = Field(None, description="Оригинальный текст сообщения")
-    metadata: Optional[Dict] = Field(None, description="Дополнительные метаданные")
-
-class TelegramSignalResponse(BaseModel):
-    """Модель ответа для сигнала"""
-    id: int
-    symbol: str
-    signal_type: str
-    entry_price: Optional[float]
-    target_price: Optional[float]
-    stop_loss: Optional[float]
-    confidence: float
-    source: str
-    status: str
-    created_at: datetime
-    metadata: Optional[Dict]
-
-# Временное хранилище сигналов (в продакшене использовать БД)
-signals_storage = []
-signal_id_counter = 1
-
-@router.post("/signals/", response_model=TelegramSignalResponse)
-@limiter.limit("100/hour")
-async def create_signal(
-    request: Request,
+# Telegram signal endpoints (simplified for integration)
+@router.post("/telegram/", response_model=TelegramSignalResponse)
+async def create_telegram_signal(
     signal: TelegramSignalCreate,
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
-    """
-    Создание нового торгового сигнала из Telegram
-    """
-    global signal_id_counter
-    
+    """Create a new Telegram signal."""
     try:
-        # Валидация данных
-        if not signal.symbol or len(signal.symbol) < 3:
-            raise HTTPException(status_code=400, detail="Некорректный символ")
-        
-        if signal.signal_type.lower() not in ['long', 'short']:
-            raise HTTPException(status_code=400, detail="Тип сигнала должен быть 'long' или 'short'")
-        
-        # Создаем сигнал
-        new_signal = {
-            "id": signal_id_counter,
-            "symbol": signal.symbol.upper(),
-            "signal_type": signal.signal_type.lower(),
-            "entry_price": signal.entry_price,
-            "target_price": signal.target_price,
-            "stop_loss": signal.stop_loss,
-            "confidence": signal.confidence,
-            "source": signal.source,
-            "original_text": signal.original_text,
-            "metadata": signal.metadata or {},
-            "status": "active",
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc)
-        }
-        
-        # Сохраняем в хранилище
-        signals_storage.append(new_signal)
-        signal_id_counter += 1
-        
-        # Логируем создание сигнала
-        logger.info(
-            "signal_created",
-            extra={
-                "signal_id": new_signal["id"],
-                "symbol": new_signal["symbol"],
-                "signal_type": new_signal["signal_type"],
-                "source": new_signal["source"],
-                "confidence": new_signal["confidence"]
-            }
+        db_signal = TelegramSignal(
+            symbol=signal.symbol.upper(),
+            signal_type=signal.signal_type.lower(),
+            entry_price=signal.entry_price,
+            target_price=signal.target_price,
+            stop_loss=signal.stop_loss,
+            confidence=signal.confidence,
+            source=signal.source,
+            original_text=signal.original_text,
+            metadata=signal.metadata,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         
-        # Добавляем фоновую задачу для обработки сигнала
-        background_tasks.add_task(process_signal_background, new_signal)
+        db.add(db_signal)
+        db.commit()
+        db.refresh(db_signal)
         
-        return TelegramSignalResponse(**new_signal)
+        # Convert to response
+        response = TelegramSignalResponse(
+            id=db_signal.id,
+            symbol=db_signal.symbol,
+            signal_type=db_signal.signal_type,
+            entry_price=float(db_signal.entry_price) if db_signal.entry_price else None,
+            target_price=float(db_signal.target_price) if db_signal.target_price else None,
+            stop_loss=float(db_signal.stop_loss) if db_signal.stop_loss else None,
+            confidence=float(db_signal.confidence),
+            source=db_signal.source,
+            status=db_signal.status,
+            created_at=db_signal.created_at,
+            metadata=db_signal.metadata
+        )
+        
+        # Schedule background processing
+        background_tasks.add_task(process_signal_background, db_signal.id)
+        
+        return response
         
     except Exception as e:
-        logger.error(f"Ошибка создания сигнала: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка создания сигнала")
+        logger.error(f"Error creating telegram signal: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create signal"
+        )
 
-@router.get("/signals/", response_model=List[TelegramSignalResponse])
-@limiter.limit("200/hour")
-async def get_signals(
+@router.get("/telegram/", response_model=List[TelegramSignalResponse])
+async def get_telegram_signals(
     skip: int = 0,
     limit: int = 100,
     symbol: Optional[str] = None,
     signal_type: Optional[str] = None,
     source: Optional[str] = None,
-    status: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
-    """
-    Получение списка сигналов с фильтрацией
-    """
-    try:
-        # Фильтрация сигналов
-        filtered_signals = signals_storage.copy()
-        
-        if symbol:
-            filtered_signals = [s for s in filtered_signals if s["symbol"] == symbol.upper()]
-        
-        if signal_type:
-            filtered_signals = [s for s in filtered_signals if s["signal_type"] == signal_type.lower()]
-        
-        if source:
-            filtered_signals = [s for s in filtered_signals if source.lower() in s["source"].lower()]
-        
-        if status:
-            filtered_signals = [s for s in filtered_signals if s["status"] == status.lower()]
-        
-        # Пагинация
-        paginated_signals = filtered_signals[skip:skip + limit]
-        
-        # Сортировка по дате создания (новые первыми)
-        paginated_signals.sort(key=lambda x: x["created_at"], reverse=True)
-        
-        return [TelegramSignalResponse(**signal) for signal in paginated_signals]
-        
-    except Exception as e:
-        logger.error(f"Ошибка получения сигналов: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка получения сигналов")
+    """Get Telegram signals."""
+    query = db.query(TelegramSignal)
+    
+    if symbol:
+        query = query.filter(TelegramSignal.symbol.ilike(f"%{symbol.upper()}%"))
+    
+    if signal_type:
+        query = query.filter(TelegramSignal.signal_type == signal_type.lower())
+    
+    if source:
+        query = query.filter(TelegramSignal.source.ilike(f"%{source}%"))
+    
+    signals = query.offset(skip).limit(limit).all()
+    
+    return [
+        TelegramSignalResponse(
+            id=signal.id,
+            symbol=signal.symbol,
+            signal_type=signal.signal_type,
+            entry_price=float(signal.entry_price) if signal.entry_price else None,
+            target_price=float(signal.target_price) if signal.target_price else None,
+            stop_loss=float(signal.stop_loss) if signal.stop_loss else None,
+            confidence=float(signal.confidence),
+            source=signal.source,
+            status=signal.status,
+            created_at=signal.created_at,
+            metadata=signal.metadata
+        ) for signal in signals
+    ]
 
-@router.get("/signals/{signal_id}", response_model=TelegramSignalResponse)
-@limiter.limit("300/hour")
-async def get_signal(
-    signal_id: int,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Получение конкретного сигнала по ID
-    """
-    try:
-        signal = next((s for s in signals_storage if s["id"] == signal_id), None)
-        
-        if not signal:
-            raise HTTPException(status_code=404, detail="Сигнал не найден")
-        
-        return TelegramSignalResponse(**signal)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Ошибка получения сигнала {signal_id}: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка получения сигнала")
-
-@router.put("/signals/{signal_id}/status")
-@limiter.limit("100/hour")
-async def update_signal_status(
-    signal_id: int,
-    status: str,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Обновление статуса сигнала
-    """
-    try:
-        if status not in ['active', 'completed', 'failed', 'cancelled']:
-            raise HTTPException(status_code=400, detail="Недопустимый статус")
-        
-        signal = next((s for s in signals_storage if s["id"] == signal_id), None)
-        
-        if not signal:
-            raise HTTPException(status_code=404, detail="Сигнал не найден")
-        
-        old_status = signal["status"]
-        signal["status"] = status
-        signal["updated_at"] = datetime.now(timezone.utc)
-        
-        logger.info(
-            "signal_status_updated",
-            extra={
-                "signal_id": signal_id,
-                "old_status": old_status,
-                "new_status": status
-            }
-        )
-        
-        return {"message": "Статус обновлен", "signal_id": signal_id, "status": status}
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Ошибка обновления статуса сигнала {signal_id}: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка обновления статуса")
-
-@router.get("/signals/stats", response_model=SignalStats)
-@limiter.limit("50/hour")
-async def get_signals_stats(
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Получение статистики по сигналам
-    """
-    try:
-        if not signals_storage:
-            return SignalStats(
-                total_signals=0,
-                active_signals=0,
-                successful_signals=0,
-                failed_signals=0,
-                avg_confidence=0.0,
-                sources={},
-                symbols={}
-            )
-        
-        total_signals = len(signals_storage)
-        active_signals = len([s for s in signals_storage if s["status"] == "active"])
-        successful_signals = len([s for s in signals_storage if s["status"] == "completed"])
-        failed_signals = len([s for s in signals_storage if s["status"] == "failed"])
-        
-        avg_confidence = sum(s["confidence"] for s in signals_storage) / total_signals
-        
-        # Статистика по источникам
-        sources = {}
-        for signal in signals_storage:
-            source = signal["source"]
-            sources[source] = sources.get(source, 0) + 1
-        
-        # Статистика по символам
-        symbols = {}
-        for signal in signals_storage:
-            symbol = signal["symbol"]
-            symbols[symbol] = symbols.get(symbol, 0) + 1
-        
-        return SignalStats(
-            total_signals=total_signals,
-            active_signals=active_signals,
-            successful_signals=successful_signals,
-            failed_signals=failed_signals,
-            avg_confidence=round(avg_confidence, 3),
-            sources=sources,
-            symbols=symbols
-        )
-        
-    except Exception as e:
-        logger.error(f"Ошибка получения статистики: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка получения статистики")
-
-@router.delete("/signals/{signal_id}")
-@limiter.limit("50/hour")
-async def delete_signal(
-    signal_id: int,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Удаление сигнала
-    """
-    try:
-        signal_index = next((i for i, s in enumerate(signals_storage) if s["id"] == signal_id), None)
-        
-        if signal_index is None:
-            raise HTTPException(status_code=404, detail="Сигнал не найден")
-        
-        deleted_signal = signals_storage.pop(signal_index)
-        
-        logger.info(
-            "signal_deleted",
-            extra={
-                "signal_id": signal_id,
-                "symbol": deleted_signal["symbol"],
-                "source": deleted_signal["source"]
-            }
-        )
-        
-        return {"message": "Сигнал удален", "signal_id": signal_id}
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Ошибка удаления сигнала {signal_id}: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка удаления сигнала")
-
-@router.post("/signals/batch", response_model=Dict)
-@limiter.limit("10/hour")
-async def create_signals_batch(
+@router.post("/telegram/batch", response_model=Dict)
+async def create_telegram_signals_batch(
     signals: List[TelegramSignalCreate],
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
-    """
-    Создание пакета сигналов
-    """
-    global signal_id_counter
-    
+    """Create multiple Telegram signals in batch."""
     try:
-        if len(signals) > 50:
-            raise HTTPException(status_code=400, detail="Максимум 50 сигналов за раз")
-        
         created_signals = []
-        errors = []
         
         for signal_data in signals:
-            try:
-                # Валидация
-                if not signal_data.symbol or len(signal_data.symbol) < 3:
-                    errors.append(f"Некорректный символ: {signal_data.symbol}")
-                    continue
-                
-                if signal_data.signal_type.lower() not in ['long', 'short']:
-                    errors.append(f"Некорректный тип сигнала: {signal_data.signal_type}")
-                    continue
-                
-                # Создаем сигнал
-                new_signal = {
-                    "id": signal_id_counter,
-                    "symbol": signal_data.symbol.upper(),
-                    "signal_type": signal_data.signal_type.lower(),
-                    "entry_price": signal_data.entry_price,
-                    "target_price": signal_data.target_price,
-                    "stop_loss": signal_data.stop_loss,
-                    "confidence": signal_data.confidence,
-                    "source": signal_data.source,
-                    "original_text": signal_data.original_text,
-                    "metadata": signal_data.metadata or {},
-                    "status": "active",
-                    "created_at": datetime.now(timezone.utc),
-                    "updated_at": datetime.now(timezone.utc)
-                }
-                
-                signals_storage.append(new_signal)
-                created_signals.append(new_signal)
-                signal_id_counter += 1
-                
-                # Фоновая обработка
-                background_tasks.add_task(process_signal_background, new_signal)
-                
-            except Exception as e:
-                errors.append(f"Ошибка создания сигнала: {str(e)}")
+            db_signal = TelegramSignal(
+                symbol=signal_data.symbol.upper(),
+                signal_type=signal_data.signal_type.lower(),
+                entry_price=signal_data.entry_price,
+                target_price=signal_data.target_price,
+                stop_loss=signal_data.stop_loss,
+                confidence=signal_data.confidence,
+                source=signal_data.source,
+                original_text=signal_data.original_text,
+                metadata=signal_data.metadata,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            created_signals.append(db_signal)
         
-        logger.info(
-            "batch_signals_created",
-            extra={
-                "total_requested": len(signals),
-                "created": len(created_signals),
-                "errors": len(errors)
-            }
-        )
+        db.add_all(created_signals)
+        db.commit()
+        
+        # Schedule background processing for all signals
+        for signal in created_signals:
+            background_tasks.add_task(process_signal_background, signal.id)
         
         return {
-            "created": len(created_signals),
-            "errors": len(errors),
-            "error_details": errors,
-            "signal_ids": [s["id"] for s in created_signals]
+            "success": True,
+            "message": f"Created {len(created_signals)} signals",
+            "signal_ids": [signal.id for signal in created_signals]
         }
         
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Ошибка пакетного создания сигналов: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка пакетного создания сигналов")
-
-# Фоновая обработка сигналов
-async def process_signal_background(signal: Dict):
-    """
-    Фоновая обработка сигнала
-    """
-    try:
-        # Здесь можно добавить логику:
-        # - Проверка цен в реальном времени
-        # - Уведомления пользователей
-        # - Интеграция с торговыми платформами
-        # - Анализ эффективности
-        
-        logger.info(
-            "signal_processed",
-            extra={
-                "signal_id": signal["id"],
-                "symbol": signal["symbol"],
-                "processing_time": datetime.now(timezone.utc).isoformat()
-            }
+        logger.error(f"Error creating signals batch: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create signals batch"
         )
+
+@router.get("/telegram/health")
+async def telegram_signals_health():
+    """Health check for Telegram signals endpoint."""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "service": "telegram-signals"
+    }
+
+async def process_signal_background(signal_id: int):
+    """Background task to process the signal."""
+    try:
+        logger.info(f"Processing signal {signal_id} in background")
+        # Add any background processing logic here
+        # For example: ML analysis, validation, notifications, etc.
         
     except Exception as e:
-        logger.error(f"Ошибка фоновой обработки сигнала {signal['id']}: {e}")
+        logger.error(f"Error processing signal {signal_id}: {e}")
 
 # Health check для сигналов
 @router.get("/signals/health")

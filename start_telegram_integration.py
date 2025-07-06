@@ -19,7 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def check_dependencies():
-    """Проверка зависимостей"""
+    """Проверка наличия необходимых зависимостей"""
     logger.info("🔍 Проверка зависимостей...")
     
     required_packages = [
@@ -33,7 +33,11 @@ def check_dependencies():
     
     for package in required_packages:
         try:
-            __import__(package.replace('-', '_'))
+            # Специальная обработка для python-dotenv
+            if package == 'python-dotenv':
+                __import__('dotenv')
+            else:
+                __import__(package.replace('-', '_'))
             logger.info(f"✅ {package} установлен")
         except ImportError:
             missing_packages.append(package)

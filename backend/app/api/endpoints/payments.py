@@ -12,7 +12,7 @@ from app.core.auth import (
     require_admin,
     require_premium
 )
-from app.core.config import settings
+from app.core.config import get_settings
 from app.services.payment_service import PaymentService
 from app.schemas.payment import (
     PaymentCreate,
@@ -36,8 +36,12 @@ from app.schemas.payment import (
 )
 from app.models.user import User
 
+# Получаем настройки
+settings = get_settings()
+
 # Configure Stripe webhook endpoint secret
-stripe.api_key = settings.STRIPE_SECRET_KEY
+if settings.STRIPE_SECRET_KEY:
+    stripe.api_key = settings.STRIPE_SECRET_KEY
 webhook_secret = settings.STRIPE_WEBHOOK_SECRET
 
 router = APIRouter()
@@ -156,6 +160,12 @@ async def stripe_webhook(
     db: Session = Depends(get_db)
 ):
     """Handle Stripe webhook events."""
+    if not settings.STRIPE_WEBHOOK_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Stripe webhooks not configured"
+        )
+    
     try:
         # Get the raw body
         payload = await request.body()
@@ -164,7 +174,7 @@ async def stripe_webhook(
         # Verify webhook signature
         try:
             event = stripe.Webhook.construct_event(
-                payload, sig_header, webhook_secret
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
             )
         except ValueError as e:
             logger.error(f"Invalid payload: {e}")

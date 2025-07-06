@@ -1,115 +1,156 @@
 """
-Structured logging configuration
+Structured logging configuration using structlog
 """
+import structlog
 import logging
 import sys
-from typing import Any, Dict
-import structlog
-from pythonjsonlogger import jsonlogger
+from typing import Dict, Any, Optional
+from datetime import datetime
 
-from .config import settings
+from app.core.config import get_settings
 
-def setup_logging() -> None:
-    """Configure structured logging for the application."""
-    
-    # Configure structlog
-    structlog.configure(
-        processors=[
-            structlog.stdlib.filter_by_level,
-            structlog.stdlib.add_logger_name,
-            structlog.stdlib.add_log_level,
-            structlog.stdlib.PositionalArgumentsFormatter(),
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.StackInfoRenderer(),
-            structlog.processors.format_exc_info,
-            structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer() if settings.ENVIRONMENT == "production" else structlog.dev.ConsoleRenderer()
-        ],
-        context_class=dict,
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=True,
-    )
-    
-    # Configure standard logging
-    log_level = logging.DEBUG if settings.DEBUG else logging.INFO
-    
-    if settings.ENVIRONMENT == "production":
-        # JSON logging for production
-        formatter = jsonlogger.JsonFormatter(
-            '%(asctime)s %(name)s %(levelname)s %(message)s'
-        )
-    else:
-        # Human-readable logging for development
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-    
-    # Setup handler
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(formatter)
-    handler.setLevel(log_level)
-    
-    # Configure root logger
-    root_logger = logging.getLogger()
-    root_logger.setLevel(log_level)
-    root_logger.addHandler(handler)
-    
-    # Reduce noise from some libraries
-    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-    logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
-    
-    # Create application logger
-    logger = structlog.get_logger(__name__)
-    logger.info(
-        "Logging configured",
-        environment=settings.ENVIRONMENT,
-        debug=settings.DEBUG,
-        log_level=log_level
-    )
+# Получаем настройки
+settings = get_settings()
 
-def get_logger(name: str) -> Any:
-    """Get a structured logger instance."""
+# Configure structlog
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.processors.JSONRenderer() if settings.ENVIRONMENT == "production" 
+        else structlog.dev.ConsoleRenderer(),
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+# Configure standard library logging
+logging.basicConfig(
+    format="%(message)s",
+    stream=sys.stdout,
+    level=logging.DEBUG if settings.DEBUG else logging.INFO,
+)
+
+def get_logger(name: str = __name__) -> structlog.stdlib.BoundLogger:
+    """Get a structured logger instance"""
     return structlog.get_logger(name)
 
-# Security logging helpers
-def log_security_event(event_type: str, details: Dict[str, Any], user_id: str = None) -> None:
-    """Log security-related events."""
-    logger = get_logger("security")
-    logger.warning(
-        "Security event",
-        event_type=event_type,
-        user_id=user_id,
-        **details
-    )
-
-def log_authentication_attempt(success: bool, email: str, ip: str, user_agent: str = None) -> None:
-    """Log authentication attempts."""
+def log_authentication_attempt(
+    user_email: str,
+    success: bool,
+    ip_address: str,
+    user_agent: str = None,
+    additional_data: Dict[str, Any] = None
+):
+    """Log authentication attempts for security monitoring"""
     logger = get_logger("auth")
     
+    log_data = {
+        "event": "authentication_attempt",
+        "user_email": user_email,
+        "success": success,
+        "ip_address": ip_address,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    
+    if user_agent:
+        log_data["user_agent"] = user_agent
+    
+    if additional_data:
+        log_data.update(additional_data)
+    
     if success:
-        logger.info(
-            "Authentication successful",
-            email=email,
-            ip=ip,
-            user_agent=user_agent
-        )
+        logger.info("Authentication successful", **log_data)
     else:
-        logger.warning(
-            "Authentication failed",
-            email=email,
-            ip=ip,
-            user_agent=user_agent
-        )
+        logger.warning("Authentication failed", **log_data)
 
-def log_api_access(method: str, path: str, status_code: int, user_id: str = None, duration: float = None) -> None:
-    """Log API access."""
+def log_security_event(
+    event_type: str,
+    user_id: Optional[int] = None,
+    ip_address: str = None,
+    details: Dict[str, Any] = None
+):
+    """Log security-related events"""
+    logger = get_logger("security")
+    
+    log_data = {
+        "event": "security_event",
+        "event_type": event_type,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    
+    if user_id:
+        log_data["user_id"] = user_id
+    
+    if ip_address:
+        log_data["ip_address"] = ip_address
+    
+    if details:
+        log_data.update(details)
+    
+    logger.warning("Security event detected", **log_data)
+
+def log_api_request(
+    method: str,
+    endpoint: str,
+    user_id: Optional[int] = None,
+    ip_address: str = None,
+    response_status: int = None,
+    response_time_ms: float = None
+):
+    """Log API requests for monitoring"""
     logger = get_logger("api")
-    logger.info(
-        "API access",
-        method=method,
-        path=path,
-        status_code=status_code,
-        user_id=user_id,
-        duration_ms=duration * 1000 if duration else None
-    ) 
+    
+    log_data = {
+        "event": "api_request",
+        "method": method,
+        "endpoint": endpoint,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    
+    if user_id:
+        log_data["user_id"] = user_id
+    
+    if ip_address:
+        log_data["ip_address"] = ip_address
+    
+    if response_status:
+        log_data["response_status"] = response_status
+    
+    if response_time_ms:
+        log_data["response_time_ms"] = response_time_ms
+    
+    logger.info("API request", **log_data)
+
+def log_signal_processing(
+    signal_id: int,
+    action: str,
+    success: bool,
+    details: Dict[str, Any] = None
+):
+    """Log signal processing events"""
+    logger = get_logger("signals")
+    
+    log_data = {
+        "event": "signal_processing",
+        "signal_id": signal_id,
+        "action": action,
+        "success": success,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    
+    if details:
+        log_data.update(details)
+    
+    if success:
+        logger.info("Signal processing successful", **log_data)
+    else:
+        logger.error("Signal processing failed", **log_data) 

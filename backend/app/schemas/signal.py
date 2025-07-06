@@ -167,36 +167,68 @@ class SignalFilterParams(BaseModel):
 
 # Схема для статистики сигналов
 class SignalStats(BaseModel):
+    """Signal statistics schema."""
     total_signals: int = 0
     successful_signals: int = 0
-    failed_signals: int = 0
-    pending_signals: int = 0
-    accuracy_percentage: float = 0.0
+    success_rate: float = 0.0
     average_roi: float = 0.0
-    total_profit_loss: float = 0.0
+    total_roi: float = 0.0
     best_signal_roi: float = 0.0
     worst_signal_roi: float = 0.0
     average_duration_hours: float = 0.0
     
-    # Target hit breakdown
-    tp1_hits: int = 0
-    tp2_hits: int = 0
-    tp3_hits: int = 0
-    sl_hits: int = 0
-    expired_signals: int = 0
+    class Config:
+        from_attributes = True
 
 # Схема для статистики канала
-class ChannelSignalStats(SignalStats):
+class ChannelSignalStats(BaseModel):
+    """Channel-specific signal statistics."""
     channel_id: int
-    channel_name: Optional[str] = None
-    period_days: int = 30
+    channel_name: str
+    stats: SignalStats
+    
+    class Config:
+        from_attributes = True
 
 # Схема для статистики актива
 class AssetPerformance(BaseModel):
+    """Asset performance data."""
     asset: str
-    total_signals: int = 0
-    successful_signals: int = 0
-    accuracy_percentage: float = 0.0
-    average_roi: float = 0.0
-    total_profit_loss: float = 0.0
-    risk_reward_ratio: float = 0.0 
+    total_signals: int
+    successful_signals: int
+    success_rate: float
+    average_roi: float
+    total_roi: float
+    
+    class Config:
+        from_attributes = True
+
+# Telegram-specific schemas for direct integration
+class TelegramSignalCreate(BaseModel):
+    """Schema for creating signals from Telegram."""
+    symbol: str = Field(..., description="Trading pair (e.g., BTCUSDT)")
+    signal_type: str = Field(..., description="Signal type: long/short")
+    entry_price: Optional[float] = Field(None, description="Entry price")
+    target_price: Optional[float] = Field(None, description="Target price")
+    stop_loss: Optional[float] = Field(None, description="Stop loss")
+    confidence: float = Field(0.5, ge=0.0, le=1.0, description="Signal confidence")
+    source: str = Field(..., description="Signal source")
+    original_text: Optional[str] = Field(None, description="Original message text")
+    metadata: Optional[Dict] = Field(None, description="Additional metadata")
+
+class TelegramSignalResponse(BaseModel):
+    """Response schema for Telegram signals."""
+    id: int
+    symbol: str
+    signal_type: str
+    entry_price: Optional[float]
+    target_price: Optional[float]
+    stop_loss: Optional[float]
+    confidence: float
+    source: str
+    status: str
+    created_at: datetime
+    metadata: Optional[Dict]
+    
+    class Config:
+        from_attributes = True 

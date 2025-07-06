@@ -9,8 +9,11 @@ from passlib.hash import bcrypt
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 import structlog
+import secrets
+import string
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from app.core.config import settings
+from app.core.config import get_settings
 from app.models.user import User
 
 # Structured logging setup
@@ -20,9 +23,12 @@ logger = structlog.get_logger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT settings
-ALGORITHM = settings.JWT_ALGORITHM
+ALGORITHM = get_settings().JWT_ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
+
+# HTTP Bearer for authorization
+security = HTTPBearer()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -50,7 +56,7 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     to_encode.update({"exp": expire, "type": "access"})
     
     try:
-        encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, get_settings().SECRET_KEY, algorithm=ALGORITHM)
         logger.info("Access token created", user_id=data.get("sub"), expires=expire.isoformat())
         return encoded_jwt
     except Exception as e:
@@ -68,7 +74,7 @@ def create_refresh_token(data: Dict[str, Any]) -> str:
     to_encode.update({"exp": expire, "type": "refresh"})
     
     try:
-        encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, get_settings().SECRET_KEY, algorithm=ALGORITHM)
         logger.info("Refresh token created", user_id=data.get("sub"), expires=expire.isoformat())
         return encoded_jwt
     except Exception as e:
@@ -82,7 +88,7 @@ def create_refresh_token(data: Dict[str, Any]) -> str:
 def verify_token(token: str, token_type: str = "access") -> Dict[str, Any]:
     """Verify and decode JWT token."""
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, get_settings().SECRET_KEY, algorithms=[ALGORITHM])
         
         # Verify token type
         if payload.get("type") != token_type:
@@ -159,4 +165,34 @@ def create_user_tokens(user: User) -> Dict[str, str]:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not create user tokens"
+        )
+
+
+def generate_random_password(length: int = 12) -> str:
+    """
+    Генерация случайного пароля
+    """
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+
+def verify_refresh_token(token: str):
+    """
+    Проверка refresh токена
+    """
+    try:
+        payload = jwt.decode(token, get_settings().SECRET_KEY, algorithms=[get_settings().JWT_ALGORITHM])
+        token_type = payload.get("type")
+        if token_type != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return payload
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate refresh token",
+            headers={"WWW-Authenticate": "Bearer"},
         ) 

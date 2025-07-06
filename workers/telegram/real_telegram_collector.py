@@ -22,7 +22,13 @@ except ImportError:
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 # Импорты конфигурации
-from real_data_config import TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_BOT_TOKEN
+try:
+    from workers.real_data_config import TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_BOT_TOKEN
+except ImportError:
+    # Fallback значения для тестирования
+    TELEGRAM_API_ID = 21073808
+    TELEGRAM_API_HASH = "2e3adb8940912dd295fe20c1d2ce5368"
+    TELEGRAM_BOT_TOKEN = None
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
