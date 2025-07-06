@@ -1,29 +1,26 @@
-# Database models package 
-from .base import Base, BaseModel
-from .user import User, UserRole
+"""
+Database models initialization
+"""
+from .base import BaseModel
+from .user import User
 from .channel import Channel
-from .signal import Signal, SignalDirection, SignalStatus
-from .subscription import Subscription, SubscriptionPlan, SubscriptionStatus
-from .api_key import APIKey, APIKeyStatus
-from .payment import Payment, PaymentStatus, PaymentMethod
+from .signal import Signal, TelegramSignal, SignalDirection, SignalStatus
+from .subscription import Subscription
+from .payment import Payment
 from .performance_metric import PerformanceMetric
+from .api_key import APIKey
 
+# Ensure all models are imported for Alembic auto-generation
 __all__ = [
-    "Base",
     "BaseModel",
-    "User",
-    "UserRole", 
+    "User", 
     "Channel",
     "Signal",
+    "TelegramSignal",
     "SignalDirection",
     "SignalStatus",
     "Subscription",
-    "SubscriptionPlan",
-    "SubscriptionStatus",
-    "APIKey",
-    "APIKeyStatus",
-    "Payment",
-    "PaymentStatus",
-    "PaymentMethod",
+    "Payment", 
     "PerformanceMetric",
+    "APIKey"
 ] 

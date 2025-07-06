@@ -6,20 +6,30 @@ import sys
 import os
 from datetime import datetime, timedelta
 from decimal import Decimal
+from pathlib import Path
 
-# Add parent directory to path so we can import app modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add the backend directory to the Python path
+backend_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_dir))
+
+# Set environment
+os.environ['ENVIRONMENT'] = 'development'
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from passlib.hash import bcrypt
 
-from app.core.config import settings
+from app.core.config import get_settings
+from app.core.database import get_db
 from app.models import (
     Base, User, Channel, Signal, Subscription, APIKey, Payment, 
     PerformanceMetric, UserRole, SignalDirection, SignalStatus,
     SubscriptionPlan, SubscriptionStatus, PaymentStatus, PaymentMethod
 )
+from app.schemas.user import UserCreate
+from app.schemas.channel import ChannelCreate
+from app.services.user_service import UserService
+from app.services.channel_service import ChannelService
 
 def create_test_users(session):
     """Create test users"""
@@ -371,37 +381,96 @@ def create_test_performance_metrics(session, channels):
     
     session.commit()
 
-def main():
-    """Main seeding function"""
-    print("Starting database seeding...")
+def seed_database():
+    """Seed database with initial data."""
+    settings = get_settings()
+    print("🌱 Starting database seeding...")
     
-    # Create engine and session
-    engine = create_engine(settings.DATABASE_URL)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    session = SessionLocal()
+    # Get database session
+    db = next(get_db())
     
     try:
-        # Create test data
-        users = create_test_users(session)
-        channels = create_test_channels(session)
-        create_test_signals(session, channels)
-        create_test_subscriptions(session, users)
-        create_test_api_keys(session, users)
-        create_test_payments(session, users)
-        create_test_performance_metrics(session, channels)
+        # Create admin user
+        admin_data = UserCreate(
+            email="admin@crypto-analytics.com",
+            username="admin",
+            password="admin123",
+            full_name="System Administrator",
+            is_active=True,
+            is_admin=True
+        )
         
-        print("✅ Database seeding completed successfully!")
-        print("\nTest accounts created:")
-        print("- Admin: admin@cryptoanalytics.com / admin123")
-        print("- Premium User: premium@example.com / premium123") 
-        print("- Free User: free@example.com / free123")
+        user_service = UserService(db)
+        admin_user = user_service.create_user(admin_data)
+        print(f"✅ Created admin user: {admin_user.email}")
+        
+        # Create test channels
+        channel_service = ChannelService(db)
+        
+        test_channels = [
+            {
+                "name": "Binance Killers",
+                "description": "Premium crypto trading signals",
+                "telegram_channel_id": "binancekillers",
+                "is_active": True,
+                "subscription_price": Decimal("49.99")
+            },
+            {
+                "name": "Crypto Signals Pro",
+                "description": "Professional trading signals",
+                "telegram_channel_id": "cryptosignalspro",
+                "is_active": True,
+                "subscription_price": Decimal("29.99")
+            },
+            {
+                "name": "Altcoin Alerts",
+                "description": "Altcoin trading opportunities",
+                "telegram_channel_id": "altcoinalerts",
+                "is_active": True,
+                "subscription_price": Decimal("19.99")
+            }
+        ]
+        
+        for channel_data in test_channels:
+            channel_create = ChannelCreate(**channel_data)
+            channel = channel_service.create_channel(channel_create)
+            print(f"✅ Created channel: {channel.name}")
+        
+        # Create test signals
+        channels = db.query(Channel).all()
+        
+        for channel in channels:
+            for i in range(5):
+                signal = Signal(
+                    channel_id=channel.id,
+                    coin_symbol=f"BTC{i}" if i == 0 else f"ETH{i}",
+                    signal_type="BUY",
+                    entry_price=Decimal("50000.00") + (i * 1000),
+                    target_price=Decimal("55000.00") + (i * 1000),
+                    stop_loss=Decimal("48000.00") + (i * 1000),
+                    leverage=10,
+                    confidence_score=0.85,
+                    message_text=f"🚀 {channel.name} Signal #{i+1}",
+                    created_at=datetime.utcnow() - timedelta(hours=i)
+                )
+                db.add(signal)
+        
+        db.commit()
+        print("✅ Created test signals")
+        
+        print("🎉 Database seeding completed successfully!")
         
     except Exception as e:
-        print(f"❌ Error during seeding: {e}")
-        session.rollback()
-        raise
+        print(f"❌ Error seeding database: {e}")
+        import traceback
+        traceback.print_exc()
+        db.rollback()
+        return False
     finally:
-        session.close()
+        db.close()
+    
+    return True
 
 if __name__ == "__main__":
-    main() 
+    success = seed_database()
+    sys.exit(0 if success else 1) 

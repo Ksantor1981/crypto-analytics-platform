@@ -4,7 +4,8 @@ import os
 from dotenv import load_dotenv
 
 # Загружаем переменные окружения из .env файла
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env")
+load_dotenv(dotenv_path=env_path)
 
 def validate_required_env_vars():
     """Validate that all required environment variables are set"""
@@ -32,58 +33,69 @@ class Settings(BaseSettings):
     # API
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Crypto Analytics Platform"
+    VERSION: str = "1.0.0"
     
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    DATABASE_URL: str = "sqlite:///./crypto_analytics.db"
     
     # JWT - No fallback for security
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
-    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    SECRET_KEY: str = "crypto-analytics-secret-key-2024-development"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["*"]
     
     # Environment
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
-    DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
+    ENVIRONMENT: str = "development"
+    DEBUG: bool = True
     
     # Redis
-    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    REDIS_URL: str = "redis://localhost:6379/0"
     
     # External APIs
-    TELEGRAM_API_ID: Optional[str] = os.getenv("TELEGRAM_API_ID")
-    TELEGRAM_API_HASH: Optional[str] = os.getenv("TELEGRAM_API_HASH")
-    TELEGRAM_SESSION_NAME: Optional[str] = os.getenv("TELEGRAM_SESSION_NAME")
+    TELEGRAM_API_ID: Optional[str] = None
+    TELEGRAM_API_HASH: Optional[str] = None
+    TELEGRAM_SESSION_NAME: Optional[str] = None
     
     # ML Service
-    ML_SERVICE_URL: str = os.getenv("ML_SERVICE_URL", "http://ml-service:8001")
+    ML_SERVICE_URL: str = "http://ml-service:8001"
     
     # Stripe
-    STRIPE_PUBLISHABLE_KEY: Optional[str] = os.getenv("STRIPE_PUBLISHABLE_KEY")
-    STRIPE_SECRET_KEY: Optional[str] = os.getenv("STRIPE_SECRET_KEY")
-    STRIPE_WEBHOOK_SECRET: Optional[str] = os.getenv("STRIPE_WEBHOOK_SECRET")
+    STRIPE_PUBLISHABLE_KEY: Optional[str] = None
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
     
     # JWT Refresh tokens
-    REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     
     # Rate Limiting
-    RATE_LIMIT_REQUESTS: int = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
-    RATE_LIMIT_WINDOW: int = int(os.getenv("RATE_LIMIT_WINDOW", "3600"))  # 1 hour
-    AUTH_RATE_LIMIT_REQUESTS: int = int(os.getenv("AUTH_RATE_LIMIT_REQUESTS", "5"))
-    AUTH_RATE_LIMIT_WINDOW: int = int(os.getenv("AUTH_RATE_LIMIT_WINDOW", "900"))  # 15 minutes
+    RATE_LIMIT_REQUESTS: int = 100
+    RATE_LIMIT_WINDOW: int = 3600  # 1 hour
+    AUTH_RATE_LIMIT_REQUESTS: int = 5
+    AUTH_RATE_LIMIT_WINDOW: int = 900  # 15 minutes
     
     class Config:
-        env_file = "../.env"
+        env_file = ".env"
         case_sensitive = True
         extra = "ignore"  # Игнорировать дополнительные поля
 
-# Validate required environment variables
-validate_required_env_vars()
-
-# Создаем экземпляр настроек
-settings = Settings()
+# Создаем функцию для получения настроек
+_settings = None
 
 def get_settings() -> Settings:
     """Получить настройки приложения"""
-    return settings 
+    global _settings
+    if _settings is None:
+        # Загружаем переменные из .env
+        env_vars = {}
+        if os.path.exists(".env"):
+            with open(".env", "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, value = line.split("=", 1)
+                        env_vars[key] = value
+        
+        _settings = Settings(**env_vars)
+    return _settings 

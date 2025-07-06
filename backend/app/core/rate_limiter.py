@@ -1,5 +1,5 @@
 """
-Rate limiting utilities for API protection
+Rate limiting configuration using slowapi
 """
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -7,23 +7,26 @@ from slowapi.errors import RateLimitExceeded
 from fastapi import Request, HTTPException, status
 import structlog
 
-from .config import settings
+from app.core.config import get_settings
 
 logger = structlog.get_logger(__name__)
+
+# Получаем настройки
+settings = get_settings()
 
 # Create limiter instance
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=[f"{settings.RATE_LIMIT_REQUESTS}/hour"]
+    default_limits=[f"{settings.RATE_LIMIT_REQUESTS}/{settings.RATE_LIMIT_WINDOW}second"]
 )
 
 def get_auth_rate_limit() -> str:
     """Get authentication rate limit string."""
-    return f"{settings.AUTH_RATE_LIMIT_REQUESTS}/{settings.AUTH_RATE_LIMIT_WINDOW}seconds"
+    return f"{settings.AUTH_RATE_LIMIT_REQUESTS}/{settings.AUTH_RATE_LIMIT_WINDOW}second"
 
 def get_general_rate_limit() -> str:
     """Get general rate limit string."""
-    return f"{settings.RATE_LIMIT_REQUESTS}/{settings.RATE_LIMIT_WINDOW}seconds"
+    return f"{settings.RATE_LIMIT_REQUESTS}/{settings.RATE_LIMIT_WINDOW}second"
 
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
     """Custom rate limit exceeded handler."""

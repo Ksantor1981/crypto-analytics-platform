@@ -26,10 +26,10 @@ from app.schemas.payment import (
     InvoiceResponse,
     StripeWebhookPayment
 )
-from app.core.config import settings
+from app.core.config import get_settings
 
 # Configure Stripe
-stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = get_settings().STRIPE_SECRET_KEY
 
 logger = logging.getLogger(__name__)
 

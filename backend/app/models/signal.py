@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Integer, Enum, DateTime, ForeignKey, Text, Boolean, Numeric
+from sqlalchemy import Column, String, Float, Integer, Enum, DateTime, ForeignKey, Text, Boolean, Numeric, JSON
 from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime
@@ -132,4 +132,30 @@ class Signal(BaseModel):
         return round(roi, 4)
     
     def __repr__(self):
-        return f"<Signal {self.asset} {self.direction} at {self.entry_price} - {self.status}>" 
+        return f"<Signal {self.asset} {self.direction} at {self.entry_price} - {self.status}>"
+
+
+class TelegramSignal(BaseModel):
+    """
+    Simplified model for Telegram signals - for direct integration
+    """
+    __tablename__ = "telegram_signals"
+    
+    # Basic signal info
+    symbol = Column(String(20), nullable=False, index=True)  # e.g., BTCUSDT
+    signal_type = Column(String(10), nullable=False)  # long/short
+    entry_price = Column(Numeric(20, 8), nullable=True)
+    target_price = Column(Numeric(20, 8), nullable=True)
+    stop_loss = Column(Numeric(20, 8), nullable=True)
+    
+    # Signal metadata
+    confidence = Column(Numeric(5, 4), default=0.5)  # 0.0 to 1.0
+    source = Column(String(100), nullable=False)  # Source channel/bot
+    original_text = Column(Text, nullable=True)
+    signal_metadata = Column(JSON, nullable=True)  # Additional data (renamed from metadata)
+    
+    # Status tracking
+    status = Column(String(20), default="PENDING", index=True)
+    
+    def __repr__(self):
+        return f"<TelegramSignal {self.symbol} {self.signal_type} - {self.status}>" 
