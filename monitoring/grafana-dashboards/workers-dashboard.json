@@ -1,0 +1,45 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Processed Tasks",
+      "targets": [
+        {
+          "expr": "sum(rate(celery_task_received_total{job='workers'}[1m]))",
+          "legendFormat": "tasks/sec"
+        }
+      ],
+      "id": 1
+    },
+    {
+      "type": "graph",
+      "title": "Task Failures",
+      "targets": [
+        {
+          "expr": "sum(rate(celery_task_failed_total{job='workers'}[1m]))",
+          "legendFormat": "failures/sec"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "type": "graph",
+      "title": "Task Latency",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(celery_task_runtime_seconds_bucket{job='workers'}[1m])) by (le))",
+          "legendFormat": "p95 latency"
+        }
+      ],
+      "id": 3
+    }
+  ],
+  "schemaVersion": 16,
+  "version": 1,
+  "title": "Workers Overview"
+} 

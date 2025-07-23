@@ -1,0 +1,959 @@
+{
+  "info": {
+    "name": "Crypto Analytics Platform - COMPLETE API Collection",
+    "description": "Полная коллекция всех API эндпоинтов криптоаналитической платформы (79 эндпоинтов)",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{ACCESS_TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "API_V1_URL",
+      "value": "{{BASE_URL}}/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REFRESH_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "USER_ID",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/users/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"test123456\",\n  \"full_name\": \"Test User\",\n  \"phone\": \"+1234567890\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('ACCESS_TOKEN', response.access_token);",
+                  "    pm.collectionVariables.set('REFRESH_TOKEN', response.refresh_token);",
+                  "    console.log('Tokens saved successfully');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/users/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"test123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/users/refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{REFRESH_TOKEN}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Users Management",
+      "item": [
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/users/me",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Update Current User",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/users/me",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Updated Name\",\n  \"phone\": \"+1234567890\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/users/me/change-password",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"test123456\",\n  \"new_password\": \"newpassword123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Current User Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/users/me/stats",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Deactivate Current User",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/users/me/deactivate",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Users (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/users/?skip=0&limit=100&active_only=true",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get User By ID (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/users/{{USER_ID}}",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Update User By ID (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/users/{{USER_ID}}",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Admin Updated Name\",\n  \"role\": \"PREMIUM\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User (Admin)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{API_V1_URL}}/users/{{USER_ID}}",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Activate User (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/users/{{USER_ID}}/activate",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Deactivate User (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/users/{{USER_ID}}/deactivate",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Upgrade User Subscription (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/users/{{USER_ID}}/upgrade?role=PREMIUM",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get User Stats By ID (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/users/{{USER_ID}}/stats",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "📺 Channels",
+      "item": [
+        {
+          "name": "Get Channels",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/channels/?skip=0&limit=100&platform=telegram&category=crypto"
+          }
+        },
+        {
+          "name": "Get Channel by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/channels/1"
+          }
+        },
+        {
+          "name": "Get Channel Signals",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/channels/1/signals?skip=0&limit=50"
+          }
+        },
+        {
+          "name": "Get Channel Statistics",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/channels/1/statistics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Signals",
+      "item": [
+        {
+          "name": "Get Signals",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/?skip=0&limit=100&channel_id=1&asset=BTCUSDT&direction=LONG&status=PENDING",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Create Signal (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/signals/",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset\": \"BTCUSDT\",\n  \"direction\": \"LONG\",\n  \"entry_price\": 45000,\n  \"tp1_price\": 47000,\n  \"tp2_price\": 49000,\n  \"stop_loss\": 43000,\n  \"channel_id\": 1,\n  \"original_text\": \"BTC LONG signal\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Signal by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/1",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Update Signal (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/signals/1",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"TP1_HIT\",\n  \"tp1_hit_at\": \"2024-01-01T12:00:00Z\",\n  \"profit_loss_percentage\": 4.44\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Signal (Admin)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{API_V1_URL}}/signals/1",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Cancel Signal (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/signals/1/cancel?reason=Market changed",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Signal Stats Overview",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/stats/overview?channel_id=1&days=30",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Channel Signal Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/stats/channel/1?days=30",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Top Performing Signals",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/analytics/top-performing?limit=10&days=30",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Asset Performance",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/analytics/asset-performance?days=30",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Expire Old Signals (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/signals/maintenance/expire-old",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Advanced Analytics (Premium)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/premium/advanced-analytics?days=30",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "📱 Telegram Signals",
+      "item": [
+        {
+          "name": "Create Telegram Signal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/signals/telegram/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTCUSDT\",\n  \"signal_type\": \"LONG\",\n  \"entry_price\": 45000,\n  \"target_price\": 47000,\n  \"stop_loss\": 43000,\n  \"source\": \"CryptoChannel\",\n  \"confidence\": 0.85,\n  \"message_text\": \"BTC LONG 45000 TP 47000 SL 43000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Telegram Signals",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/telegram/?skip=0&limit=100&symbol=BTCUSDT&signal_type=LONG&source=CryptoChannel"
+          }
+        },
+        {
+          "name": "Create Telegram Signals Batch",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/signals/telegram/batch",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"symbol\": \"ETHUSDT\",\n    \"signal_type\": \"LONG\",\n    \"entry_price\": 3200,\n    \"target_price\": 3400,\n    \"stop_loss\": 3100,\n    \"source\": \"EthChannel\",\n    \"confidence\": 0.75\n  },\n  {\n    \"symbol\": \"ADAUSDT\",\n    \"signal_type\": \"SHORT\",\n    \"entry_price\": 0.45,\n    \"target_price\": 0.42,\n    \"stop_loss\": 0.47,\n    \"source\": \"AltChannel\",\n    \"confidence\": 0.80\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Telegram Signals Health",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/telegram/health"
+          }
+        },
+        {
+          "name": "Signals Health",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/signals/signals/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 Subscriptions",
+      "item": [
+        {
+          "name": "Get Subscription Plans",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/subscriptions/plans"
+          }
+        },
+        {
+          "name": "Get My Subscription",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/subscriptions/me",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Update My Subscription",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/subscriptions/me",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM_MONTHLY\",\n  \"auto_renew\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/subscriptions/",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM_MONTHLY\",\n  \"price\": 29.99,\n  \"user_id\": 1,\n  \"current_period_start\": \"2024-01-01T00:00:00Z\",\n  \"current_period_end\": \"2024-02-01T00:00:00Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Subscriptions (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/subscriptions/?skip=0&limit=100&plan=PREMIUM_MONTHLY&status=ACTIVE&active_only=true",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Cancel My Subscription",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/subscriptions/me/cancel",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"No longer needed\",\n  \"immediate\": false,\n  \"feedback\": \"Service was good but budget constraints\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Renew My Subscription",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/subscriptions/me/renew",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM_YEARLY\",\n  \"auto_renew\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Get My Subscription Usage",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/subscriptions/me/usage",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Subscription by ID (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/subscriptions/1",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Update Subscription (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/subscriptions/1",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM_YEARLY\",\n  \"price\": 299.99,\n  \"auto_renew\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Subscription Admin",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/subscriptions/admin/create",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM_MONTHLY\",\n  \"price\": 29.99,\n  \"user_id\": 2,\n  \"current_period_start\": \"2024-01-01T00:00:00Z\",\n  \"current_period_end\": \"2024-02-01T00:00:00Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancel Subscription (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/subscriptions/1/cancel",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Admin cancellation\",\n  \"immediate\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Renew Subscription (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/subscriptions/1/renew",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM_YEARLY\",\n  \"auto_renew\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Subscription Stats (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/subscriptions/stats/overview",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Subscription Usage (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/subscriptions/1/usage",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Expire Old Subscriptions (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/subscriptions/maintenance/expire",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Premium Features",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/subscriptions/premium/features",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 Payments",
+      "item": [
+        {
+          "name": "Create Payment Intent",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/payments/create-payment-intent",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 29.99,\n  \"currency\": \"USD\",\n  \"description\": \"Premium Monthly Subscription\",\n  \"subscription_id\": 1,\n  \"customer_email\": \"test@example.com\",\n  \"customer_name\": \"Test User\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get My Payments",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/payments/me?skip=0&limit=100",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get My Payment by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/payments/me/1",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Cancel My Payment",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/payments/me/1/cancel",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Stripe Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Stripe-Signature", "value": "{{STRIPE_SIGNATURE}}"}
+            ],
+            "url": "{{API_V1_URL}}/payments/webhook/stripe",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_test_123\",\n      \"amount\": 2999,\n      \"currency\": \"usd\"\n    }\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Payments (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/payments/?skip=0&limit=100&status=SUCCEEDED&payment_method=STRIPE_CARD&user_id=1",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Payment by ID (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/payments/1",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Update Payment (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/payments/1",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SUCCEEDED\",\n  \"processed_at\": \"2024-01-01T12:00:00Z\",\n  \"receipt_url\": \"https://example.com/receipt\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Payment Admin",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/payments/admin/create",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 29.99,\n  \"payment_method\": \"STRIPE_CARD\",\n  \"user_id\": 2,\n  \"description\": \"Admin created payment\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refund Payment (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/payments/1/refund",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 15.00,\n  \"reason\": \"Partial refund requested\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancel Payment Admin",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/payments/1/cancel",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Payment Stats (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/payments/stats/overview",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Create Stripe Customer (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/payments/customers/create",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"name\": \"John Doe\",\n  \"phone\": \"+1234567890\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Stripe Customer (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/payments/customers/cus_test_123",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Create Invoice (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/payments/invoices/create",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": \"cus_test_123\",\n  \"amount\": 99.99,\n  \"currency\": \"USD\",\n  \"description\": \"Annual subscription fee\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Invoice (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/payments/invoices/in_test_123",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        },
+        {
+          "name": "Get Premium Payment History",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/payments/premium/history?skip=0&limit=50",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 ML Integration",
+      "item": [
+        {
+          "name": "Predict Signal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/ml/predict/signal",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signal_id\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Predict Batch Signals",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/ml/predict/batch",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}"}]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signal_ids\": [1, 2, 3, 4, 5]\n}"
+            }
+          }
+        },
+        {
+          "name": "Direct ML Predict",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{API_V1_URL}}/ml/predict",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset\": \"BTCUSDT\",\n  \"entry_price\": 45000,\n  \"target_price\": 47000,\n  \"stop_loss\": 43000,\n  \"confidence\": 0.85,\n  \"direction\": \"LONG\"\n}"
+            }
+          }
+        },
+        {
+          "name": "ML Service Health",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/ml/health"
+          }
+        },
+        {
+          "name": "Get ML Model Info",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/ml/model/info"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📱 Telegram Integration",
+      "item": [
+        {
+          "name": "Trigger Signal Collection",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/telegram/collect-signals"
+          }
+        },
+        {
+          "name": "Collect Signals Sync",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/telegram/collect-signals-sync"
+          }
+        },
+        {
+          "name": "Get Telegram Channels",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/telegram/channels"
+          }
+        },
+        {
+          "name": "Get Channel Signals",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/telegram/channels/1/signals?limit=50"
+          }
+        },
+        {
+          "name": "Get Channel Statistics",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/telegram/channels/1/statistics"
+          }
+        },
+        {
+          "name": "Get Recent Telegram Signals",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/telegram/signals/recent?limit=50"
+          }
+        },
+        {
+          "name": "Toggle Channel Status",
+          "request": {
+            "method": "POST",
+            "url": "{{API_V1_URL}}/telegram/channels/1/toggle"
+          }
+        },
+        {
+          "name": "Telegram Integration Health",
+          "request": {
+            "method": "GET",
+            "url": "{{API_V1_URL}}/telegram/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 System",
+      "item": [
+        {
+          "name": "Root Endpoint",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/"
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/health"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Автоматическое обновление ACCESS_TOKEN если expired",
+          "const accessToken = pm.collectionVariables.get('ACCESS_TOKEN');",
+          "if (accessToken && pm.request.url.path.includes('api/v1')) {",
+          "    const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]));",
+          "    const isExpired = Date.now() >= tokenPayload.exp * 1000;",
+          "    if (isExpired) {",
+          "        console.log('Token expired, refreshing...');",
+          "        pm.collectionVariables.set('ACCESS_TOKEN', '');",
+          "    }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Глобальные тесты для всех запросов",
+          "pm.test('Response time is less than 5s', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has correct content-type', function () {",
+          "    if (pm.response.code !== 204) {",
+          "        pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "    }",
+          "});",
+          "",
+          "// Логирование ошибок",
+          "if (pm.response.code >= 400) {",
+          "    console.log('❌ Error Response:', pm.response.json());",
+          "}"
+        ]
+      }
+    }
+  ]
+} 

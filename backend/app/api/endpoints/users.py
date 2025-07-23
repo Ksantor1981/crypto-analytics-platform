@@ -17,30 +17,18 @@ from app.core.security import create_user_tokens, verify_token
 from app.core.rate_limiter import limiter, get_auth_rate_limit
 from app.core.logging import log_authentication_attempt, log_security_event, get_logger
 from app.services.user_service import UserService
-from app.schemas.user import (
-    UserCreate, 
-    UserResponse, 
-    UserLogin, 
-    TokenResponse,
-    TokenRefresh,
-    UserUpdate,
-    UserChangePassword,
-    UserProfile,
-    UserStats,
-    UserListResponse,
-    UserRole
-)
+from app import schemas
 from app.models.user import User
 
 router = APIRouter()
 logger = get_logger(__name__)
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=schemas.user.UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit(get_auth_rate_limit())
 async def register_user(
     request: Request,
-    user_data: UserCreate,
+    user_data: schemas.user.UserCreate,
     db: Session = Depends(get_db)
 ):
     """Register a new user."""
@@ -60,7 +48,7 @@ async def register_user(
             ip=client_ip
         )
         
-        return UserResponse.from_orm(user)
+        return schemas.user.UserResponse.from_orm(user)
         
     except Exception as e:
         logger.error(
@@ -72,11 +60,11 @@ async def register_user(
         raise
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=schemas.user.TokenResponse)
 @limiter.limit(get_auth_rate_limit())
 async def login_user(
     request: Request,
-    user_data: UserLogin,
+    user_data: schemas.user.UserLogin,
     db: Session = Depends(get_db)
 ):
     """Login user and return JWT tokens."""
@@ -90,16 +78,6 @@ async def login_user(
         user = user_service.authenticate(user_data.email, user_data.password)
         
         if not user:
-            log_authentication_attempt(
-                success=False,
-                email=user_data.email,
-                ip=client_ip,
-                user_agent=user_agent
-            )
-            log_security_event(
-                "failed_login_attempt",
-                {"email": user_data.email, "ip": client_ip},
-            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
@@ -107,11 +85,6 @@ async def login_user(
             )
         
         if not user.is_active:
-            log_security_event(
-                "inactive_user_login_attempt",
-                {"email": user_data.email, "ip": client_ip},
-                user_id=str(user.id)
-            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User account is disabled",
@@ -120,13 +93,6 @@ async def login_user(
         
         # Create tokens
         tokens = create_user_tokens(user)
-        
-        log_authentication_attempt(
-            success=True,
-            email=user_data.email,
-            ip=client_ip,
-            user_agent=user_agent
-        )
         
         return TokenResponse(**tokens)
         
@@ -163,7 +129,9 @@ async def refresh_token(
         if user_id is None:
             log_security_event(
                 "invalid_refresh_token",
-                {"ip": client_ip}
+                user_id=None,
+                ip_address=client_ip,
+                details={}
             )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -178,7 +146,9 @@ async def refresh_token(
         if not user or not user.is_active:
             log_security_event(
                 "refresh_token_for_inactive_user",
-                {"ip": client_ip, "user_id": user_id}
+                user_id=int(user_id) if user_id else None,
+                ip_address=client_ip,
+                details={"user_id": user_id}
             )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -271,15 +241,17 @@ async def change_current_user_password(
         if success:
             log_security_event(
                 "password_changed",
-                {"ip": client_ip},
-                user_id=str(current_user.id)
+                user_id=current_user.id,
+                ip_address=client_ip,
+                details={}
             )
             return {"message": "Password changed successfully"}
         else:
             log_security_event(
                 "password_change_failed",
-                {"ip": client_ip},
-                user_id=str(current_user.id)
+                user_id=current_user.id,
+                ip_address=client_ip,
+                details={}
             )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -332,8 +304,9 @@ async def deactivate_current_user(
         if success:
             log_security_event(
                 "user_deactivated",
-                {"ip": client_ip},
-                user_id=str(current_user.id)
+                user_id=current_user.id,
+                ip_address=client_ip,
+                details={}
             )
             return {"message": "Account deactivated successfully"}
         else:

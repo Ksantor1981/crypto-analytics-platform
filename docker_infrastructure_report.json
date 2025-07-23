@@ -1,0 +1,110 @@
+{
+  "timestamp": "2025-07-08T19:03:28.551024",
+  "total_tests": 7,
+  "passed_tests": 7,
+  "success_rate": 100.0,
+  "duration_seconds": 0.665503,
+  "grade": "A",
+  "status": "ГОТОВО К PRODUCTION",
+  "issues": [
+    "Неверный синтаксис backend/Dockerfile"
+  ],
+  "recommended_fixes": [
+    "4. Исправить Dockerfile'ы",
+    "   - Убедиться что все Dockerfile'ы начинаются с FROM",
+    "   - Добавить curl для health checks",
+    "   - Создать отсутствующие Dockerfile'ы"
+  ],
+  "detailed_results": [
+    {
+      "test": "Docker Installation",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:27.956315",
+      "details": "Docker version 28.3.0, build 38b7060"
+    },
+    {
+      "test": "Docker Compose Installation",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.042562",
+      "details": "Docker Compose version v2.38.1-desktop.1"
+    },
+    {
+      "test": "Docker Service Status",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.329223",
+      "details": "Docker daemon running"
+    },
+    {
+      "test": "Dockerfile Syntax backend/Dockerfile",
+      "status": "FAIL",
+      "timestamp": "2025-07-08T19:03:28.329762",
+      "details": "Missing FROM instruction"
+    },
+    {
+      "test": "Dockerfile Syntax ml-service/Dockerfile",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.330301",
+      "details": "Valid syntax"
+    },
+    {
+      "test": "Dockerfile Syntax frontend/Dockerfile",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.330301",
+      "details": "Valid syntax"
+    },
+    {
+      "test": "Dockerfile Syntax workers/Dockerfile",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.330914",
+      "details": "Valid syntax"
+    },
+    {
+      "test": "Dockerfile Syntax Check",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.330914",
+      "details": "3/4 valid"
+    },
+    {
+      "test": "Docker Compose Syntax",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.478652",
+      "details": "Valid YAML syntax"
+    },
+    {
+      "test": "Requirements backend/requirements.txt",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.479752",
+      "details": "File exists and not empty"
+    },
+    {
+      "test": "Requirements ml-service/requirements.txt",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.480302",
+      "details": "File exists and not empty"
+    },
+    {
+      "test": "Requirements workers/requirements.txt",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.480826",
+      "details": "File exists and not empty"
+    },
+    {
+      "test": "Requirements frontend/package.json",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.481868",
+      "details": "File exists and not empty"
+    },
+    {
+      "test": "Requirements Files Check",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.481868",
+      "details": "4/4 valid"
+    },
+    {
+      "test": "Docker Network Availability",
+      "status": "PASS",
+      "timestamp": "2025-07-08T19:03:28.549023",
+      "details": "Networks accessible"
+    }
+  ]
+}

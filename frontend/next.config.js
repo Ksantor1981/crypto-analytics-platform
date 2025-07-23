@@ -6,8 +6,10 @@ const nextConfig = {
     domains: ['localhost', '127.0.0.1'],
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-    NEXT_PUBLIC_ML_API_URL: process.env.NEXT_PUBLIC_ML_API_URL || 'http://localhost:8001',
+    NEXT_PUBLIC_API_URL:
+      process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    NEXT_PUBLIC_ML_API_URL:
+      process.env.NEXT_PUBLIC_ML_API_URL || 'http://localhost:8001',
   },
   async rewrites() {
     return [
@@ -19,4 +21,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;

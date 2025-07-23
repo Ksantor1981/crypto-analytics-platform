@@ -10,18 +10,18 @@ export const useSignals = (filters?: SignalFilters) => {
     data: signals = [],
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['signals', filters],
     queryFn: () => signalsApi.getSignals(filters),
-    select: (data) => data.data
+    select: data => data.data,
   });
 
   const analyzeSignalMutation = useMutation({
     mutationFn: signalsApi.analyzeSignal,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['signals'] });
-    }
+    },
   });
 
   const updateSignalMutation = useMutation({
@@ -29,7 +29,7 @@ export const useSignals = (filters?: SignalFilters) => {
       signalsApi.updateSignal(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['signals'] });
-    }
+    },
   });
 
   return {
@@ -40,7 +40,7 @@ export const useSignals = (filters?: SignalFilters) => {
     analyzeSignal: analyzeSignalMutation.mutateAsync,
     updateSignal: updateSignalMutation.mutateAsync,
     isAnalyzing: analyzeSignalMutation.isPending,
-    isUpdating: updateSignalMutation.isPending
+    isUpdating: updateSignalMutation.isPending,
   };
 };
 
@@ -50,19 +50,19 @@ export const useSignal = (id: string) => {
   const {
     data: signal,
     isLoading,
-    error
+    error,
   } = useQuery({
     queryKey: ['signal', id],
     queryFn: () => signalsApi.getSignal(id),
-    select: (data) => data.data,
-    enabled: !!id
+    select: data => data.data,
+    enabled: !!id,
   });
 
   const analyzeSignalMutation = useMutation({
     mutationFn: () => signalsApi.analyzeSignal(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['signal', id] });
-    }
+    },
   });
 
   const updateSignalMutation = useMutation({
@@ -70,7 +70,7 @@ export const useSignal = (id: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['signal', id] });
       queryClient.invalidateQueries({ queryKey: ['signals'] });
-    }
+    },
   });
 
   return {
@@ -80,7 +80,7 @@ export const useSignal = (id: string) => {
     analyzeSignal: analyzeSignalMutation.mutateAsync,
     updateSignal: updateSignalMutation.mutateAsync,
     isAnalyzing: analyzeSignalMutation.isPending,
-    isUpdating: updateSignalMutation.isPending
+    isUpdating: updateSignalMutation.isPending,
   };
 };
 
@@ -90,22 +90,30 @@ export const useSignalStats = (signals: Signal[]) => {
     const active = signals.filter(s => s.status === 'active').length;
     const completed = signals.filter(s => s.status === 'completed').length;
     const failed = signals.filter(s => s.status === 'failed').length;
-    
+
     const signalsWithPnl = signals.filter(s => s.pnl !== undefined);
     const profitable = signalsWithPnl.filter(s => s.pnl! > 0).length;
     const unprofitable = signalsWithPnl.filter(s => s.pnl! < 0).length;
-    
+
     const totalPnl = signalsWithPnl.reduce((sum, s) => sum + s.pnl!, 0);
-    const avgPnl = signalsWithPnl.length > 0 ? totalPnl / signalsWithPnl.length : 0;
-    
-    const winRate = signalsWithPnl.length > 0 ? (profitable / signalsWithPnl.length) * 100 : 0;
-    
-    const bestSignal = signalsWithPnl.reduce((best, current) => 
-      current.pnl! > (best?.pnl || -Infinity) ? current : best, null as Signal | null
+    const avgPnl =
+      signalsWithPnl.length > 0 ? totalPnl / signalsWithPnl.length : 0;
+
+    const winRate =
+      signalsWithPnl.length > 0
+        ? (profitable / signalsWithPnl.length) * 100
+        : 0;
+
+    const bestSignal = signalsWithPnl.reduce(
+      (best, current) =>
+        current.pnl! > (best?.pnl || -Infinity) ? current : best,
+      null as Signal | null
     );
-    
-    const worstSignal = signalsWithPnl.reduce((worst, current) => 
-      current.pnl! < (worst?.pnl || Infinity) ? current : worst, null as Signal | null
+
+    const worstSignal = signalsWithPnl.reduce(
+      (worst, current) =>
+        current.pnl! < (worst?.pnl || Infinity) ? current : worst,
+      null as Signal | null
     );
 
     const longSignals = signals.filter(s => s.direction === 'long').length;
@@ -124,9 +132,9 @@ export const useSignalStats = (signals: Signal[]) => {
       bestSignal,
       worstSignal,
       longSignals,
-      shortSignals
+      shortSignals,
     };
   }, [signals]);
 
   return stats;
-}; 
+};

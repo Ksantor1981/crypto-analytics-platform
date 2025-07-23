@@ -14,6 +14,10 @@ from datetime import datetime
 try:
     from api.predictions import router as predictions_router
     from api.health import router as health_router
+    from api.price_validation import router as price_validation_router
+    from api.enhanced_exchange import router as enhanced_exchange_router
+    from api.backtesting import router as backtesting_router
+    from api.risk_analysis import router as risk_analysis_router
 except ImportError:
     # Fallback for direct execution
     import sys
@@ -21,6 +25,10 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from api.predictions import router as predictions_router
     from api.health import router as health_router
+    from api.price_validation import router as price_validation_router
+    from api.enhanced_exchange import router as enhanced_exchange_router
+    from api.backtesting import router as backtesting_router
+    from api.risk_analysis import router as risk_analysis_router
 
 # Configure logging
 logging.basicConfig(
@@ -59,6 +67,10 @@ async def global_exception_handler(request, exc):
 # Include routers without additional prefix since they already have prefixes
 app.include_router(predictions_router)
 app.include_router(health_router)
+app.include_router(price_validation_router)
+app.include_router(enhanced_exchange_router)
+app.include_router(backtesting_router)
+app.include_router(risk_analysis_router)
 
 # Root endpoint
 @app.get("/")
@@ -74,6 +86,7 @@ async def root():
         "endpoints": {
             "health": "/api/v1/health",
             "predictions": "/api/v1/predictions",
+            "price_validation": "/api/v1/price-validation",
             "docs": "/docs",
             "redoc": "/redoc"
         }
@@ -93,11 +106,23 @@ async def service_info():
             "signal_success_prediction",
             "batch_predictions",
             "feature_importance_analysis",
-            "risk_scoring"
+            "risk_scoring",
+            "real_time_price_validation",
+            "signal_execution_tracking",
+            "multi_exchange_price_feeds",
+            "enhanced_exchange_integration",
+            "arbitrage_opportunity_detection",
+            "cross_exchange_price_comparison"
         ],
         "model_type": "rule_based_mvp_stub",
-        "supported_assets": ["BTC", "ETH", "BNB", "ADA", "SOL", "DOT", "MATIC", "AVAX"],
-        "api_version": "v1"
+        "supported_assets": ["BTC", "ETH", "BNB", "ADA", "SOL", "DOT", "MATIC", "AVAX", "XRP", "DOGE", "LINK"],
+        "supported_exchanges": ["binance", "bybit", "coinbase"],
+        "api_version": "v1",
+        "advanced_features": {
+            "price_validation": "Real-time signal execution tracking",
+            "multi_exchange": "Cross-exchange price comparison and arbitrage detection",
+            "enhanced_data": "Volume, price changes, and market sentiment analysis"
+        }
     }
 
 # Startup event

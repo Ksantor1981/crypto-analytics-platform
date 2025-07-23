@@ -9,19 +9,19 @@ interface LoadingSpinnerProps {
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'md',
-  color = 'blue'
+  color = 'blue',
 }) => {
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-8 w-8',
-    lg: 'h-12 w-12'
+    lg: 'h-12 w-12',
   };
 
   const colorClasses = {
     blue: 'border-blue-600',
     green: 'border-green-600',
     red: 'border-red-600',
-    gray: 'border-gray-600'
+    gray: 'border-gray-600',
   };
 
   return (
@@ -40,7 +40,7 @@ interface PageLoadingProps {
 }
 
 export const PageLoading: React.FC<PageLoadingProps> = ({
-  message = 'Загрузка...'
+  message = 'Загрузка...',
 }) => {
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -59,7 +59,7 @@ interface SectionLoadingProps {
 
 export const SectionLoading: React.FC<SectionLoadingProps> = ({
   message = 'Загрузка...',
-  height = 'h-64'
+  height = 'h-64',
 }) => {
   return (
     <div className={`flex items-center justify-center ${height}`}>
@@ -84,7 +84,7 @@ export const ButtonLoading: React.FC<ButtonLoadingProps> = ({
   children,
   disabled,
   className = '',
-  onClick
+  onClick,
 }) => {
   return (
     <button
@@ -115,7 +115,7 @@ interface TableLoadingProps {
 
 export const TableLoading: React.FC<TableLoadingProps> = ({
   rows = 5,
-  columns = 4
+  columns = 4,
 }) => {
   return (
     <div className="animate-pulse">
@@ -151,9 +151,7 @@ interface CardLoadingProps {
   count?: number;
 }
 
-export const CardLoading: React.FC<CardLoadingProps> = ({
-  count = 3
-}) => {
+export const CardLoading: React.FC<CardLoadingProps> = ({ count = 3 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {Array.from({ length: count }).map((_, i) => (
@@ -185,9 +183,7 @@ interface ListLoadingProps {
   items?: number;
 }
 
-export const ListLoading: React.FC<ListLoadingProps> = ({
-  items = 5
-}) => {
+export const ListLoading: React.FC<ListLoadingProps> = ({ items = 5 }) => {
   return (
     <div className="space-y-4">
       {Array.from({ length: items }).map((_, i) => (
@@ -220,15 +216,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   icon = '📭',
   title,
   description,
-  action
+  action,
 }) => {
   return (
     <div className="text-center py-12">
       <div className="text-6xl mb-4">{icon}</div>
       <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-      {description && (
-        <p className="text-gray-600 mb-6">{description}</p>
-      )}
+      {description && <p className="text-gray-600 mb-6">{description}</p>}
       {action && (
         <button
           onClick={action.onClick}
@@ -250,7 +244,7 @@ interface ErrorStateProps {
 export const ErrorState: React.FC<ErrorStateProps> = ({
   title = 'Произошла ошибка',
   description = 'Не удалось загрузить данные. Попробуйте еще раз.',
-  onRetry
+  onRetry,
 }) => {
   return (
     <div className="text-center py-12">
@@ -267,4 +261,4 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       )}
     </div>
   );
-}; 
+};

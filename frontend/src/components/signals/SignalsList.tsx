@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Card, CardBody } from '@/components/ui/Card';
+import { Card, CardBody } from '@/components/ui/card';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Table } from '@/components/ui/Table';
 import { Signal } from '@/types';
 import { formatDate, formatPrice } from '@/lib/utils';
@@ -20,9 +20,11 @@ export const SignalsList: React.FC<SignalsListProps> = ({
   signals,
   isLoading = false,
   onSignalSelect,
-  showChannel = true
+  showChannel = true,
 }) => {
-  const [sortBy, setSortBy] = useState<'created_at' | 'asset' | 'entry_price' | 'pnl' | 'status'>('created_at');
+  const [sortBy, setSortBy] = useState<
+    'created_at' | 'asset' | 'entry_price' | 'pnl' | 'status'
+  >('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const sortedSignals = [...signals].sort((a, b) => {
@@ -67,10 +69,7 @@ export const SignalsList: React.FC<SignalsListProps> = ({
 
   const getDirectionBadge = (direction: string) => {
     return (
-      <Badge
-        variant={direction === 'long' ? 'success' : 'danger'}
-        size="sm"
-      >
+      <Badge variant={direction === 'long' ? 'success' : 'danger'} size="sm">
         {direction.toUpperCase()}
       </Badge>
     );
@@ -86,7 +85,7 @@ export const SignalsList: React.FC<SignalsListProps> = ({
       <Card>
         <CardBody>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="animate-pulse">
                 <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                   <div className="flex items-center space-x-4">
@@ -111,8 +110,12 @@ export const SignalsList: React.FC<SignalsListProps> = ({
       <Card>
         <CardBody className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">⚡</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Нет сигналов</h3>
-          <p className="text-gray-600">Сигналы появятся здесь после подключения каналов</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Нет сигналов
+          </h3>
+          <p className="text-gray-600">
+            Сигналы появятся здесь после подключения каналов
+          </p>
         </CardBody>
       </Card>
     );
@@ -177,8 +180,11 @@ export const SignalsList: React.FC<SignalsListProps> = ({
               </tr>
             </thead>
             <tbody>
-              {sortedSignals.map((signal) => (
-                <tr key={signal.id} className="border-b border-gray-100 hover:bg-gray-50">
+              {sortedSignals.map(signal => (
+                <tr
+                  key={signal.id}
+                  className="border-b border-gray-100 hover:bg-gray-50"
+                >
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -187,7 +193,9 @@ export const SignalsList: React.FC<SignalsListProps> = ({
                         </span>
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">{signal.asset}</div>
+                        <div className="font-medium text-gray-900">
+                          {signal.asset}
+                        </div>
                         {signal.confidence && (
                           <div className="text-xs text-gray-500">
                             Уверенность: {(signal.confidence * 100).toFixed(0)}%
@@ -231,13 +239,14 @@ export const SignalsList: React.FC<SignalsListProps> = ({
                       )}
                     </td>
                   )}
-                  <td className="py-3 px-4">
-                    {getStatusBadge(signal.status)}
-                  </td>
+                  <td className="py-3 px-4">{getStatusBadge(signal.status)}</td>
                   <td className="py-3 px-4">
                     {signal.pnl !== undefined ? (
-                      <span className={`font-medium ${getPnlColor(signal.pnl)}`}>
-                        {signal.pnl > 0 ? '+' : ''}{signal.pnl.toFixed(2)}%
+                      <span
+                        className={`font-medium ${getPnlColor(signal.pnl)}`}
+                      >
+                        {signal.pnl > 0 ? '+' : ''}
+                        {signal.pnl.toFixed(2)}%
                       </span>
                     ) : (
                       <span className="text-gray-500">—</span>
@@ -274,4 +283,6 @@ export const SignalsList: React.FC<SignalsListProps> = ({
       </CardBody>
     </Card>
   );
-}; 
+};
+
+

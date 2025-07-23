@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15
+    container_name: crypto-analytics-postgres
+    environment:
+      POSTGRES_DB: crypto_analytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crypto_analytics_network
+
+  # Redis for Celery
+  redis:
+    image: redis:7-alpine
+    container_name: crypto-analytics-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - crypto_analytics_network
+
+networks:
+  crypto_analytics_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

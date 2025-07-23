@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Тест системы уведомлений - CryptoAnalytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOutRight {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+      .toast-enter {
+        animation: slideInRight 0.3s ease-out;
+      }
+      .toast-exit {
+        animation: slideOutRight 0.3s ease-in;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-6">
+      <header class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">
+          🔔 Тест системы уведомлений
+        </h1>
+        <p class="text-gray-600">
+          Демонстрация Real-time уведомлений для CryptoAnalytics Platform
+        </p>
+      </header>
+
+      <!-- Статистика -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="text-2xl font-bold text-blue-600" id="totalNotifications">
+            0
+          </div>
+          <div class="text-sm text-gray-600">Всего уведомлений</div>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div
+            class="text-2xl font-bold text-green-600"
+            id="signalNotifications"
+          >
+            0
+          </div>
+          <div class="text-sm text-gray-600">Сигналы</div>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div
+            class="text-2xl font-bold text-yellow-600"
+            id="alertNotifications"
+          >
+            0
+          </div>
+          <div class="text-sm text-gray-600">Алерты</div>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="text-2xl font-bold text-red-600" id="urgentNotifications">
+            0
+          </div>
+          <div class="text-sm text-gray-600">Срочные</div>
+        </div>
+      </div>
+
+      <!-- Кнопки управления -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <button
+          onclick="showSignalNotification()"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          📈 Новый сигнал
+        </button>
+        <button
+          onclick="showTargetReached()"
+          class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+        >
+          🎯 Цель достигнута
+        </button>
+        <button
+          onclick="showPriceAlert()"
+          class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+        >
+          💰 Ценовой алерт
+        </button>
+        <button
+          onclick="showStopLoss()"
+          class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+        >
+          ⚠️ Стоп-лосс
+        </button>
+      </div>
+
+      <!-- Настройки -->
+      <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h3 class="text-lg font-semibold mb-4">⚙️ Настройки уведомлений</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <label class="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="browserNotifications"
+              checked
+              class="rounded"
+            />
+            <span>Браузерные уведомления</span>
+          </label>
+          <label class="flex items-center space-x-2">
+            <input type="checkbox" id="soundEnabled" checked class="rounded" />
+            <span>Звуковые сигналы</span>
+          </label>
+          <label class="flex items-center space-x-2">
+            <input type="checkbox" id="autoHide" checked class="rounded" />
+            <span>Автоскрытие</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Кнопки тестирования -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <button
+          onclick="requestNotificationPermission()"
+          class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          🔐 Запросить разрешения
+        </button>
+        <button
+          onclick="testBrowserNotification()"
+          class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          🖥️ Тест браузера
+        </button>
+        <button
+          onclick="clearAllNotifications()"
+          class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          🗑️ Очистить все
+        </button>
+      </div>
+
+      <!-- Область уведомлений -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">📋 История уведомлений</h3>
+        <div
+          id="notificationHistory"
+          class="space-y-2 max-h-96 overflow-y-auto"
+        >
+          <p class="text-gray-500 text-center py-8">Нет уведомлений</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+      // Состояние уведомлений
+      let notificationCount = 0;
+      let signalCount = 0;
+      let alertCount = 0;
+      let urgentCount = 0;
+
+      // Типы уведомлений
+      const notificationTypes = {
+        signal: {
+          icon: '📈',
+          color: 'blue',
+          title: 'Новый торговый сигнал',
+          messages: [
+            'BTC/USDT LONG от CryptoSignals Pro',
+            'ETH/USDT SHORT с confidence 92%',
+            'ADA/USDT LONG от WhaleSignals',
+            'DOGE/USDT SHORT от TradingBot',
+          ],
+        },
+        target: {
+          icon: '🎯',
+          color: 'green',
+          title: 'Цель достигнута',
+          messages: [
+            'BTC/USDT достиг TP1 (+4.2%)',
+            'ETH/USDT достиг TP2 (+7.8%)',
+            'ADA/USDT достиг TP1 (+3.1%)',
+          ],
+        },
+        price: {
+          icon: '💰',
+          color: 'purple',
+          title: 'Ценовой алерт',
+          messages: [
+            'BTC достиг $100,000!',
+            'ETH превысил $5,000',
+            'BNB упал ниже $500',
+          ],
+        },
+        stop: {
+          icon: '⚠️',
+          color: 'red',
+          title: 'Стоп-лосс сработал',
+          messages: [
+            'ADA/USDT достиг SL (-2.1%)',
+            'DOGE/USDT достиг SL (-3.5%)',
+            'BNB/USDT достиг SL (-1.8%)',
+          ],
+        },
+      };
+
+      // Функции создания уведомлений
+      function showSignalNotification() {
+        const type = notificationTypes.signal;
+        const message =
+          type.messages[Math.floor(Math.random() * type.messages.length)];
+        showNotification(type.title, message, type.icon, type.color, false);
+        signalCount++;
+        updateCounters();
+      }
+
+      function showTargetReached() {
+        const type = notificationTypes.target;
+        const message =
+          type.messages[Math.floor(Math.random() * type.messages.length)];
+        showNotification(type.title, message, type.icon, type.color, false);
+        updateCounters();
+      }
+
+      function showPriceAlert() {
+        const type = notificationTypes.price;
+        const message =
+          type.messages[Math.floor(Math.random() * type.messages.length)];
+        showNotification(type.title, message, type.icon, type.color, true);
+        alertCount++;
+        urgentCount++;
+        updateCounters();
+      }
+
+      function showStopLoss() {
+        const type = notificationTypes.stop;
+        const message =
+          type.messages[Math.floor(Math.random() * type.messages.length)];
+        showNotification(type.title, message, type.icon, type.color, true);
+        urgentCount++;
+        updateCounters();
+      }
+
+      function showNotification(title, message, icon, color, urgent) {
+        notificationCount++;
+
+        // Toast уведомление
+        createToast(title, message, icon, color, urgent);
+
+        // Добавляем в историю
+        addToHistory(title, message, icon, urgent);
+
+        // Браузерное уведомление
+        if (document.getElementById('browserNotifications').checked) {
+          showBrowserNotification(title, message);
+        }
+
+        // Звук
+        if (document.getElementById('soundEnabled').checked) {
+          playNotificationSound();
+        }
+
+        updateCounters();
+      }
+
+      function createToast(title, message, icon, color, urgent) {
+        const toast = document.createElement('div');
+        toast.className = `toast-enter p-4 bg-white rounded-lg shadow-lg border-l-4 border-l-${color}-500 max-w-sm ${urgent ? 'ring-2 ring-red-300' : ''}`;
+
+        toast.innerHTML = `
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 text-2xl">${icon}</div>
+                    <div class="ml-3 flex-1">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium text-gray-900">${title}</p>
+                            ${urgent ? '<span class="ml-2 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">URGENT</span>' : ''}
+                        </div>
+                        <p class="text-sm text-gray-700 mt-1">${message}</p>
+                        <p class="text-xs text-gray-500 mt-2">${new Date().toLocaleTimeString()}</p>
+                    </div>
+                    <button onclick="removeToast(this)" class="ml-4 text-gray-400 hover:text-gray-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+        document.getElementById('toastContainer').appendChild(toast);
+
+        // Автоудаление
+        if (document.getElementById('autoHide').checked && !urgent) {
+          setTimeout(() => {
+            if (toast.parentNode) {
+              removeToast(toast.querySelector('button'));
+            }
+          }, 5000);
+        }
+      }
+
+      function removeToast(button) {
+        const toast = button.closest('div');
+        toast.className = toast.className.replace('toast-enter', 'toast-exit');
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }
+
+      function addToHistory(title, message, icon, urgent) {
+        const historyContainer = document.getElementById('notificationHistory');
+
+        // Удаляем заглушку
+        if (
+          historyContainer.children.length === 1 &&
+          historyContainer.children[0].textContent.includes('Нет уведомлений')
+        ) {
+          historyContainer.innerHTML = '';
+        }
+
+        const historyItem = document.createElement('div');
+        historyItem.className = `p-3 border rounded-lg ${urgent ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'}`;
+        historyItem.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-lg">${icon}</span>
+                        <div>
+                            <p class="font-medium">${title}</p>
+                            <p class="text-sm text-gray-600">${message}</p>
+                        </div>
+                    </div>
+                    <span class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</span>
+                </div>
+            `;
+
+        historyContainer.insertBefore(historyItem, historyContainer.firstChild);
+
+        // Ограничиваем историю 50 элементами
+        while (historyContainer.children.length > 50) {
+          historyContainer.removeChild(historyContainer.lastChild);
+        }
+      }
+
+      function updateCounters() {
+        document.getElementById('totalNotifications').textContent =
+          notificationCount;
+        document.getElementById('signalNotifications').textContent =
+          signalCount;
+        document.getElementById('alertNotifications').textContent = alertCount;
+        document.getElementById('urgentNotifications').textContent =
+          urgentCount;
+      }
+
+      function clearAllNotifications() {
+        document.getElementById('toastContainer').innerHTML = '';
+        document.getElementById('notificationHistory').innerHTML =
+          '<p class="text-gray-500 text-center py-8">Нет уведомлений</p>';
+        notificationCount = 0;
+        signalCount = 0;
+        alertCount = 0;
+        urgentCount = 0;
+        updateCounters();
+      }
+
+      // Браузерные уведомления
+      async function requestNotificationPermission() {
+        if ('Notification' in window) {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            showNotification(
+              'Разрешения получены',
+              'Теперь вы будете получать браузерные уведомления',
+              '✅',
+              'green',
+              false
+            );
+          } else {
+            alert('Разрешения на уведомления отклонены');
+          }
+        } else {
+          alert('Браузер не поддерживает уведомления');
+        }
+      }
+
+      function showBrowserNotification(title, message) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const notification = new Notification(title, {
+            body: message,
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+          });
+
+          setTimeout(() => notification.close(), 5000);
+        }
+      }
+
+      function testBrowserNotification() {
+        showBrowserNotification(
+          'Тест браузерного уведомления',
+          'Это тестовое уведомление от CryptoAnalytics'
+        );
+      }
+
+      function playNotificationSound() {
+        // Простой звук с помощью Web Audio API
+        const audioContext = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(
+          600,
+          audioContext.currentTime + 0.1
+        );
+
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime + 0.2);
+
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.2);
+      }
+
+      // Автоматическая демонстрация
+      function startAutoDemo() {
+        const demos = [
+          showSignalNotification,
+          showTargetReached,
+          showPriceAlert,
+          showStopLoss,
+        ];
+        setInterval(() => {
+          if (Math.random() < 0.3) {
+            // 30% шанс каждые 5 секунд
+            const randomDemo = demos[Math.floor(Math.random() * demos.length)];
+            randomDemo();
+          }
+        }, 5000);
+      }
+
+      // Запуск автодемо через 3 секунды
+      setTimeout(startAutoDemo, 3000);
+
+      // Приветственное уведомление
+      setTimeout(() => {
+        showNotification(
+          'Система запущена',
+          'Демонстрация системы уведомлений готова к работе',
+          '🚀',
+          'blue',
+          false
+        );
+      }, 1000);
+    </script>
+  </body>
+</html>

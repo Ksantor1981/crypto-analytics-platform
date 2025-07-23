@@ -1,6 +1,6 @@
 """
 Price Checker Service for validating signal execution
-Adapted from analyst_crypto project to work with Binance and other exchanges
+Enhanced version with real configuration integration
 """
 import asyncio
 import logging
@@ -10,17 +10,19 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import httpx
 
+from ..real_data_config import CRYPTO_SYMBOLS, BYBIT_API_KEY, BYBIT_API_SECRET
+
 logger = logging.getLogger(__name__)
 
 class PriceChecker:
     """
-    Service for checking crypto prices and validating signal execution
+    Enhanced service for checking crypto prices and validating signal execution
     """
     
     def __init__(self):
         # Exchange API endpoints
         self.binance_api = "https://api.binance.com/api/v3"
-        self.bybit_api = "https://api.bybit.com/v2/public"
+        self.bybit_api = "https://api.bybit.com/v5"
         
         # Price tolerance for target/SL hits (0.1% by default)
         self.price_tolerance = Decimal('0.001')
@@ -31,8 +33,23 @@ class PriceChecker:
             'ETH/USDT': 'binance', 
             'BNB/USDT': 'binance',
             'ADA/USDT': 'binance',
-            'SOL/USDT': 'binance'
+            'SOL/USDT': 'binance',
+            'XRP/USDT': 'binance',
+            'DOGE/USDT': 'binance',
+            'DOT/USDT': 'binance',
+            'AVAX/USDT': 'binance',
+            'LINK/USDT': 'binance'
         }
+        
+        # Add all symbols from config
+        for symbol in CRYPTO_SYMBOLS:
+            if symbol.endswith('USDT'):
+                formatted_symbol = symbol[:-4] + '/USDT'
+                self.exchange_mapping[formatted_symbol] = 'binance'
+        
+        # API keys for authenticated requests
+        self.bybit_api_key = BYBIT_API_KEY
+        self.bybit_api_secret = BYBIT_API_SECRET
 
     async def get_binance_klines(self, symbol: str, start_time: int, end_time: int, interval: str = "1m") -> List[Dict]:
         """
@@ -51,7 +68,8 @@ class PriceChecker:
         }
         
         try:
-            async with httpx.AsyncClient() as client:
+            timeout = httpx.Timeout(30.0)
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.get(url, params=params)
                 response.raise_for_status()
                 
@@ -69,24 +87,92 @@ class PriceChecker:
                         'volume': Decimal(kline[5])
                     })
                 
+                logger.info(f"Retrieved {len(formatted_data)} klines for {symbol}")
                 return formatted_data
                 
+        except httpx.TimeoutException:
+            logger.error(f"Timeout fetching Binance data for {symbol}")
+            return []
         except Exception as e:
             logger.error(f"Error fetching Binance data for {symbol}: {e}")
             return []
 
-    async def get_current_price(self, symbol: str) -> Optional[Decimal]:
+    async def get_bybit_klines(self, symbol: str, start_time: int, end_time: int, interval: str = "1") -> List[Dict]:
         """
-        Get current price for a symbol
+        Get historical price data from Bybit
         """
         # Convert pair format: BTC/USDT -> BTCUSDT
+        bybit_symbol = symbol.replace('/', '')
+        
+        url = f"{self.bybit_api}/market/kline"
+        params = {
+            'category': 'spot',
+            'symbol': bybit_symbol,
+            'interval': interval,
+            'start': start_time,
+            'end': end_time,
+            'limit': 1000
+        }
+        
+        try:
+            timeout = httpx.Timeout(30.0)
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.get(url, params=params)
+                response.raise_for_status()
+                
+                data = response.json()
+                
+                if data.get('retCode') == 0:
+                    klines = data.get('result', {}).get('list', [])
+                    
+                    # Convert to our format
+                    formatted_data = []
+                    for kline in klines:
+                        formatted_data.append({
+                            'timestamp': int(kline[0]),
+                            'open': Decimal(kline[1]),
+                            'high': Decimal(kline[2]),
+                            'low': Decimal(kline[3]),
+                            'close': Decimal(kline[4]),
+                            'volume': Decimal(kline[5])
+                        })
+                    
+                    logger.info(f"Retrieved {len(formatted_data)} klines from Bybit for {symbol}")
+                    return formatted_data
+                else:
+                    logger.error(f"Bybit API error: {data.get('retMsg', 'Unknown error')}")
+                    return []
+                
+        except httpx.TimeoutException:
+            logger.error(f"Timeout fetching Bybit data for {symbol}")
+            return []
+        except Exception as e:
+            logger.error(f"Error fetching Bybit data for {symbol}: {e}")
+            return []
+
+    async def get_current_price(self, symbol: str) -> Optional[Decimal]:
+        """
+        Get current price for a symbol from multiple exchanges
+        """
+        # Try Binance first
+        binance_price = await self._get_binance_price(symbol)
+        if binance_price:
+            return binance_price
+            
+        # Fallback to Bybit
+        bybit_price = await self._get_bybit_price(symbol)
+        return bybit_price
+
+    async def _get_binance_price(self, symbol: str) -> Optional[Decimal]:
+        """Get current price from Binance"""
         binance_symbol = symbol.replace('/', '')
         
         url = f"{self.binance_api}/ticker/price"
         params = {'symbol': binance_symbol}
         
         try:
-            async with httpx.AsyncClient() as client:
+            timeout = httpx.Timeout(10.0)
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.get(url, params=params)
                 response.raise_for_status()
                 
@@ -94,8 +180,33 @@ class PriceChecker:
                 return Decimal(data['price'])
                 
         except Exception as e:
-            logger.error(f"Error fetching current price for {symbol}: {e}")
+            logger.warning(f"Error fetching Binance price for {symbol}: {e}")
             return None
+
+    async def _get_bybit_price(self, symbol: str) -> Optional[Decimal]:
+        """Get current price from Bybit"""
+        bybit_symbol = symbol.replace('/', '')
+        
+        url = f"{self.bybit_api}/market/tickers"
+        params = {'category': 'spot', 'symbol': bybit_symbol}
+        
+        try:
+            timeout = httpx.Timeout(10.0)
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.get(url, params=params)
+                response.raise_for_status()
+                
+                data = response.json()
+                
+                if data.get('retCode') == 0:
+                    tickers = data.get('result', {}).get('list', [])
+                    if tickers:
+                        return Decimal(tickers[0]['lastPrice'])
+                        
+        except Exception as e:
+            logger.warning(f"Error fetching Bybit price for {symbol}: {e}")
+            
+        return None
 
     def check_price_hit(self, target_price: Decimal, actual_price: Decimal, direction: str, price_type: str) -> bool:
         """
@@ -126,13 +237,7 @@ class PriceChecker:
 
     async def check_signal_execution(self, signal_data: Dict) -> Dict[str, Any]:
         """
-        Check if a signal's targets or stop loss were hit
-        
-        Args:
-            signal_data: Dictionary containing signal information
-            
-        Returns:
-            Dictionary with execution results
+        Enhanced signal execution checker with multiple exchange support
         """
         asset = signal_data['asset']
         direction = signal_data['direction']
@@ -144,14 +249,23 @@ class PriceChecker:
         end_time_24h = start_time + (24 * 60 * 60 * 1000)  # 24 hours
         end_time_48h = start_time + (48 * 60 * 60 * 1000)  # 48 hours
         
-        # Get historical price data
+        # Try multiple exchanges for price data
         klines_24h = await self.get_binance_klines(asset, start_time, end_time_24h)
+        if not klines_24h:
+            klines_24h = await self.get_bybit_klines(asset, start_time, end_time_24h)
+            
         klines_48h = await self.get_binance_klines(asset, start_time, end_time_48h)
+        if not klines_48h:
+            klines_48h = await self.get_bybit_klines(asset, start_time, end_time_48h)
         
         if not klines_24h and not klines_48h:
+            logger.warning(f"No price data available for {asset}")
             return {
                 'status': 'error',
-                'message': f'No price data available for {asset}'
+                'message': f'No price data available for {asset}',
+                'asset': asset,
+                'direction': direction,
+                'entry_price': entry_price
             }
         
         result = {
@@ -169,7 +283,8 @@ class PriceChecker:
             'sl_hit_at': None,
             'final_exit_price': None,
             'final_exit_timestamp': None,
-            'profit_loss_percentage': None
+            'profit_loss_percentage': None,
+            'data_source': 'binance' if klines_24h else 'bybit'
         }
         
         # Check each target and stop loss
@@ -279,7 +394,7 @@ class PriceChecker:
 
     async def check_multiple_signals(self, signals: List[Dict]) -> List[Dict[str, Any]]:
         """
-        Check execution for multiple signals
+        Check execution for multiple signals with enhanced error handling
         """
         results = []
         
@@ -289,17 +404,54 @@ class PriceChecker:
                 results.append(result)
                 
                 # Brief delay to avoid rate limiting
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.2)
                 
             except Exception as e:
                 logger.error(f"Error checking signal {signal.get('id', 'unknown')}: {e}")
                 results.append({
                     'status': 'error',
                     'message': str(e),
-                    'asset': signal.get('asset', 'unknown')
+                    'asset': signal.get('asset', 'unknown'),
+                    'direction': signal.get('direction', 'unknown'),
+                    'entry_price': signal.get('entry_price', 0)
                 })
         
         return results
+
+    async def validate_signal_data(self, signal_data: Dict) -> bool:
+        """
+        Validate signal data before processing
+        """
+        required_fields = ['asset', 'direction', 'entry_price', 'message_timestamp']
+        
+        for field in required_fields:
+            if field not in signal_data or signal_data[field] is None:
+                logger.error(f"Missing required field: {field}")
+                return False
+        
+        # Validate asset format
+        asset = signal_data['asset']
+        if asset not in self.exchange_mapping:
+            logger.warning(f"Unsupported asset: {asset}")
+            return False
+        
+        # Validate direction
+        direction = signal_data['direction'].upper()
+        if direction not in ['LONG', 'SHORT']:
+            logger.error(f"Invalid direction: {direction}")
+            return False
+        
+        # Validate prices
+        try:
+            entry_price = Decimal(str(signal_data['entry_price']))
+            if entry_price <= 0:
+                logger.error(f"Invalid entry price: {entry_price}")
+                return False
+        except:
+            logger.error(f"Invalid entry price format: {signal_data['entry_price']}")
+            return False
+        
+        return True
 
 # Mock implementation for testing without real API calls
 async def check_signals_mock(signals: List[Dict]) -> Dict:

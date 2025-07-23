@@ -25,6 +25,15 @@ ML_SERVICE_URL = "http://localhost:8001"  # В продакшене из env п�
 # Pydantic models
 class MLPredictionRequest(BaseModel):
     signal_id: int = Field(..., description="Signal ID to predict")
+
+class DirectMLPredictionRequest(BaseModel):
+    # Изменяем формат для соответствия ML Service API
+    asset: str = Field(..., description="Asset symbol (e.g., BTCUSDT)")
+    entry_price: float = Field(..., description="Entry price")
+    target_price: Optional[float] = Field(None, description="Target price")
+    stop_loss: Optional[float] = Field(None, description="Stop loss price")
+    confidence: Optional[float] = Field(0.5, description="Signal confidence")
+    direction: Optional[str] = Field("LONG", description="Signal direction")
     
 class MLPredictionResponse(BaseModel):
     signal_id: int
@@ -191,6 +200,54 @@ async def predict_batch_signals(
         raise HTTPException(
             status_code=500,
             detail=f"Batch prediction error: {str(e)}"
+        )
+
+@router.post("/predict")
+async def direct_ml_predict(request: DirectMLPredictionRequest):
+    """
+    Direct ML prediction without requiring signal in database
+    """
+    try:
+        # Формируем данные в правильном формате для ML service
+        ml_payload = {
+            "asset": request.asset,
+            "entry_price": request.entry_price,
+            "target_price": request.target_price,
+            "stop_loss": request.stop_loss,
+            "confidence": request.confidence
+        }
+        
+        # Убираем None значения
+        ml_payload = {k: v for k, v in ml_payload.items() if v is not None}
+        
+        # Call ML service directly
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{ML_SERVICE_URL}/api/v1/predictions/predict",
+                json=ml_payload
+            )
+            
+            if response.status_code != 200:
+                error_detail = response.text
+                logger.error(f"ML service error {response.status_code}: {error_detail}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"ML service error: {response.status_code} - {error_detail}"
+                )
+            
+            return response.json()
+            
+    except httpx.RequestError as e:
+        logger.error(f"ML service request error: {str(e)}")
+        raise HTTPException(
+            status_code=503,
+            detail="ML service unavailable"
+        )
+    except Exception as e:
+        logger.error(f"Direct prediction error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Prediction error: {str(e)}"
         )
 
 @router.get("/health")

@@ -1,0 +1,226 @@
+{
+  "timestamp": "2025-07-08T10:31:53.201078",
+  "execution_time": 5.936280727386475,
+  "total_checks": 42,
+  "passed_checks": 40,
+  "failed_checks": 2,
+  "success_rate": 95.23809523809523,
+  "overall_status": "FAIL",
+  "results": {
+    "CPU Usage": {
+      "status": true,
+      "details": "12.5%",
+      "timestamp": "2025-07-08T10:31:48.269732"
+    },
+    "Memory Usage": {
+      "status": true,
+      "details": "75.4% (12134MB used)",
+      "timestamp": "2025-07-08T10:31:48.273751"
+    },
+    "Disk Usage": {
+      "status": true,
+      "details": "79.7%",
+      "timestamp": "2025-07-08T10:31:48.273751"
+    },
+    "File quick_demo_0_4_1_fixed.py": {
+      "status": true,
+      "details": "Существует (12161 bytes)",
+      "timestamp": "2025-07-08T10:31:48.275064"
+    },
+    "File web_demo_0_4_2.html": {
+      "status": true,
+      "details": "Существует (17059 bytes)",
+      "timestamp": "2025-07-08T10:31:48.275064"
+    },
+    "File web_server_demo.py": {
+      "status": true,
+      "details": "Существует (19082 bytes)",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "File auto_check_components.py": {
+      "status": true,
+      "details": "Существует (21242 bytes)",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "File docker-compose.yml": {
+      "status": true,
+      "details": "Существует (3207 bytes)",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "File backend/requirements.txt": {
+      "status": true,
+      "details": "Существует (1076 bytes)",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "File ml-service/requirements.txt": {
+      "status": true,
+      "details": "Существует (279 bytes)",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "File workers/requirements.txt": {
+      "status": true,
+      "details": "Существует (205 bytes)",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "Directory backend": {
+      "status": true,
+      "details": "Существует",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "Directory ml-service": {
+      "status": true,
+      "details": "Существует",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "Directory workers": {
+      "status": true,
+      "details": "Существует",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "Directory frontend": {
+      "status": true,
+      "details": "Существует",
+      "timestamp": "2025-07-08T10:31:48.276067"
+    },
+    "Package requests": {
+      "status": true,
+      "details": "Установлен",
+      "timestamp": "2025-07-08T10:31:48.277656"
+    },
+    "Package psycopg2": {
+      "status": true,
+      "details": "Установлен",
+      "timestamp": "2025-07-08T10:31:48.286213"
+    },
+    "Package redis": {
+      "status": true,
+      "details": "Установлен",
+      "timestamp": "2025-07-08T10:31:48.358279"
+    },
+    "Package psutil": {
+      "status": true,
+      "details": "Установлен",
+      "timestamp": "2025-07-08T10:31:48.358279"
+    },
+    "Package numpy": {
+      "status": true,
+      "details": "Установлен",
+      "timestamp": "2025-07-08T10:31:48.442808"
+    },
+    "Package pandas": {
+      "status": true,
+      "details": "Установлен",
+      "timestamp": "2025-07-08T10:31:48.721841"
+    },
+    "Package scikit-learn": {
+      "status": false,
+      "details": "Не установлен",
+      "timestamp": "2025-07-08T10:31:48.722910"
+    },
+    "Package fastapi": {
+      "status": true,
+      "details": "Установлен",
+      "timestamp": "2025-07-08T10:31:49.211125"
+    },
+    "Package uvicorn": {
+      "status": true,
+      "details": "Установлен",
+      "timestamp": "2025-07-08T10:31:49.258962"
+    },
+    "Docker Desktop": {
+      "status": true,
+      "details": "Версия: Docker version 28.3.0, build 38b7060",
+      "timestamp": "2025-07-08T10:31:49.309486"
+    },
+    "Container crypto-analytics-postgres": {
+      "status": true,
+      "details": "Работает",
+      "timestamp": "2025-07-08T10:31:49.408804"
+    },
+    "Container crypto-analytics-redis": {
+      "status": true,
+      "details": "Работает",
+      "timestamp": "2025-07-08T10:31:49.408804"
+    },
+    "Container crypto_analytics_ml": {
+      "status": true,
+      "details": "Работает",
+      "timestamp": "2025-07-08T10:31:49.409346"
+    },
+    "Port 5432 (PostgreSQL Database)": {
+      "status": true,
+      "details": "Доступен",
+      "timestamp": "2025-07-08T10:31:49.413249"
+    },
+    "Port 6379 (Redis Cache)": {
+      "status": true,
+      "details": "Доступен",
+      "timestamp": "2025-07-08T10:31:49.414365"
+    },
+    "Port 8001 (ML Service)": {
+      "status": true,
+      "details": "Доступен",
+      "timestamp": "2025-07-08T10:31:49.416570"
+    },
+    "Port 8080 (Web Demo Server)": {
+      "status": true,
+      "details": "Доступен",
+      "timestamp": "2025-07-08T10:31:49.440612"
+    },
+    "PostgreSQL Connection": {
+      "status": true,
+      "details": "Подключение успешно",
+      "timestamp": "2025-07-08T10:31:49.449765"
+    },
+    "Database Exists": {
+      "status": true,
+      "details": "База данных: crypto_analytics",
+      "timestamp": "2025-07-08T10:31:49.450764"
+    },
+    "Database Tables": {
+      "status": false,
+      "details": "Таблиц найдено: 0",
+      "timestamp": "2025-07-08T10:31:49.453763"
+    },
+    "Redis Connection": {
+      "status": true,
+      "details": "Ping успешно",
+      "timestamp": "2025-07-08T10:31:49.459981"
+    },
+    "Redis Read/Write": {
+      "status": true,
+      "details": "Запись/чтение работает",
+      "timestamp": "2025-07-08T10:31:49.460981"
+    },
+    "Redis Info": {
+      "status": true,
+      "details": "Использование памяти: 1.08M",
+      "timestamp": "2025-07-08T10:31:49.463985"
+    },
+    "ML Service Health": {
+      "status": true,
+      "details": "HTTP 200, Status: healthy",
+      "timestamp": "2025-07-08T10:31:49.489710"
+    },
+    "Web Demo Status": {
+      "status": true,
+      "details": "HTTP 200, Status: online",
+      "timestamp": "2025-07-08T10:31:51.558014"
+    },
+    "End-to-End Test": {
+      "status": true,
+      "details": "Тест прошел успешно",
+      "timestamp": "2025-07-08T10:31:53.200186"
+    },
+    "Pipeline Stages": {
+      "status": true,
+      "details": "Все этапы выполнены: True",
+      "timestamp": "2025-07-08T10:31:53.201078"
+    }
+  },
+  "errors": [
+    "Package scikit-learn: Не установлен",
+    "Database Tables: Таблиц найдено: 0"
+  ],
+  "warnings": []
+}

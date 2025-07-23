@@ -25,6 +25,10 @@ class Channel(BaseModel):
     # Status
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
+
+    # Ownership
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner = relationship("User", back_populates="channels")
     
     # Relationships
     signals = relationship("Signal", back_populates="channel", cascade="all, delete-orphan")

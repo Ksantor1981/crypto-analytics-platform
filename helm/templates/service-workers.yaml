@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: workers
+spec:
+  selector:
+    app: workers
+  ports:
+    - protocol: TCP
+      port: 5555
+      targetPort: 5555 

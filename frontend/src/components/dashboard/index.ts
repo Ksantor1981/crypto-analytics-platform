@@ -1,3 +1,3 @@
 export { DashboardLayout } from './DashboardLayout';
 export { StatsCard } from './StatsCard';
-export { RecentSignals } from './RecentSignals'; 
+export { RecentSignals } from './RecentSignals';

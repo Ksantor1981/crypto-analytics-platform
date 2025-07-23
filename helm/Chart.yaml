@@ -1,0 +1,6 @@
+apiVersion: v2
+name: crypto-analytics-platform
+version: 0.1.0
+appVersion: "0.1.0"
+description: Helm chart for Crypto Analytics Platform (backend, frontend, ml-service, workers, postgres, redis)
+type: application 

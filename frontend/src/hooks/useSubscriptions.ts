@@ -10,40 +10,40 @@ export const useSubscriptions = () => {
     data: subscriptions = [],
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['subscriptions'],
     queryFn: () => subscriptionsApi.getUserSubscriptions(),
-    select: (data) => data.data
+    select: data => data.data,
   });
 
   const createSubscriptionMutation = useMutation({
     mutationFn: subscriptionsApi.createSubscription,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-    }
+    },
   });
 
   const cancelSubscriptionMutation = useMutation({
     mutationFn: subscriptionsApi.cancelSubscription,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-    }
+    },
   });
 
   const reactivateSubscriptionMutation = useMutation({
     mutationFn: subscriptionsApi.reactivateSubscription,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-    }
+    },
   });
 
   const createCheckoutSessionMutation = useMutation({
     mutationFn: subscriptionsApi.createCheckoutSession,
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Redirect to Stripe Checkout
       window.location.href = data.checkout_url;
-    }
+    },
   });
 
   return {
@@ -58,7 +58,7 @@ export const useSubscriptions = () => {
     isCreating: createSubscriptionMutation.isPending,
     isCancelling: cancelSubscriptionMutation.isPending,
     isReactivating: reactivateSubscriptionMutation.isPending,
-    isCreatingCheckout: createCheckoutSessionMutation.isPending
+    isCreatingCheckout: createCheckoutSessionMutation.isPending,
   };
 };
 
@@ -68,21 +68,21 @@ export const useSubscription = (id: string) => {
   const {
     data: subscription,
     isLoading,
-    error
+    error,
   } = useQuery({
     queryKey: ['subscription', id],
     queryFn: () => subscriptionsApi.getSubscription(id),
-    select: (data) => data.data,
-    enabled: !!id
+    select: data => data.data,
+    enabled: !!id,
   });
 
   const updateSubscriptionMutation = useMutation({
-    mutationFn: (data: Partial<Subscription>) => 
+    mutationFn: (data: Partial<Subscription>) =>
       subscriptionsApi.updateSubscription(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription', id] });
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-    }
+    },
   });
 
   const cancelSubscriptionMutation = useMutation({
@@ -90,7 +90,7 @@ export const useSubscription = (id: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription', id] });
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-    }
+    },
   });
 
   return {
@@ -100,7 +100,7 @@ export const useSubscription = (id: string) => {
     updateSubscription: updateSubscriptionMutation.mutateAsync,
     cancelSubscription: cancelSubscriptionMutation.mutateAsync,
     isUpdating: updateSubscriptionMutation.isPending,
-    isCancelling: cancelSubscriptionMutation.isPending
+    isCancelling: cancelSubscriptionMutation.isPending,
   };
 };
 
@@ -108,16 +108,16 @@ export const usePricingPlans = () => {
   const {
     data: plans = [],
     isLoading,
-    error
+    error,
   } = useQuery({
     queryKey: ['pricing-plans'],
     queryFn: () => subscriptionsApi.getPricingPlans(),
-    select: (data) => data.data
+    select: data => data.data,
   });
 
   return {
     plans,
     isLoading,
-    error
+    error,
   };
-}; 
+};

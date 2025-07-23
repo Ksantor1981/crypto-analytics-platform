@@ -12,7 +12,7 @@ def test_model():
     print("🧪 Testing ML Service Model...")
     
     try:
-        from models.signal_predictor import SignalPredictor
+        from models.signal_predictor import EnhancedSignalPredictor as SignalPredictor
         
         # Create model instance
         model = SignalPredictor()

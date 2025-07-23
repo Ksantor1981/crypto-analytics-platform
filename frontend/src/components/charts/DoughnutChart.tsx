@@ -1,12 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -31,7 +26,7 @@ export const DoughnutChart: React.FC<DoughnutChartProps> = ({
   data,
   options = {},
   height = 400,
-  width
+  width,
 }) => {
   const defaultOptions = {
     responsive: true,
@@ -53,4 +48,4 @@ export const DoughnutChart: React.FC<DoughnutChartProps> = ({
       <Doughnut data={data} options={defaultOptions} />
     </div>
   );
-}; 
+};

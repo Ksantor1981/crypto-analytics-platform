@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-07-23T21:19:26.090143",
+  "results": {
+    "backend_health": true,
+    "ml_service_health": true,
+    "database_connection": true,
+    "ml_prediction": true,
+    "api_endpoints": true,
+    "real_data_integration": true,
+    "performance": true,
+    "error_handling": true
+  },
+  "summary": {
+    "total_tests": 8,
+    "passed_tests": 8,
+    "success_rate": 1.0
+  }
+}

@@ -16,12 +16,12 @@ interface TableProps<T> {
   onRowClick?: (record: T) => void;
 }
 
-function Table<T extends Record<string, any>>({ 
-  data, 
-  columns, 
-  loading = false, 
+function Table<T extends Record<string, any>>({
+  data,
+  columns,
+  loading = false,
   className = '',
-  onRowClick 
+  onRowClick,
 }: TableProps<T>) {
   if (loading) {
     return (
@@ -41,7 +41,7 @@ function Table<T extends Record<string, any>>({
       <table className="table">
         <thead className="table-header">
           <tr>
-            {columns.map((column) => (
+            {columns.map(column => (
               <th
                 key={String(column.key)}
                 className="table-cell font-medium"
@@ -59,12 +59,11 @@ function Table<T extends Record<string, any>>({
               className={`table-row ${onRowClick ? 'cursor-pointer' : ''}`}
               onClick={() => onRowClick?.(record)}
             >
-              {columns.map((column) => (
+              {columns.map(column => (
                 <td key={String(column.key)} className="table-cell">
-                  {column.render 
+                  {column.render
                     ? column.render(record[column.key], record)
-                    : record[column.key]
-                  }
+                    : record[column.key]}
                 </td>
               ))}
             </tr>
@@ -72,13 +71,11 @@ function Table<T extends Record<string, any>>({
         </tbody>
       </table>
       {data.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No data available
-        </div>
+        <div className="text-center py-8 text-gray-500">No data available</div>
       )}
     </div>
   );
 }
 
 export { Table };
-export type { TableProps, Column }; 
+export type { TableProps, Column };

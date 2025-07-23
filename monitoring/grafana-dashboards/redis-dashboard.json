@@ -1,0 +1,45 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Ops/sec",
+      "targets": [
+        {
+          "expr": "sum(rate(redis_commands_processed_total{job='redis'}[1m]))",
+          "legendFormat": "ops/sec"
+        }
+      ],
+      "id": 1
+    },
+    {
+      "type": "graph",
+      "title": "Used Memory",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes{job='redis'}",
+          "legendFormat": "bytes"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "type": "graph",
+      "title": "Connected Clients",
+      "targets": [
+        {
+          "expr": "redis_connected_clients{job='redis'}",
+          "legendFormat": "clients"
+        }
+      ],
+      "id": 3
+    }
+  ],
+  "schemaVersion": 16,
+  "version": 1,
+  "title": "Redis Overview"
+} 

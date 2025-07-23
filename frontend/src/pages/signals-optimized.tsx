@@ -3,9 +3,9 @@ import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
 import { SectionLoading, EmptyState } from '@/components/ui/Loading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSignals } from '@/hooks/useSignals';
@@ -14,26 +14,33 @@ import { Signal, SignalFilters } from '@/types';
 
 // Lazy loading компонентов
 const OptimizedSignalsList = dynamic(
-  () => import('@/components/signals/OptimizedSignalsList').then(mod => ({ default: mod.OptimizedSignalsList })),
+  () =>
+    import('@/components/signals/OptimizedSignalsList').then(mod => ({
+      default: mod.OptimizedSignalsList,
+    })),
   {
     loading: () => <SectionLoading message="Загрузка списка сигналов..." />,
-    ssr: false
+    ssr: false,
   }
 );
 
 const SignalsStats = dynamic(
-  () => import('@/components/signals').then(mod => ({ default: mod.SignalsStats })),
+  () =>
+    import('@/components/signals').then(mod => ({ default: mod.SignalsStats })),
   {
     loading: () => <SectionLoading height="h-32" />,
-    ssr: false
+    ssr: false,
   }
 );
 
 const SignalsFilter = dynamic(
-  () => import('@/components/signals').then(mod => ({ default: mod.SignalsFilter })),
+  () =>
+    import('@/components/signals').then(mod => ({
+      default: mod.SignalsFilter,
+    })),
   {
     loading: () => <SectionLoading height="h-40" />,
-    ssr: false
+    ssr: false,
   }
 );
 
@@ -41,7 +48,9 @@ interface OptimizedSignalsPageProps {
   initialSignals: Signal[];
 }
 
-export default function OptimizedSignalsPage({ initialSignals }: OptimizedSignalsPageProps) {
+export default function OptimizedSignalsPage({
+  initialSignals,
+}: OptimizedSignalsPageProps) {
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,17 +63,11 @@ export default function OptimizedSignalsPage({ initialSignals }: OptimizedSignal
   // Объединяем поисковый запрос с фильтрами
   const combinedFilters = {
     ...filters,
-    search: debouncedSearchTerm
+    search: debouncedSearchTerm,
   };
 
-  const {
-    signals,
-    isLoading,
-    error,
-    refetch,
-    analyzeSignal,
-    isAnalyzing
-  } = useSignals(combinedFilters);
+  const { signals, isLoading, error, refetch, analyzeSignal, isAnalyzing } =
+    useSignals(combinedFilters);
 
   // Используем начальные данные, если еще не загружены новые
   const displaySignals = signals.length > 0 ? signals : initialSignals;
@@ -131,8 +134,8 @@ export default function OptimizedSignalsPage({ initialSignals }: OptimizedSignal
                   🔲 Сетка
                 </button>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleRefresh}
                 disabled={isLoading}
               >
@@ -149,7 +152,7 @@ export default function OptimizedSignalsPage({ initialSignals }: OptimizedSignal
                   <Input
                     placeholder="Поиск по активу, статусу или направлению..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={e => setSearchTerm(e.target.value)}
                     className="w-full"
                   />
                 </div>
@@ -166,10 +169,7 @@ export default function OptimizedSignalsPage({ initialSignals }: OptimizedSignal
                     )}
                   </Button>
                   {(Object.keys(filters).length > 0 || searchTerm) && (
-                    <Button
-                      variant="outline"
-                      onClick={handleResetFilters}
-                    >
+                    <Button variant="outline" onClick={handleResetFilters}>
                       ✕ Сбросить
                     </Button>
                   )}
@@ -238,7 +238,7 @@ export default function OptimizedSignalsPage({ initialSignals }: OptimizedSignal
               description="Попробуйте изменить фильтры или подключить новые каналы"
               action={{
                 label: 'Перейти к каналам',
-                onClick: () => window.location.href = '/channels'
+                onClick: () => (window.location.href = '/channels'),
               }}
             />
           ) : (
@@ -255,12 +255,14 @@ export default function OptimizedSignalsPage({ initialSignals }: OptimizedSignal
               ) : (
                 // Grid view - можно также оптимизировать
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {displaySignals.map((signal) => (
+                  {displaySignals.map(signal => (
                     <div key={signal.id}>
                       {/* Здесь будет оптимизированный SignalCard */}
                       <div className="bg-white rounded-lg shadow p-4">
                         <div className="font-medium">{signal.asset}</div>
-                        <div className="text-sm text-gray-600">{signal.direction}</div>
+                        <div className="text-sm text-gray-600">
+                          {signal.direction}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -274,7 +276,7 @@ export default function OptimizedSignalsPage({ initialSignals }: OptimizedSignal
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async context => {
   try {
     // В реальном приложении здесь будет запрос к API с кэшированием
     const initialSignals: Signal[] = [
@@ -304,22 +306,25 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           is_active: true,
-          subscription_price: 50
-        }
-      }
+          subscription_price: 50,
+        },
+      },
     ];
 
     return {
       props: {
-        initialSignals
-      }
+        initialSignals,
+      },
     };
   } catch (error) {
     console.error('Error fetching signals:', error);
     return {
       props: {
-        initialSignals: []
-      }
+        initialSignals: [],
+      },
     };
   }
-}; 
+};
+
+
+

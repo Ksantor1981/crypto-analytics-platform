@@ -2,9 +2,9 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Card, CardBody } from '@/components/ui/Card';
+import { Card, CardBody } from '@/components/ui/card';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Signal } from '@/types';
 import { formatDate, formatPrice } from '@/lib/utils';
 import { VirtualList, useOptimizedSearch, withMemo } from '@/lib/performance';
@@ -28,24 +28,41 @@ const SignalItem = withMemo<{
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge variant="warning" size="sm">Активен</Badge>;
+        return (
+          <Badge variant="warning" size="sm">
+            Активен
+          </Badge>
+        );
       case 'completed':
-        return <Badge variant="success" size="sm">Выполнен</Badge>;
+        return (
+          <Badge variant="success" size="sm">
+            Выполнен
+          </Badge>
+        );
       case 'failed':
-        return <Badge variant="danger" size="sm">Не выполнен</Badge>;
+        return (
+          <Badge variant="danger" size="sm">
+            Не выполнен
+          </Badge>
+        );
       case 'cancelled':
-        return <Badge variant="secondary" size="sm">Отменен</Badge>;
+        return (
+          <Badge variant="secondary" size="sm">
+            Отменен
+          </Badge>
+        );
       default:
-        return <Badge variant="secondary" size="sm">{status}</Badge>;
+        return (
+          <Badge variant="secondary" size="sm">
+            {status}
+          </Badge>
+        );
     }
   };
 
   const getDirectionBadge = (direction: string) => {
     return (
-      <Badge
-        variant={direction === 'long' ? 'success' : 'danger'}
-        size="sm"
-      >
+      <Badge variant={direction === 'long' ? 'success' : 'danger'} size="sm">
         {direction.toUpperCase()}
       </Badge>
     );
@@ -64,14 +81,14 @@ const SignalItem = withMemo<{
             {signal.asset.slice(0, 3)}
           </span>
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-1">
             <span className="font-medium text-gray-900">{signal.asset}</span>
             {getDirectionBadge(signal.direction)}
             {getStatusBadge(signal.status)}
           </div>
-          
+
           <div className="flex items-center space-x-4 text-sm text-gray-600">
             <span>Вход: {formatPrice(signal.entry_price)}</span>
             {signal.target_price && (
@@ -81,7 +98,8 @@ const SignalItem = withMemo<{
             )}
             {signal.pnl !== undefined && (
               <span className={`font-medium ${getPnlColor(signal.pnl)}`}>
-                P&L: {signal.pnl > 0 ? '+' : ''}{signal.pnl.toFixed(2)}%
+                P&L: {signal.pnl > 0 ? '+' : ''}
+                {signal.pnl.toFixed(2)}%
               </span>
             )}
           </div>
@@ -128,9 +146,11 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
   onSignalSelect,
   showChannel = true,
   searchTerm = '',
-  height = 600
+  height = 600,
 }) => {
-  const [sortBy, setSortBy] = useState<'created_at' | 'asset' | 'entry_price' | 'pnl' | 'status'>('created_at');
+  const [sortBy, setSortBy] = useState<
+    'created_at' | 'asset' | 'entry_price' | 'pnl' | 'status'
+  >('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Оптимизированный поиск
@@ -186,7 +206,7 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
       <Card>
         <CardBody>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="animate-pulse">
                 <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                   <div className="flex items-center space-x-4">
@@ -215,10 +235,9 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
             {searchTerm ? 'Сигналы не найдены' : 'Нет сигналов'}
           </h3>
           <p className="text-gray-600">
-            {searchTerm 
+            {searchTerm
               ? 'Попробуйте изменить поисковый запрос'
-              : 'Сигналы появятся здесь после подключения каналов'
-            }
+              : 'Сигналы появятся здесь после подключения каналов'}
           </p>
         </CardBody>
       </Card>
@@ -243,7 +262,7 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
               <span className="text-sm text-gray-600">Сортировка:</span>
               <select
                 value={`${sortBy}-${sortOrder}`}
-                onChange={(e) => {
+                onChange={e => {
                   const [field, order] = e.target.value.split('-');
                   setSortBy(field as typeof sortBy);
                   setSortOrder(order as 'asc' | 'desc');
@@ -271,4 +290,6 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
       </CardBody>
     </Card>
   );
-}; 
+};
+
+

@@ -17,14 +17,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <input
-          ref={ref}
-          className={inputClasses}
-          {...props}
-        />
-        {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
-        )}
+        <input ref={ref} className={inputClasses} {...props} />
+        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
         {helperText && !error && (
           <p className="mt-1 text-sm text-gray-500">{helperText}</p>
         )}
@@ -36,4 +30,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = 'Input';
 
 export { Input };
-export type { InputProps }; 
+export type { InputProps };

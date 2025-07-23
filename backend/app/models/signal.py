@@ -34,6 +34,7 @@ class Signal(BaseModel):
     
     # Signal details
     asset = Column(String(20), nullable=False, index=True)  # e.g., BTC/USDT
+    symbol = Column(String(20), nullable=False, index=True)  # Alternative name for asset (for compatibility)
     direction = Column(Enum(SignalDirection), nullable=False)
     entry_price = Column(Numeric(20, 8), nullable=False)  # More precise than Float
     
@@ -50,6 +51,7 @@ class Signal(BaseModel):
     # Original message
     original_text = Column(Text, nullable=True)
     message_timestamp = Column(DateTime(timezone=True), default=datetime.utcnow)
+    timestamp = Column(DateTime(timezone=True), default=datetime.utcnow)  # Alternative name for compatibility
     telegram_message_id = Column(String(50), nullable=True)  # For tracking
     
     # Signal execution tracking
@@ -153,6 +155,7 @@ class TelegramSignal(BaseModel):
     source = Column(String(100), nullable=False)  # Source channel/bot
     original_text = Column(Text, nullable=True)
     signal_metadata = Column(JSON, nullable=True)  # Additional data (renamed from metadata)
+    timestamp = Column(DateTime(timezone=True), default=datetime.utcnow)  # Add timestamp field
     
     # Status tracking
     status = Column(String(20), default="PENDING", index=True)

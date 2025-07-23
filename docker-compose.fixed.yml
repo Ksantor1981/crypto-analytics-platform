@@ -1,0 +1,75 @@
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15
+    container_name: crypto-analytics-postgres
+    environment:
+      POSTGRES_DB: crypto_analytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crypto_analytics_network
+
+  # Redis for Celery
+  redis:
+    image: redis:7-alpine
+    container_name: crypto-analytics-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - crypto_analytics_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crypto_analytics_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/crypto_analytics
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=development
+      - DEBUG=True
+      - SECRET_KEY=crypto-analytics-secret-key-2024-development
+      - STRIPE_SECRET_KEY=sk_test_dummy_key_for_development
+      - STRIPE_PUBLISHABLE_KEY=pk_test_dummy_key_for_development
+    networks:
+      - crypto_analytics_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  crypto_analytics_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

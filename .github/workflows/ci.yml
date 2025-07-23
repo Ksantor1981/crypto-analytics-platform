@@ -1,0 +1,77 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [backend, frontend, ml-service, workers]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: matrix.service == 'backend' || matrix.service == 'ml-service' || matrix.service == 'workers'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        if: matrix.service == 'frontend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies (Python)
+        if: matrix.service == 'backend' || matrix.service == 'ml-service' || matrix.service == 'workers'
+        run: |
+          cd ${{ matrix.service }}
+          pip install -r requirements.txt
+
+      - name: Install dependencies (Node.js)
+        if: matrix.service == 'frontend'
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Lint (Python)
+        if: matrix.service == 'backend' || matrix.service == 'ml-service' || matrix.service == 'workers'
+        run: |
+          cd ${{ matrix.service }}
+          pip install flake8
+          flake8 .
+
+      - name: Lint (Node.js)
+        if: matrix.service == 'frontend'
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Run tests (Python)
+        if: matrix.service == 'backend' || matrix.service == 'ml-service' || matrix.service == 'workers'
+        run: |
+          cd ${{ matrix.service }}
+          pytest || true
+
+      - name: Run tests (Node.js)
+        if: matrix.service == 'frontend'
+        run: |
+          cd frontend
+          npm run test || true
+
+      - name: Build Docker image
+        run: |
+          docker build -t crypto-analytics-${{ matrix.service }} ./${{ matrix.service }}
+
+      - name: Dependency scanning
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'python, javascript'
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3 

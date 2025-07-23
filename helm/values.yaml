@@ -1,0 +1,42 @@
+backend:
+  image: crypto-analytics-backend:latest
+  port: 8000
+  env:
+    DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/crypto_analytics
+    REDIS_URL: redis://redis:6379/0
+    ENVIRONMENT: production
+    SECRET_KEY: crypto-analytics-secret-key-2024
+
+frontend:
+  image: crypto-analytics-frontend:latest
+  port: 3000
+  env:
+    NEXT_PUBLIC_API_URL: http://backend:8000/api/v1
+    NEXT_PUBLIC_ML_URL: http://ml-service:8001/api/v1
+
+mlService:
+  image: crypto-analytics-ml-service:latest
+  port: 8001
+  env:
+    DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/crypto_analytics
+    ENVIRONMENT: production
+
+workers:
+  image: crypto-analytics-workers:latest
+  env:
+    DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/crypto_analytics
+    REDIS_URL: redis://redis:6379/0
+    ENVIRONMENT: production
+    SECRET_KEY: crypto-analytics-secret-key-2024
+
+postgres:
+  image: postgres:15
+  port: 5432
+  env:
+    POSTGRES_DB: crypto_analytics
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres123
+
+redis:
+  image: redis:7-alpine
+  port: 6379 

@@ -41,7 +41,7 @@ export const BarChart: React.FC<BarChartProps> = ({
   data,
   options = {},
   height = 400,
-  width
+  width,
 }) => {
   const defaultOptions = {
     responsive: true,
@@ -75,4 +75,4 @@ export const BarChart: React.FC<BarChartProps> = ({
       <Bar data={data} options={defaultOptions} />
     </div>
   );
-}; 
+};
