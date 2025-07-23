@@ -168,3 +168,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Не игнорировать инфраструктурные каталоги
+!.github/
+!helm/
+!monitoring/
+!prom-grafana/

@@ -11,12 +11,12 @@ interface LoadingProps {
 export const Loading: React.FC<LoadingProps> = ({
   size = 'md',
   text,
-  className = ''
+  className = '',
 }) => {
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-8 w-8',
-    lg: 'h-12 w-12'
+    lg: 'h-12 w-12',
   };
 
   return (
@@ -28,9 +28,7 @@ export const Loading: React.FC<LoadingProps> = ({
             ${sizeClasses[size]}
           `}
         />
-        {text && (
-          <p className="mt-2 text-sm text-gray-600">{text}</p>
-        )}
+        {text && <p className="mt-2 text-sm text-gray-600">{text}</p>}
       </div>
     </div>
   );
@@ -43,7 +41,7 @@ interface SkeletonProps {
 
 export const Skeleton: React.FC<SkeletonProps> = ({
   className = 'h-4 w-full',
-  count = 1
+  count = 1,
 }) => {
   return (
     <>
@@ -69,5 +67,5 @@ export {
   CardLoading,
   ListLoading,
   EmptyState,
-  ErrorState
-} from './LoadingStates'; 
+  ErrorState,
+} from './LoadingStates';

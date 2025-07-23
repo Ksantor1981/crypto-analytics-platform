@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Renewal Reminder</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .reminder-icon {
+            font-size: 48px;
+            color: #ffc107;
+            margin-bottom: 20px;
+        }
+        .amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 10px 5px;
+            text-align: center;
+        }
+        .button-secondary {
+            background-color: #6c757d;
+        }
+        .info {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{ company_name }}</div>
+            <div class="reminder-icon">🔔</div>
+            <h1>Subscription Renewal Reminder</h1>
+            <p>Your {{ subscription_plan }} subscription renews soon</p>
+        </div>
+
+        <p>Hi {{ user_name }},</p>
+        
+        <p>This is a friendly reminder that your <strong>{{ subscription_plan }}</strong> subscription will automatically renew in <strong>{{ days_until_renewal }} day{% if days_until_renewal != 1 %}s{% endif %}</strong>.</p>
+
+        <div class="info">
+            <strong>Renewal Details:</strong><br>
+            • Date: {{ renewal_date }}<br>
+            • Amount: {{ renewal_amount }}<br>
+            • Plan: {{ subscription_plan }}
+        </div>
+
+        <p>Your subscription will automatically renew unless you cancel before the renewal date. You'll continue to enjoy all the premium features without any interruption.</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ manage_subscription_url }}" class="button">Manage Subscription</a>
+            <a href="{{ cancel_subscription_url }}" class="button button-secondary">Cancel Subscription</a>
+        </div>
+
+        <p><strong>Questions?</strong> We're here to help! Contact us anytime.</p>
+
+        <div class="footer">
+            <p>Contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a></p>
+            <p>© 2025 {{ company_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

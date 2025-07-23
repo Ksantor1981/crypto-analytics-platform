@@ -1,0 +1,45 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "graph",
+      "title": "HTTP Requests",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{job='backend'}[1m]))",
+          "legendFormat": "requests/sec"
+        }
+      ],
+      "id": 1
+    },
+    {
+      "type": "graph",
+      "title": "Request Latency",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job='backend'}[1m])) by (le))",
+          "legendFormat": "p95 latency"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "type": "graph",
+      "title": "Error Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{job='backend',status=~'5..'}[1m])) / sum(rate(http_requests_total{job='backend'}[1m]))",
+          "legendFormat": "error rate"
+        }
+      ],
+      "id": 3
+    }
+  ],
+  "schemaVersion": 16,
+  "version": 1,
+  "title": "Backend Service Overview"
+} 

@@ -98,6 +98,10 @@ class PaymentResponse(PaymentBase):
     class Config:
         from_attributes = True
 
+# Schema for database representation
+class PaymentInDB(PaymentResponse):
+    pass
+
 # Schema with user info
 class PaymentWithUser(PaymentResponse):
     user_email: Optional[str] = None

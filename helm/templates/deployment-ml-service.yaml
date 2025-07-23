@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ml-service
+  template:
+    metadata:
+      labels:
+        app: ml-service
+    spec:
+      containers:
+        - name: ml-service
+          image: {{ .Values.mlService.image }}
+          ports:
+            - containerPort: {{ .Values.mlService.port }}
+          env:
+            - name: DATABASE_URL
+              value: {{ .Values.mlService.env.DATABASE_URL | quote }}
+            - name: ENVIRONMENT
+              value: {{ .Values.mlService.env.ENVIRONMENT | quote }} 

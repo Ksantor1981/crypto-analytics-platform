@@ -13,7 +13,7 @@ interface PerformanceChartProps {
 export const PerformanceChart: React.FC<PerformanceChartProps> = ({
   signals,
   timeRange = 'month',
-  height = 400
+  height = 400,
 }) => {
   const getTimeRangeData = () => {
     const now = new Date();
@@ -47,13 +47,13 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
 
     // Группируем данные по периодам
     const groupedData = new Map<string, { pnl: number; count: number }>();
-    
+
     filteredSignals.forEach(signal => {
       if (signal.pnl === undefined) return;
-      
+
       const date = new Date(signal.created_at);
       let key: string;
-      
+
       switch (groupBy) {
         case 'day':
           key = date.toISOString().split('T')[0];
@@ -67,11 +67,11 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
           key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
           break;
       }
-      
+
       if (!groupedData.has(key)) {
         groupedData.set(key, { pnl: 0, count: 0 });
       }
-      
+
       const current = groupedData.get(key)!;
       current.pnl += signal.pnl;
       current.count += 1;
@@ -83,11 +83,17 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
       const date = new Date(key);
       switch (groupBy) {
         case 'day':
-          return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+          return date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+          });
         case 'week':
           return `${date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}`;
         case 'month':
-          return date.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+          return date.toLocaleDateString('ru-RU', {
+            month: 'short',
+            year: 'numeric',
+          });
         default:
           return key;
       }
@@ -125,8 +131,8 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         fill: false,
         tension: 0.4,
-      }
-    ]
+      },
+    ],
   };
 
   const options = {
@@ -171,4 +177,4 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
       <LineChart data={chartData} options={options} height={height} />
     </div>
   );
-}; 
+};

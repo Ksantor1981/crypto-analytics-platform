@@ -127,6 +127,10 @@ class SignalResponse(SignalBase):
     class Config:
         from_attributes = True
 
+# Схема для представления в базе данных
+class SignalInDB(SignalResponse):
+    pass
+
 # Схема для списка сигналов с пагинацией
 class SignalListResponse(BaseModel):
     signals: List[SignalResponse]

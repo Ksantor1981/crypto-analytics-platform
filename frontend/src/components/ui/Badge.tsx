@@ -8,9 +8,14 @@ interface BadgeProps {
   className?: string;
 }
 
-const Badge = ({ children, variant = 'secondary', className = '' }: BadgeProps) => {
-  const baseClasses = 'badge inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium';
-  
+const Badge = ({
+  children,
+  variant = 'secondary',
+  className = '',
+}: BadgeProps) => {
+  const baseClasses =
+    'badge inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium';
+
   const variantClasses = {
     success: 'badge-success',
     danger: 'badge-danger',
@@ -21,12 +26,8 @@ const Badge = ({ children, variant = 'secondary', className = '' }: BadgeProps) 
 
   const classes = `${baseClasses} ${variantClasses[variant]} ${className}`;
 
-  return (
-    <span className={classes}>
-      {children}
-    </span>
-  );
+  return <span className={classes}>{children}</span>;
 };
 
 export { Badge };
-export type { BadgeProps, BadgeVariant }; 
+export type { BadgeProps, BadgeVariant };

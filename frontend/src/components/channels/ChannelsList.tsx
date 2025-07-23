@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Card, CardBody } from '@/components/ui/Card';
+import { Card, CardBody } from '@/components/ui/card';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Table } from '@/components/ui/Table';
 import { Channel } from '@/types';
 import { formatDate } from '@/lib/utils';
@@ -18,9 +18,11 @@ interface ChannelsListProps {
 export const ChannelsList: React.FC<ChannelsListProps> = ({
   channels,
   isLoading = false,
-  onChannelSelect
+  onChannelSelect,
 }) => {
-  const [sortBy, setSortBy] = useState<'name' | 'accuracy' | 'signals_count' | 'created_at'>('accuracy');
+  const [sortBy, setSortBy] = useState<
+    'name' | 'accuracy' | 'signals_count' | 'created_at'
+  >('accuracy');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const sortedChannels = [...channels].sort((a, b) => {
@@ -72,7 +74,7 @@ export const ChannelsList: React.FC<ChannelsListProps> = ({
       <Card>
         <CardBody>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="animate-pulse">
                 <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                   <div className="flex items-center space-x-4">
@@ -97,11 +99,13 @@ export const ChannelsList: React.FC<ChannelsListProps> = ({
       <Card>
         <CardBody className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">📡</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Нет каналов</h3>
-          <p className="text-gray-600 mb-6">Добавьте первый канал для начала анализа</p>
-          <Button variant="primary">
-            Добавить канал
-          </Button>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Нет каналов
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Добавьте первый канал для начала анализа
+          </p>
+          <Button variant="primary">Добавить канал</Button>
         </CardBody>
       </Card>
     );
@@ -163,8 +167,11 @@ export const ChannelsList: React.FC<ChannelsListProps> = ({
               </tr>
             </thead>
             <tbody>
-              {sortedChannels.map((channel) => (
-                <tr key={channel.id} className="border-b border-gray-100 hover:bg-gray-50">
+              {sortedChannels.map(channel => (
+                <tr
+                  key={channel.id}
+                  className="border-b border-gray-100 hover:bg-gray-50"
+                >
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -173,8 +180,12 @@ export const ChannelsList: React.FC<ChannelsListProps> = ({
                         </span>
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">{channel.name}</div>
-                        <div className="text-sm text-gray-600">@{channel.username}</div>
+                        <div className="font-medium text-gray-900">
+                          {channel.name}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          @{channel.username}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -182,15 +193,21 @@ export const ChannelsList: React.FC<ChannelsListProps> = ({
                     {getStatusBadge(channel.status)}
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`font-medium ${getAccuracyColor(channel.accuracy)}`}>
+                    <span
+                      className={`font-medium ${getAccuracyColor(channel.accuracy)}`}
+                    >
                       {channel.accuracy.toFixed(1)}%
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="text-gray-900">{channel.signals_count}</span>
+                    <span className="text-gray-900">
+                      {channel.signals_count}
+                    </span>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="text-gray-600">{formatDate(channel.created_at)}</span>
+                    <span className="text-gray-600">
+                      {formatDate(channel.created_at)}
+                    </span>
                   </td>
                   <td className="py-3 px-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
@@ -218,4 +235,6 @@ export const ChannelsList: React.FC<ChannelsListProps> = ({
       </CardBody>
     </Card>
   );
-}; 
+};
+
+

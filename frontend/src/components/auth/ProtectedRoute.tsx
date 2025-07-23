@@ -14,7 +14,7 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRole,
-  fallback
+  fallback,
 }) => {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -28,10 +28,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Show loading while checking authentication
   if (isLoading) {
-    return fallback || (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loading />
-      </div>
+    return (
+      fallback || (
+        <div className="min-h-screen flex items-center justify-center">
+          <Loading />
+        </div>
+      )
     );
   }
 
@@ -79,6 +81,6 @@ export const withAuth = <P extends object>(
   };
 
   AuthenticatedComponent.displayName = `withAuth(${Component.displayName || Component.name})`;
-  
+
   return AuthenticatedComponent;
-}; 
+};

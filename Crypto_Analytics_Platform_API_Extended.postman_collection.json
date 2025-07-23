@@ -1,0 +1,427 @@
+{
+  "info": {
+    "name": "Crypto Analytics Platform API - Extended",
+    "description": "Extended endpoints for Channels, Signals, Subscriptions, Payments, ML",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Channels",
+      "item": [
+        {
+          "name": "Get All Channels",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/channels?skip=0&limit=100&platform=telegram&category=crypto",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "channels"],
+              "query": [
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "100"},
+                {"key": "platform", "value": "telegram"},
+                {"key": "category", "value": "crypto"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Channel by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/channels/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "channels", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Channel Signals",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/channels/1/signals?skip=0&limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "channels", "1", "signals"],
+              "query": [
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "100"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Channel Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/channels/1/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "channels", "1", "statistics"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Signals",
+      "item": [
+        {
+          "name": "Get All Signals",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/signals?skip=0&limit=100&channel_id=1&asset=BTC/USDT&direction=BUY&status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "signals"],
+              "query": [
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "100"},
+                {"key": "channel_id", "value": "1"},
+                {"key": "asset", "value": "BTC/USDT"},
+                {"key": "direction", "value": "BUY"},
+                {"key": "status", "value": "ACTIVE"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Signal by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/signals/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "signals", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Signal Stats Overview",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/signals/stats/overview?channel_id=1&days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "signals", "stats", "overview"],
+              "query": [
+                {"key": "channel_id", "value": "1"},
+                {"key": "days", "value": "30"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Channel Signal Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/signals/stats/channel/1?days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "signals", "stats", "channel", "1"],
+              "query": [
+                {"key": "days", "value": "30"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Top Performing Signals",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/signals/analytics/top-performing?limit=10&days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "signals", "analytics", "top-performing"],
+              "query": [
+                {"key": "limit", "value": "10"},
+                {"key": "days", "value": "30"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Telegram Signals",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/signals/telegram?skip=0&limit=100&symbol=BTC&signal_type=buy&source=channel1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "signals", "telegram"],
+              "query": [
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "100"},
+                {"key": "symbol", "value": "BTC"},
+                {"key": "signal_type", "value": "buy"},
+                {"key": "source", "value": "channel1"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Telegram Signals Batch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"symbol\": \"BTC/USDT\",\n    \"signal_type\": \"buy\",\n    \"entry_price\": 50000.0,\n    \"target_price\": 55000.0,\n    \"stop_loss\": 48000.0,\n    \"confidence\": 0.85,\n    \"source\": \"telegram_channel_1\",\n    \"metadata\": {\"leverage\": \"10x\"}\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/signals/telegram/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "signals", "telegram", "batch"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions",
+      "item": [
+        {
+          "name": "Get Subscription Plans",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions/plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions", "plans"]
+            }
+          }
+        },
+        {
+          "name": "Get My Subscription",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions", "me"]
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"premium\",\n  \"billing_cycle\": \"monthly\",\n  \"auto_renew\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions"]
+            }
+          }
+        },
+        {
+          "name": "Update My Subscription",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"pro\",\n  \"auto_renew\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions", "me"]
+            }
+          }
+        },
+        {
+          "name": "Renew My Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"billing_cycle\": \"yearly\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions/me/renew",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions", "me", "renew"]
+            }
+          }
+        },
+        {
+          "name": "Get Premium Features",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions/premium/features",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions", "premium", "features"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Subscriptions",
+      "item": [
+        {
+          "name": "Update Subscription by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"pro\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription Usage",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions/1/usage",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions", "1", "usage"]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions/stats/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions", "stats", "overview"]
+            }
+          }
+        },
+        {
+          "name": "Expire Old Subscriptions",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions/maintenance/expire",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "subscriptions", "maintenance", "expire"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ML Integration",
+      "item": [
+        {
+          "name": "ML Model Info",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/model/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "model", "info"]
+            }
+          }
+        },
+        {
+          "name": "Predict Signal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signal_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/predict/signal",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "predict", "signal"]
+            }
+          }
+        },
+        {
+          "name": "Predict Batch Signals",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signal_ids\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/predict/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "predict", "batch"]
+            }
+          }
+        },
+        {
+          "name": "Direct ML Predict",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset\": \"BTC/USDT\",\n  \"entry_price\": 50000.0,\n  \"target_price\": 55000.0,\n  \"stop_loss\": 48000.0,\n  \"confidence\": 0.85\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/predict",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "predict"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Telegram Integration",
+      "item": [
+        {
+          "name": "Toggle Channel Status",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/channels/1/toggle",
+              "host": ["{{baseUrl}}"],
+              "path": ["channels", "1", "toggle"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

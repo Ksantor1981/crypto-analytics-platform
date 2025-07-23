@@ -1,0 +1,22 @@
+{{ company_name }} - Subscription Renewal Reminder
+
+Dear {{ user_name }},
+
+This is a friendly reminder that your {{ subscription_plan }} subscription will automatically renew in {{ days_until_renewal }} day{% if days_until_renewal != 1 %}s{% endif %}.
+
+Renewal Details:
+- Date: {{ renewal_date }}
+- Amount: {{ renewal_amount }}
+- Plan: {{ subscription_plan }}
+
+Your subscription will automatically renew unless you cancel before the renewal date. You'll continue to enjoy all the premium features without any interruption.
+
+Manage Subscription: {{ manage_subscription_url }}
+Cancel Subscription: {{ cancel_subscription_url }}
+
+Questions? We're here to help! Contact us at {{ support_email }}
+
+Best regards,
+The {{ company_name }} Team
+
+© 2025 {{ company_name }}. All rights reserved.

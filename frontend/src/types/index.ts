@@ -17,11 +17,11 @@ export interface PaginatedResponse<T> {
 export interface User {
   id: string;
   email: string;
-  username: string;
-  is_active: boolean;
-  is_premium: boolean;
-  created_at: string;
-  updated_at: string;
+  name?: string;
+  role: 'user' | 'admin';
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UserProfile extends User {
@@ -47,27 +47,28 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  expires_in: number;
   user: User;
+  token: string;
 }
 
 // Channel Types
+export type ChannelType = 'telegram' | 'reddit' | 'rss' | 'twitter' | 'tradingview';
+
 export interface Channel {
   id: string;
   name: string;
-  telegram_id: string;
   description?: string;
-  subscriber_count: number;
-  is_active: boolean;
-  accuracy_rate: number;
-  total_signals: number;
-  successful_signals: number;
-  avg_roi: number;
-  created_at: string;
-  updated_at: string;
+  url: string;
+  type: ChannelType;
+  status: 'active' | 'inactive' | 'pending';
+  createdAt: string;
+  updatedAt: string;
+  // Parser-specific configuration
+  parser_config?: Record<string, any>;
+  // Channel metadata
+  category?: string;
+  allowed_symbols?: string[];
+  min_confidence?: number;
 }
 
 export interface ChannelStats {
@@ -82,27 +83,22 @@ export interface ChannelStats {
 
 // Signal Types
 export type SignalType = 'LONG' | 'SHORT';
-export type SignalStatus = 'PENDING' | 'ACTIVE' | 'PARTIAL' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+export type SignalStatus =
+  | 'PENDING'
+  | 'ACTIVE'
+  | 'PARTIAL'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'CANCELLED';
 
 export interface Signal {
   id: string;
-  channel_id: string;
-  channel_name: string;
-  symbol: string;
-  type: SignalType;
-  status: SignalStatus;
-  entry_price: number;
-  current_price?: number;
-  stop_loss?: number;
-  take_profit_1?: number;
-  take_profit_2?: number;
-  take_profit_3?: number;
-  leverage?: number;
-  confidence_score: number;
-  roi?: number;
-  created_at: string;
-  updated_at: string;
-  closed_at?: string;
+  channelId: string;
+  content: string;
+  type: 'buy' | 'sell';
+  status: 'active' | 'completed' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SignalStats {
@@ -190,22 +186,17 @@ export interface ChartData {
 
 // Filter Types
 export interface ChannelFilters {
+  type?: Channel['type'];
+  status?: Channel['status'];
   search?: string;
-  min_accuracy?: number;
-  min_signals?: number;
-  sort_by?: 'accuracy' | 'signals' | 'roi' | 'created_at';
-  sort_order?: 'asc' | 'desc';
 }
 
 export interface SignalFilters {
-  channel_id?: string;
-  symbol?: string;
-  type?: SignalType;
-  status?: SignalStatus;
-  date_from?: string;
-  date_to?: string;
-  sort_by?: 'created_at' | 'roi' | 'confidence';
-  sort_order?: 'asc' | 'desc';
+  channelId?: string;
+  type?: Signal['type'];
+  status?: Signal['status'];
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 // Error Types
@@ -235,4 +226,4 @@ export type Theme = 'light' | 'dark';
 export interface ThemeConfig {
   theme: Theme;
   toggleTheme: () => void;
-} 
+}

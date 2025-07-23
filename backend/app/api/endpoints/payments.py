@@ -14,27 +14,8 @@ from app.core.auth import (
 )
 from app.core.config import get_settings
 from app.services.payment_service import PaymentService
-from app.schemas.payment import (
-    PaymentCreate,
-    PaymentUpdate,
-    PaymentResponse,
-    PaymentWithUser,
-    PaymentListResponse,
-    PaymentStats,
-    PaymentAnalytics,
-    RefundRequest,
-    RefundResponse,
-    PaymentIntentCreate,
-    PaymentIntentResponse,
-    CustomerCreate,
-    CustomerResponse,
-    InvoiceCreate,
-    InvoiceResponse,
-    StripeWebhookPayment,
-    PaymentStatus,
-    PaymentMethod
-)
-from app.models.user import User
+from app import schemas
+from app.models.user import User, UserRole
 
 # Получаем настройки
 settings = get_settings()
@@ -48,9 +29,9 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/create-payment-intent", response_model=PaymentIntentResponse)
+@router.post("/create-payment-intent", response_model=schemas.payment.PaymentIntentResponse)
 async def create_payment_intent(
-    intent_data: PaymentIntentCreate,
+    intent_data: schemas.payment.PaymentIntentCreate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -62,7 +43,7 @@ async def create_payment_intent(
     return payment_intent
 
 
-@router.get("/me", response_model=PaymentListResponse)
+@router.get("/me", response_model=schemas.payment.PaymentListResponse)
 async def get_my_payments(
     skip: int = Query(0, ge=0, description="Number of payments to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Number of payments to return"),
@@ -85,12 +66,12 @@ async def get_my_payments(
     # Convert to response format
     payment_responses = []
     for payment in payments:
-        payment_dict = PaymentWithUser.from_orm(payment).dict()
+        payment_dict = schemas.payment.PaymentWithUser.from_orm(payment).dict()
         payment_dict["user_email"] = current_user.email
         payment_dict["user_name"] = current_user.full_name
-        payment_responses.append(PaymentWithUser(**payment_dict))
+        payment_responses.append(schemas.payment.PaymentWithUser(**payment_dict))
     
-    return PaymentListResponse(
+    return schemas.payment.PaymentListResponse(
         payments=payment_responses,
         total=total,
         page=page,
@@ -99,7 +80,7 @@ async def get_my_payments(
     )
 
 
-@router.get("/me/{payment_id}", response_model=PaymentResponse)
+@router.get("/me/{payment_id}", response_model=schemas.payment.PaymentResponse)
 async def get_my_payment(
     payment_id: int,
     current_user: User = Depends(get_current_active_user),
@@ -122,10 +103,10 @@ async def get_my_payment(
             detail="Access denied"
         )
     
-    return PaymentResponse.from_orm(payment)
+    return schemas.payment.PaymentResponse.from_orm(payment)
 
 
-@router.post("/me/{payment_id}/cancel", response_model=PaymentResponse)
+@router.post("/me/{payment_id}/cancel", response_model=schemas.payment.PaymentResponse)
 async def cancel_my_payment(
     payment_id: int,
     current_user: User = Depends(get_current_active_user),
@@ -150,7 +131,7 @@ async def cancel_my_payment(
     
     cancelled_payment = payment_service.cancel_payment(payment_id)
     
-    return PaymentResponse.from_orm(cancelled_payment)
+    return schemas.payment.PaymentResponse.from_orm(cancelled_payment)
 
 
 # Stripe webhook endpoint
@@ -184,33 +165,41 @@ async def stripe_webhook(
             raise HTTPException(status_code=400, detail="Invalid signature")
         
         # Handle the event
-        if event['type'] in [
-            'payment_intent.succeeded',
-            'payment_intent.payment_failed',
-            'payment_intent.canceled',
-            'payment_intent.processing'
-        ]:
-            payment_intent = event['data']['object']
-            
-            # Create webhook data
-            webhook_data = StripeWebhookPayment(
-                event_type=event['type'],
-                payment_intent_id=payment_intent['id'],
-                amount=payment_intent['amount'] / 100,  # Convert from cents
-                currency=payment_intent['currency'].upper(),
-                status=payment_intent['status'],
-                customer_id=payment_intent.get('customer'),
-                subscription_id=payment_intent.get('subscription'),
-                invoice_id=payment_intent.get('invoice'),
-                failure_code=payment_intent.get('last_payment_error', {}).get('code'),
-                failure_message=payment_intent.get('last_payment_error', {}).get('message'),
-                receipt_url=payment_intent.get('charges', {}).get('data', [{}])[0].get('receipt_url'),
-                created_at=datetime.utcfromtimestamp(payment_intent['created'])
+        event_type = event['type']
+        event_data = event['data']['object']
+
+        payment_service = PaymentService(db)
+
+        if event_type.startswith('payment_intent.'):
+            webhook_data = schemas.payment.StripeWebhookPayment(
+                event_type=event_type,
+                payment_intent_id=event_data['id'],
+                amount=event_data['amount'] / 100,
+                currency=event_data['currency'].upper(),
+                status=event_data['status'],
+                customer_id=event_data.get('customer'),
+                subscription_id=event_data.get('subscription'),
+                invoice_id=event_data.get('invoice'),
+                failure_code=event_data.get('last_payment_error', {}).get('code'),
+                failure_message=event_data.get('last_payment_error', {}).get('message'),
+                receipt_url=event_data.get('charges', {}).get('data', [{}])[0].get('receipt_url'),
+                created_at=datetime.utcfromtimestamp(event_data['created'])
             )
-            
-            # Process webhook
-            payment_service = PaymentService(db)
             payment_service.process_stripe_webhook(webhook_data)
+
+        elif event_type in ['customer.subscription.updated', 'customer.subscription.deleted']:
+            subscription = event_data
+            customer_id = subscription.get('customer')
+            status = subscription.get('status')
+
+            if customer_id and status in ['canceled', 'unpaid', 'past_due'] or event_type == 'customer.subscription.deleted':
+                user = db.query(User).filter(User.stripe_customer_id == customer_id).first()
+                if user:
+                    user.role = UserRole.FREE_USER
+                    user.current_subscription_expires = None
+                    db.add(user)
+                    db.commit()
+                    logger.info(f"User {user.email} has been downgraded to FREE_USER due to subscription status: {status}")
             
         return {"status": "success"}
         
@@ -223,12 +212,12 @@ async def stripe_webhook(
 
 
 # Admin endpoints
-@router.get("/", response_model=PaymentListResponse, dependencies=[Depends(require_admin)])
+@router.get("/", response_model=schemas.payment.PaymentListResponse, dependencies=[Depends(require_admin)])
 async def get_payments(
     skip: int = Query(0, ge=0, description="Number of payments to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Number of payments to return"),
-    status: Optional[PaymentStatus] = Query(None, description="Filter by status"),
-    payment_method: Optional[PaymentMethod] = Query(None, description="Filter by payment method"),
+        status: Optional[schemas.payment.PaymentStatus] = Query(None, description="Filter by status"),
+        payment_method: Optional[schemas.payment.PaymentMethod] = Query(None, description="Filter by payment method"),
     user_id: Optional[int] = Query(None, description="Filter by user ID"),
     db: Session = Depends(get_db)
 ):
@@ -250,13 +239,13 @@ async def get_payments(
     # Convert to response format with user info
     payment_responses = []
     for payment in payments:
-        payment_dict = PaymentWithUser.from_orm(payment).dict()
+        payment_dict = schemas.payment.PaymentWithUser.from_orm(payment).dict()
         if payment.user:
             payment_dict["user_email"] = payment.user.email
             payment_dict["user_name"] = payment.user.full_name
-        payment_responses.append(PaymentWithUser(**payment_dict))
+        payment_responses.append(schemas.payment.PaymentWithUser(**payment_dict))
     
-    return PaymentListResponse(
+    return schemas.payment.PaymentListResponse(
         payments=payment_responses,
         total=total,
         page=page,
@@ -265,7 +254,7 @@ async def get_payments(
     )
 
 
-@router.get("/{payment_id}", response_model=PaymentWithUser, dependencies=[Depends(require_admin)])
+@router.get("/{payment_id}", response_model=schemas.payment.PaymentWithUser, dependencies=[Depends(require_admin)])
 async def get_payment(
     payment_id: int,
     db: Session = Depends(get_db)
@@ -281,17 +270,17 @@ async def get_payment(
         )
     
     # Convert to response with user info
-    payment_dict = PaymentWithUser.from_orm(payment).dict()
+    payment_dict = schemas.payment.PaymentWithUser.from_orm(payment).dict()
     if payment.user:
         payment_dict["user_email"] = payment.user.email
         payment_dict["user_name"] = payment.user.full_name
     
-    return PaymentWithUser(**payment_dict)
+    return schemas.payment.PaymentWithUser(**payment_dict)
 
 
-@router.post("/admin/create", response_model=PaymentResponse, dependencies=[Depends(require_admin)])
+@router.post("/admin/create", response_model=schemas.payment.PaymentResponse, dependencies=[Depends(require_admin)])
 async def create_payment_admin(
-    payment_data: PaymentCreate,
+        payment_data: schemas.payment.PaymentCreate,
     db: Session = Depends(get_db)
 ):
     """Create a payment for any user (admin only)."""
@@ -299,13 +288,13 @@ async def create_payment_admin(
     
     payment = payment_service.create_payment(payment_data)
     
-    return PaymentResponse.from_orm(payment)
+    return schemas.payment.PaymentResponse.from_orm(payment)
 
 
-@router.put("/{payment_id}", response_model=PaymentResponse, dependencies=[Depends(require_admin)])
+@router.put("/{payment_id}", response_model=schemas.payment.PaymentResponse, dependencies=[Depends(require_admin)])
 async def update_payment(
     payment_id: int,
-    payment_data: PaymentUpdate,
+        payment_data: schemas.payment.PaymentUpdate,
     db: Session = Depends(get_db)
 ):
     """Update payment (admin only)."""
@@ -313,13 +302,13 @@ async def update_payment(
     
     payment = payment_service.update_payment(payment_id, payment_data)
     
-    return PaymentResponse.from_orm(payment)
+    return schemas.payment.PaymentResponse.from_orm(payment)
 
 
-@router.post("/{payment_id}/refund", response_model=RefundResponse, dependencies=[Depends(require_admin)])
+@router.post("/{payment_id}/refund", response_model=schemas.payment.RefundResponse, dependencies=[Depends(require_admin)])
 async def refund_payment(
     payment_id: int,
-    refund_data: RefundRequest,
+        refund_data: schemas.payment.RefundRequest,
     db: Session = Depends(get_db)
 ):
     """Process payment refund (admin only)."""
@@ -330,7 +319,7 @@ async def refund_payment(
     return refund
 
 
-@router.post("/{payment_id}/cancel", response_model=PaymentResponse, dependencies=[Depends(require_admin)])
+@router.post("/{payment_id}/cancel", response_model=schemas.payment.PaymentResponse, dependencies=[Depends(require_admin)])
 async def cancel_payment_admin(
     payment_id: int,
     db: Session = Depends(get_db)
@@ -340,10 +329,10 @@ async def cancel_payment_admin(
     
     payment = payment_service.cancel_payment(payment_id)
     
-    return PaymentResponse.from_orm(payment)
+    return schemas.payment.PaymentResponse.from_orm(payment)
 
 
-@router.get("/stats/overview", response_model=PaymentStats, dependencies=[Depends(require_admin)])
+@router.get("/stats/overview", response_model=schemas.payment.PaymentStats, dependencies=[Depends(require_admin)])
 async def get_payment_stats(db: Session = Depends(get_db)):
     """Get payment statistics (admin only)."""
     payment_service = PaymentService(db)
@@ -354,9 +343,9 @@ async def get_payment_stats(db: Session = Depends(get_db)):
 
 
 # Stripe customer management
-@router.post("/customers/create", response_model=CustomerResponse, dependencies=[Depends(require_admin)])
+@router.post("/customers/create", response_model=schemas.payment.CustomerResponse, dependencies=[Depends(require_admin)])
 async def create_stripe_customer(
-    customer_data: CustomerCreate,
+        customer_data: schemas.payment.CustomerCreate,
     db: Session = Depends(get_db)
 ):
     """Create Stripe customer (admin only)."""
@@ -375,7 +364,7 @@ async def create_stripe_customer(
             type="card"
         )
         
-        return CustomerResponse(
+        return schemas.payment.CustomerResponse(
             customer_id=customer.id,
             email=customer.email,
             name=customer.name,
@@ -391,7 +380,7 @@ async def create_stripe_customer(
         )
 
 
-@router.get("/customers/{customer_id}", response_model=CustomerResponse, dependencies=[Depends(require_admin)])
+@router.get("/customers/{customer_id}", response_model=schemas.payment.CustomerResponse, dependencies=[Depends(require_admin)])
 async def get_stripe_customer(
     customer_id: str,
     db: Session = Depends(get_db)
@@ -406,7 +395,7 @@ async def get_stripe_customer(
             type="card"
         )
         
-        return CustomerResponse(
+        return schemas.payment.CustomerResponse(
             customer_id=customer.id,
             email=customer.email,
             name=customer.name,

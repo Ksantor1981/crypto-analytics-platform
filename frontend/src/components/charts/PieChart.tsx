@@ -1,12 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -31,7 +26,7 @@ export const PieChart: React.FC<PieChartProps> = ({
   data,
   options = {},
   height = 400,
-  width
+  width,
 }) => {
   const defaultOptions = {
     responsive: true,
@@ -52,4 +47,4 @@ export const PieChart: React.FC<PieChartProps> = ({
       <Pie data={data} options={defaultOptions} />
     </div>
   );
-}; 
+};

@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { RegisterRequest } from '@/types';
 
@@ -18,12 +18,12 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
     email: '',
     password: '',
     first_name: '',
-    last_name: ''
+    last_name: '',
   });
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const { register } = useAuth();
   const router = useRouter();
 
@@ -64,7 +64,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -78,7 +78,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
           Создайте аккаунт для доступа к платформе
         </p>
       </CardHeader>
-      
+
       <CardBody>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -92,7 +92,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
               required
               disabled={isLoading}
             />
-            
+
             <Input
               label="Фамилия"
               type="text"
@@ -104,7 +104,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
               disabled={isLoading}
             />
           </div>
-          
+
           <Input
             label="Email"
             type="email"
@@ -115,7 +115,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
             required
             disabled={isLoading}
           />
-          
+
           <Input
             label="Пароль"
             type="password"
@@ -127,24 +127,24 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
             disabled={isLoading}
             helperText="Минимум 8 символов"
           />
-          
+
           <Input
             label="Подтвердите пароль"
             type="password"
             name="confirmPassword"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={e => setConfirmPassword(e.target.value)}
             placeholder="Повторите пароль"
             required
             disabled={isLoading}
           />
-          
+
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3">
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
-          
+
           <Button
             type="submit"
             variant="primary"
@@ -156,15 +156,21 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
           </Button>
         </form>
       </CardBody>
-      
+
       <CardFooter className="text-center">
         <p className="text-sm text-gray-600">
           Уже есть аккаунт?{' '}
-          <Link href="/auth/login" className="text-blue-600 hover:text-blue-800 font-medium">
+          <Link
+            href="/auth/login"
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
             Войти
           </Link>
         </p>
       </CardFooter>
     </Card>
   );
-}; 
+};
+
+
+

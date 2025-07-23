@@ -8,7 +8,7 @@ import logging
 
 from .core.config import get_settings
 from .core.database import engine, Base
-from .api.endpoints import channels, users, signals, subscriptions, payments, ml_integration
+from .api.endpoints import channels, users, signals, subscriptions, payments, ml_integration, telegram_integration
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -58,7 +58,8 @@ app.include_router(channels.router, prefix="/api/v1/channels", tags=["channels"]
 app.include_router(signals.router, prefix="/api/v1/signals", tags=["signals"])
 app.include_router(subscriptions.router, prefix="/api/v1/subscriptions", tags=["subscriptions"])
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"])
-app.include_router(ml_integration.router, prefix="/api/v1/ml", tags=["ml-integration"])
+app.include_router(ml_integration.router, prefix="/api/v1", tags=["ml-integration"])
+app.include_router(telegram_integration.router, prefix="", tags=["telegram-integration"])
 
 @app.get("/")
 async def root():

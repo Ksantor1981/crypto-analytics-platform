@@ -2,9 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardBody, CardFooter } from '@/components/ui/Card';
+import { Card, CardBody, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Signal } from '@/types';
 import { formatDate, formatPrice } from '@/lib/utils';
 
@@ -17,7 +17,7 @@ interface SignalCardProps {
 export const SignalCard: React.FC<SignalCardProps> = ({
   signal,
   showChannel = true,
-  onAnalyze
+  onAnalyze,
 }) => {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -36,10 +36,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({
 
   const getDirectionBadge = (direction: string) => {
     return (
-      <Badge
-        variant={direction === 'long' ? 'success' : 'danger'}
-        size="sm"
-      >
+      <Badge variant={direction === 'long' ? 'success' : 'danger'} size="sm">
         {direction.toUpperCase()}
       </Badge>
     );
@@ -52,10 +49,10 @@ export const SignalCard: React.FC<SignalCardProps> = ({
 
   const calculatePotentialProfit = () => {
     if (!signal.target_price) return null;
-    
+
     const entryPrice = signal.entry_price;
     const targetPrice = signal.target_price;
-    
+
     if (signal.direction === 'long') {
       return ((targetPrice - entryPrice) / entryPrice) * 100;
     } else {
@@ -65,13 +62,13 @@ export const SignalCard: React.FC<SignalCardProps> = ({
 
   const calculateRiskReward = () => {
     if (!signal.target_price || !signal.stop_loss) return null;
-    
+
     const entryPrice = signal.entry_price;
     const targetPrice = signal.target_price;
     const stopLoss = signal.stop_loss;
-    
+
     let reward, risk;
-    
+
     if (signal.direction === 'long') {
       reward = targetPrice - entryPrice;
       risk = entryPrice - stopLoss;
@@ -79,7 +76,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({
       reward = entryPrice - targetPrice;
       risk = stopLoss - entryPrice;
     }
-    
+
     return risk > 0 ? reward / risk : null;
   };
 
@@ -159,20 +156,25 @@ export const SignalCard: React.FC<SignalCardProps> = ({
           <div className="grid grid-cols-2 gap-4">
             {signal.pnl !== undefined ? (
               <div className="text-center">
-                <div className={`text-lg font-semibold ${getPnlColor(signal.pnl)}`}>
-                  {signal.pnl > 0 ? '+' : ''}{signal.pnl.toFixed(1)}%
+                <div
+                  className={`text-lg font-semibold ${getPnlColor(signal.pnl)}`}
+                >
+                  {signal.pnl > 0 ? '+' : ''}
+                  {signal.pnl.toFixed(1)}%
                 </div>
                 <div className="text-xs text-gray-600">Текущий P&L</div>
               </div>
-            ) : potentialProfit && (
-              <div className="text-center">
-                <div className="text-lg font-semibold text-blue-600">
-                  +{potentialProfit.toFixed(1)}%
+            ) : (
+              potentialProfit && (
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-blue-600">
+                    +{potentialProfit.toFixed(1)}%
+                  </div>
+                  <div className="text-xs text-gray-600">Потенциал</div>
                 </div>
-                <div className="text-xs text-gray-600">Потенциал</div>
-              </div>
+              )
             )}
-            
+
             {riskReward && (
               <div className="text-center">
                 <div className="text-lg font-semibold text-purple-600">
@@ -201,7 +203,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({
               Подробнее
             </Button>
           </Link>
-          
+
           {onAnalyze && (
             <Button
               variant="primary"
@@ -215,4 +217,6 @@ export const SignalCard: React.FC<SignalCardProps> = ({
       </CardFooter>
     </Card>
   );
-}; 
+};
+
+

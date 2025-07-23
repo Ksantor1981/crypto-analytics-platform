@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardBody } from '@/components/ui/Card';
+import { Card, CardBody } from '@/components/ui/card';
 
 interface StatsCardProps {
   title: string;
@@ -19,7 +19,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   value,
   change,
   icon,
-  className = ''
+  className = '',
 }) => {
   return (
     <Card className={`${className}`}>
@@ -32,22 +32,22 @@ export const StatsCard: React.FC<StatsCardProps> = ({
               <div className="flex items-center mt-2">
                 <span
                   className={`text-sm font-medium ${
-                    change.type === 'increase' ? 'text-green-600' : 'text-red-600'
+                    change.type === 'increase'
+                      ? 'text-green-600'
+                      : 'text-red-600'
                   }`}
                 >
-                  {change.type === 'increase' ? '↗' : '↘'} {Math.abs(change.value)}%
+                  {change.type === 'increase' ? '↗' : '↘'}{' '}
+                  {Math.abs(change.value)}%
                 </span>
                 <span className="text-xs text-gray-500 ml-2">за месяц</span>
               </div>
             )}
           </div>
-          {icon && (
-            <div className="text-3xl opacity-60">
-              {icon}
-            </div>
-          )}
+          {icon && <div className="text-3xl opacity-60">{icon}</div>}
         </div>
       </CardBody>
     </Card>
   );
-}; 
+};
+

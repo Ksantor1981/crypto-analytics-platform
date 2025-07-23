@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/Badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { subscriptionsApi } from '@/lib/api';
@@ -49,7 +49,7 @@ export default function SubscriptionPage() {
     try {
       // const response = await subscriptionsApi.getUserSubscriptions();
       // setSubscriptions(response.data);
-      
+
       // Моковые данные
       setSubscriptions([
         {
@@ -63,7 +63,7 @@ export default function SubscriptionPage() {
           start_date: new Date('2024-01-01').toISOString(),
           end_date: new Date('2024-02-01').toISOString(),
           auto_renew: true,
-          stripe_subscription_id: 'sub_123'
+          stripe_subscription_id: 'sub_123',
         },
         {
           id: '2',
@@ -75,8 +75,8 @@ export default function SubscriptionPage() {
           billing_period: 'monthly',
           start_date: new Date('2023-12-01').toISOString(),
           end_date: new Date('2024-01-01').toISOString(),
-          auto_renew: false
-        }
+          auto_renew: false,
+        },
       ]);
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
@@ -87,7 +87,7 @@ export default function SubscriptionPage() {
     try {
       // const response = await subscriptionsApi.getPricingPlans();
       // setPricingPlans(response.data);
-      
+
       // Моковые данные
       setPricingPlans([
         {
@@ -101,8 +101,8 @@ export default function SubscriptionPage() {
             'До 3 каналов',
             'Базовая аналитика',
             'Email поддержка',
-            'Мобильные уведомления'
-          ]
+            'Мобильные уведомления',
+          ],
         },
         {
           id: 'pro',
@@ -117,9 +117,9 @@ export default function SubscriptionPage() {
             'ML прогнозы',
             'Приоритетная поддержка',
             'API доступ',
-            'Экспорт данных'
+            'Экспорт данных',
           ],
-          popular: true
+          popular: true,
         },
         {
           id: 'enterprise',
@@ -134,9 +134,9 @@ export default function SubscriptionPage() {
             'Персональный менеджер',
             'Кастомные интеграции',
             'White-label решения',
-            'SLA гарантии'
-          ]
-        }
+            'SLA гарантии',
+          ],
+        },
       ]);
     } catch (error) {
       console.error('Error fetching pricing plans:', error);
@@ -151,7 +151,7 @@ export default function SubscriptionPage() {
       // Интеграция с Stripe
       // const response = await subscriptionsApi.createCheckoutSession(planId);
       // window.location.href = response.checkout_url;
-      
+
       console.log('Subscribing to plan:', planId);
       // Здесь будет редирект на Stripe Checkout
     } catch (error) {
@@ -209,7 +209,10 @@ export default function SubscriptionPage() {
     <>
       <Head>
         <title>Подписки - Crypto Analytics Platform</title>
-        <meta name="description" content="Управление подписками и тарифными планами" />
+        <meta
+          name="description"
+          content="Управление подписками и тарифными планами"
+        />
       </Head>
 
       <DashboardLayout>
@@ -229,7 +232,7 @@ export default function SubscriptionPage() {
                 Текущие подписки
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {subscriptions.map((subscription) => (
+                {subscriptions.map(subscription => (
                   <Card key={subscription.id}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
@@ -243,7 +246,10 @@ export default function SubscriptionPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Стоимость</span>
                         <span className="font-semibold">
-                          ${subscription.price}/{subscription.billing_period === 'monthly' ? 'мес' : 'год'}
+                          ${subscription.price}/
+                          {subscription.billing_period === 'monthly'
+                            ? 'мес'
+                            : 'год'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -270,7 +276,9 @@ export default function SubscriptionPage() {
                         <Button
                           variant="outline"
                           className="w-full"
-                          onClick={() => handleCancelSubscription(subscription.id)}
+                          onClick={() =>
+                            handleCancelSubscription(subscription.id)
+                          }
                         >
                           Отменить подписку
                         </Button>
@@ -278,7 +286,9 @@ export default function SubscriptionPage() {
                         <Button
                           variant="primary"
                           className="w-full"
-                          onClick={() => handleReactivateSubscription(subscription.id)}
+                          onClick={() =>
+                            handleReactivateSubscription(subscription.id)
+                          }
                         >
                           Возобновить подписку
                         </Button>
@@ -306,9 +316,9 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {pricingPlans.map((plan) => (
-                <Card 
-                  key={plan.id} 
+              {pricingPlans.map(plan => (
+                <Card
+                  key={plan.id}
                   className={`relative ${plan.popular ? 'border-blue-500 border-2' : ''}`}
                 >
                   {plan.popular && (
@@ -316,7 +326,7 @@ export default function SubscriptionPage() {
                       <Badge variant="primary">Популярный</Badge>
                     </div>
                   )}
-                  
+
                   <CardHeader className="text-center">
                     <h3 className="text-xl font-semibold text-gray-900">
                       {plan.name}
@@ -345,12 +355,14 @@ export default function SubscriptionPage() {
 
                   <CardFooter>
                     <Button
-                      variant={plan.popular ? "primary" : "outline"}
+                      variant={plan.popular ? 'primary' : 'outline'}
                       className="w-full"
                       onClick={() => handleSubscribe(plan.id)}
                       disabled={selectedPlan === plan.id}
                     >
-                      {selectedPlan === plan.id ? 'Обработка...' : 'Выбрать план'}
+                      {selectedPlan === plan.id
+                        ? 'Обработка...'
+                        : 'Выбрать план'}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -370,8 +382,9 @@ export default function SubscriptionPage() {
                     Как отменить подписку?
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    Вы можете отменить подписку в любое время через эту страницу. 
-                    Доступ к каналам сохранится до окончания оплаченного периода.
+                    Вы можете отменить подписку в любое время через эту
+                    страницу. Доступ к каналам сохранится до окончания
+                    оплаченного периода.
                   </p>
                 </CardBody>
               </Card>
@@ -382,8 +395,9 @@ export default function SubscriptionPage() {
                     Можно ли изменить план?
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    Да, вы можете повысить или понизить тарифный план в любое время. 
-                    Изменения вступят в силу в следующем биллинговом периоде.
+                    Да, вы можете повысить или понизить тарифный план в любое
+                    время. Изменения вступят в силу в следующем биллинговом
+                    периоде.
                   </p>
                 </CardBody>
               </Card>
@@ -394,8 +408,8 @@ export default function SubscriptionPage() {
                     Безопасны ли платежи?
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    Все платежи обрабатываются через Stripe - надежную платежную систему. 
-                    Мы не храним данные ваших карт.
+                    Все платежи обрабатываются через Stripe - надежную платежную
+                    систему. Мы не храним данные ваших карт.
                   </p>
                 </CardBody>
               </Card>
@@ -406,8 +420,8 @@ export default function SubscriptionPage() {
                     Есть ли возврат средств?
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    Мы предлагаем полный возврат средств в течение 7 дней после покупки, 
-                    если вы не удовлетворены сервисом.
+                    Мы предлагаем полный возврат средств в течение 7 дней после
+                    покупки, если вы не удовлетворены сервисом.
                   </p>
                 </CardBody>
               </Card>
@@ -417,4 +431,6 @@ export default function SubscriptionPage() {
       </DashboardLayout>
     </>
   );
-} 
+}
+
+

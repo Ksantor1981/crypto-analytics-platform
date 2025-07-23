@@ -1,0 +1,185 @@
+{
+  "info": {
+    "name": "Crypto Analytics Platform - Payments API",
+    "description": "Payments and Stripe integration endpoints",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Create Payment Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2999,\n  \"currency\": \"usd\",\n  \"plan\": \"premium\",\n  \"billing_cycle\": \"monthly\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/create-payment-intent",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "create-payment-intent"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_intent_id\": \"pi_1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/confirm-payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "confirm-payment"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/history?skip=0&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "history"],
+              "query": [
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Payment by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "1"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Payment",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/1/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "1", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Refund Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2999,\n  \"reason\": \"requested_by_customer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/1/refund",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "1", "refund"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stripe Webhooks",
+      "item": [
+        {
+          "name": "Stripe Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Stripe-Signature", "value": "webhook_signature_here"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_1234567890\",\n  \"object\": \"event\",\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_1234567890\",\n      \"amount\": 2999,\n      \"currency\": \"usd\",\n      \"status\": \"succeeded\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/stripe/webhook",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "stripe", "webhook"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Payments",
+      "item": [
+        {
+          "name": "Get All Payments",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments?skip=0&limit=100&status=succeeded",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments"],
+              "query": [
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "100"},
+                {"key": "status", "value": "succeeded"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/stats/overview?days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "stats", "overview"],
+              "query": [
+                {"key": "days", "value": "30"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Process Failed Payments",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/maintenance/process-failed",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "maintenance", "process-failed"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

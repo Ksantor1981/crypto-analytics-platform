@@ -2,9 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Signal } from '@/types';
 import { formatDate, formatPrice } from '@/lib/utils';
 
@@ -15,7 +15,7 @@ interface RecentSignalsProps {
 
 export const RecentSignals: React.FC<RecentSignalsProps> = ({
   signals,
-  isLoading = false
+  isLoading = false,
 }) => {
   if (isLoading) {
     return (
@@ -25,7 +25,7 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
         </CardHeader>
         <CardBody>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="animate-pulse">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -64,8 +64,11 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
           </div>
         ) : (
           <div className="space-y-4">
-            {signals.map((signal) => (
-              <div key={signal.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            {signals.map(signal => (
+              <div
+                key={signal.id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-600 font-semibold text-sm">
@@ -74,9 +77,13 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-gray-900">{signal.asset}</span>
+                      <span className="font-medium text-gray-900">
+                        {signal.asset}
+                      </span>
                       <Badge
-                        variant={signal.direction === 'long' ? 'success' : 'danger'}
+                        variant={
+                          signal.direction === 'long' ? 'success' : 'danger'
+                        }
                         size="sm"
                       >
                         {signal.direction.toUpperCase()}
@@ -94,20 +101,31 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
                 <div className="text-right">
                   <Badge
                     variant={
-                      signal.status === 'active' ? 'warning' :
-                      signal.status === 'completed' ? 'success' :
-                      signal.status === 'failed' ? 'danger' : 'secondary'
+                      signal.status === 'active'
+                        ? 'warning'
+                        : signal.status === 'completed'
+                          ? 'success'
+                          : signal.status === 'failed'
+                            ? 'danger'
+                            : 'secondary'
                     }
                   >
-                    {signal.status === 'active' ? 'Активен' :
-                     signal.status === 'completed' ? 'Выполнен' :
-                     signal.status === 'failed' ? 'Не выполнен' : 'Отменен'}
+                    {signal.status === 'active'
+                      ? 'Активен'
+                      : signal.status === 'completed'
+                        ? 'Выполнен'
+                        : signal.status === 'failed'
+                          ? 'Не выполнен'
+                          : 'Отменен'}
                   </Badge>
                   {signal.pnl && (
-                    <div className={`text-sm font-medium mt-1 ${
-                      signal.pnl > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {signal.pnl > 0 ? '+' : ''}{signal.pnl.toFixed(2)}%
+                    <div
+                      className={`text-sm font-medium mt-1 ${
+                        signal.pnl > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}
+                    >
+                      {signal.pnl > 0 ? '+' : ''}
+                      {signal.pnl.toFixed(2)}%
                     </div>
                   )}
                 </div>
@@ -118,4 +136,6 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
       </CardBody>
     </Card>
   );
-}; 
+};
+
+

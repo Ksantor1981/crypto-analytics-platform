@@ -1,0 +1,779 @@
+{
+  "info": {
+    "name": "Crypto Analytics Platform - Complete API Collection",
+    "description": "Полная коллекция для тестирования всех API endpoints платформы криптоаналитики",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "ml_service_url", 
+      "value": "http://localhost:8001",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Health Checks",
+      "item": [
+        {
+          "name": "API Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "API Root",
+          "request": {
+            "method": "GET", 
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "ML Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ml_service_url}}/api/v1/health",
+              "host": ["{{ml_service_url}}"],
+              "path": ["api", "v1", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('user_id', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"test123456\",\n  \"confirm_password\": \"test123456\",\n  \"full_name\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"test123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "refresh"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Users",
+      "item": [
+        {
+          "name": "Get Current User Profile", 
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw", 
+              "raw": "{\n  \"full_name\": \"Updated Test User\",\n  \"email\": \"updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"test123456\",\n  \"new_password\": \"newpass123456\",\n  \"confirm_new_password\": \"newpass123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me/change-password", 
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "me", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Get User Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "me", "stats"]
+            }
+          }
+        },
+        {
+          "name": "List All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/?skip=0&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ""],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit", 
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Channels",
+      "item": [
+        {
+          "name": "Get All Channels",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/channels",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "channels"]
+            }
+          }
+        },
+        {
+          "name": "Get Channel by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/channels/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "channels", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Channel\",\n  \"platform\": \"telegram\",\n  \"url\": \"https://t.me/testchannel\",\n  \"category\": \"crypto\",\n  \"description\": \"Test channel for API testing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/channels",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "channels"]
+            }
+          }
+        },
+        {
+          "name": "Update Channel",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Test Channel\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/channels/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "channels", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Channel",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/channels/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "channels", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Signals",
+      "item": [
+        {
+          "name": "Get All Signals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/signals?skip=0&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signals"],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Signal by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/signals/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signals", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Signal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel_id\": 1,\n  \"asset\": \"BTCUSDT\",\n  \"direction\": \"LONG\",\n  \"entry_price\": 45000.0,\n  \"targets\": [46000.0, 47000.0, 48000.0],\n  \"stop_loss\": 44000.0,\n  \"confidence\": 0.85,\n  \"message_timestamp\": \"2025-01-08T10:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/signals",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signals"]
+            }
+          }
+        },
+        {
+          "name": "Update Signal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\",\n  \"final_exit_price\": 46500.0,\n  \"profit_loss_percentage\": 3.33\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/signals/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signals", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Top Performing Signals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/signals/top-performing?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signals", "top-performing"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Signal Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/signals/analytics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signals", "analytics"]
+            }
+          }
+        },
+        {
+          "name": "Create Telegram Signal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTCUSDT\",\n  \"signal_type\": \"long\",\n  \"entry_price\": 45000.0,\n  \"target_price\": 47000.0,\n  \"stop_loss\": 44000.0,\n  \"confidence\": 0.85,\n  \"source\": \"@testchannel\",\n  \"original_text\": \"BTC LONG\\nEntry: 45000\\nTarget: 47000\\nSL: 44000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/signals/telegram",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signals", "telegram"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Subscriptions",
+      "item": [
+        {
+          "name": "Get Available Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/subscriptions/plans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "subscriptions", "plans"]
+            }
+          }
+        },
+        {
+          "name": "Get User Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/subscriptions/my",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "subscriptions", "my"]
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM\",\n  \"auto_renew\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/subscriptions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "subscriptions"]
+            }
+          }
+        },
+        {
+          "name": "Update Subscription",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"auto_renew\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/subscriptions/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "subscriptions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/subscriptions/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "subscriptions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription Usage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/subscriptions/1/usage",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "subscriptions", "1", "usage"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Payments",
+      "item": [
+        {
+          "name": "Create Payment Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM\",\n  \"payment_method_id\": \"pm_card_visa\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/create-intent",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "create-intent"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_intent_id\": \"pi_test_123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/confirm",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/my?skip=0&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "my"],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stripe Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Stripe-Signature",
+                "value": "test_signature"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_test_123\",\n      \"amount\": 2999,\n      \"currency\": \"usd\",\n      \"status\": \"succeeded\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/webhook",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "webhook"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - ML Integration",
+      "item": [
+        {
+          "name": "Predict Signal Quality",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signal_data\": {\n    \"symbol\": \"BTCUSDT\",\n    \"signal_type\": \"LONG\",\n    \"entry_price\": 45000.0,\n    \"target_price\": 47000.0,\n    \"stop_loss\": 44000.0,\n    \"confidence\": 0.85,\n    \"channel_accuracy\": 0.75\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ml/predict",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ml", "predict"]
+            }
+          }
+        },
+        {
+          "name": "Predict Channel Quality",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel_data\": {\n    \"channel_id\": 1,\n    \"total_signals\": 100,\n    \"successful_signals\": 75,\n    \"avg_profit_loss\": 5.5,\n    \"avg_confidence\": 0.78\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ml/predict-channel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ml", "predict-channel"]
+            }
+          }
+        },
+        {
+          "name": "ML Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ml/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ml", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - ML Service Direct",
+      "item": [
+        {
+          "name": "ML Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ml_service_url}}/api/v1/health/",
+              "host": ["{{ml_service_url}}"],
+              "path": ["api", "v1", "health", ""]
+            }
+          }
+        },
+        {
+          "name": "Signal Prediction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"features\": {\n    \"symbol\": \"BTCUSDT\",\n    \"signal_type\": \"LONG\",\n    \"entry_price\": 45000.0,\n    \"confidence\": 0.85\n  }\n}"
+            },
+            "url": {
+              "raw": "{{ml_service_url}}/api/v1/predict/",
+              "host": ["{{ml_service_url}}"],
+              "path": ["api", "v1", "predict", ""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+} 

@@ -2,9 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardBody, CardFooter } from '@/components/ui/Card';
+import { Card, CardBody, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Channel } from '@/types';
 import { formatDate } from '@/lib/utils';
 
@@ -19,7 +19,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
   channel,
   onSubscribe,
   onUnsubscribe,
-  isSubscribed = false
+  isSubscribed = false,
 }) => {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -61,30 +61,40 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Точность:</span>
-            <span className={`font-medium ${getAccuracyColor(channel.accuracy)}`}>
+            <span
+              className={`font-medium ${getAccuracyColor(channel.accuracy)}`}
+            >
               {channel.accuracy.toFixed(1)}%
             </span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Сигналов:</span>
-            <span className="font-medium text-gray-900">{channel.signals_count}</span>
+            <span className="font-medium text-gray-900">
+              {channel.signals_count}
+            </span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Подписчики:</span>
-            <span className="font-medium text-gray-900">{channel.subscribers_count}</span>
+            <span className="font-medium text-gray-900">
+              {channel.subscribers_count}
+            </span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Добавлен:</span>
-            <span className="text-sm text-gray-900">{formatDate(channel.created_at)}</span>
+            <span className="text-sm text-gray-900">
+              {formatDate(channel.created_at)}
+            </span>
           </div>
         </div>
 
         {channel.description && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600 line-clamp-3">{channel.description}</p>
+            <p className="text-sm text-gray-600 line-clamp-3">
+              {channel.description}
+            </p>
           </div>
         )}
 
@@ -114,7 +124,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
               Подробнее
             </Button>
           </Link>
-          
+
           {isSubscribed ? (
             <Button
               variant="danger"
@@ -136,4 +146,6 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
       </CardFooter>
     </Card>
   );
-}; 
+};
+
+

@@ -225,6 +225,32 @@ class SignalService:
         sl_hits = len([s for s in signals if s.hit_stop_loss])
         expired_signals = len([s for s in signals if s.status == SignalStatus.EXPIRED])
         
+        # --- Maximum Drawdown ---
+        def calculate_max_drawdown(roi_list):
+            if not roi_list:
+                return 0.0
+            peak = roi_list[0]
+            max_drawdown = 0.0
+            for roi in roi_list:
+                if roi > peak:
+                    peak = roi
+                drawdown = peak - roi
+                if drawdown > max_drawdown:
+                    max_drawdown = drawdown
+            return round(max_drawdown, 2)
+        max_drawdown = calculate_max_drawdown(roi_values)
+        # --- Sharpe Ratio ---
+        def calculate_sharpe_ratio(roi_list):
+            if not roi_list or len(roi_list) < 2:
+                return 0.0
+            mean_roi = sum(roi_list) / len(roi_list)
+            stddev = (sum((x - mean_roi) ** 2 for x in roi_list) / (len(roi_list) - 1)) ** 0.5
+            if stddev == 0:
+                return 0.0
+            sharpe = mean_roi / stddev
+            return round(sharpe, 2)
+        sharpe_ratio = calculate_sharpe_ratio(roi_values)
+        
         return SignalStats(
             total_signals=total_signals,
             successful_signals=successful_signals,
@@ -240,7 +266,9 @@ class SignalService:
             tp2_hits=tp2_hits,
             tp3_hits=tp3_hits,
             sl_hits=sl_hits,
-            expired_signals=expired_signals
+            expired_signals=expired_signals,
+            max_drawdown=max_drawdown,
+            sharpe_ratio=sharpe_ratio,
         )
     
     def get_channel_stats(self, channel_id: int, days: int = 30) -> ChannelSignalStats:

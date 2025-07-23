@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
@@ -46,7 +46,7 @@ export const LineChart: React.FC<LineChartProps> = ({
   data,
   options = {},
   height = 400,
-  width
+  width,
 }) => {
   const defaultOptions = {
     responsive: true,
@@ -85,4 +85,4 @@ export const LineChart: React.FC<LineChartProps> = ({
       <Line data={data} options={defaultOptions} />
     </div>
   );
-}; 
+};

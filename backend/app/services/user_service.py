@@ -180,20 +180,26 @@ class UserService:
                 detail="User not found"
             )
         
-        # Get signal statistics (mock data for now)
-        # In real implementation, this would query actual signal performance
-        stats = {
-            "total_signals_received": 0,
-            "successful_signals": 0,
-            "failed_signals": 0,
-            "total_profit_loss": 0.0,
-            "win_rate": 0.0,
-            "active_subscriptions": 0
+        # Get real signal statistics from database
+        user_signals = self.db.query(Signal).join(Channel).filter(
+            Channel.owner_id == user.id
+        ).all()
+        
+        total_signals = len(user_signals)
+        successful_signals = len([s for s in user_signals if s.status == SignalStatus.COMPLETED and s.roi_percentage and s.roi_percentage > 0])
+        accuracy_rate = (successful_signals / total_signals * 100) if total_signals > 0 else 0.0
+        
+        roi_values = [s.roi_percentage for s in user_signals if s.roi_percentage is not None]
+        avg_roi = sum(roi_values) / len(roi_values) if roi_values else 0.0
+        
+        signals_stats = {
+            "total_signals": total_signals,
+            "successful_signals": successful_signals,
+            "accuracy_rate": round(accuracy_rate, 1),
+            "avg_roi": round(avg_roi, 2)
         }
         
-        # You can add real statistics queries here
-        # For example:
-        # total_signals = self.db.query(func.count(Signal.id)).filter(Signal.user_id == user_id).scalar()
+        return signals_stats
         
         return stats
     

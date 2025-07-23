@@ -1,0 +1,18 @@
+{
+  "stage": "0.3.1",
+  "success_rate": 100.0,
+  "grade": "A+",
+  "status": "ОТЛИЧНО",
+  "features_tested": [
+    "enhanced_health_check",
+    "enhanced_symbols",
+    "symbol_metadata",
+    "historical_data_binance",
+    "historical_data_bybit",
+    "enhanced_current_prices",
+    "enhanced_signal_validation",
+    "enhanced_market_summary"
+  ],
+  "passed_tests": 8,
+  "total_tests": 8
+}

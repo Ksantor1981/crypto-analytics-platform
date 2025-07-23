@@ -1,8 +1,11 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ForwardRef
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 from decimal import Decimal
+
+# Forward reference for circular dependency
+User = ForwardRef('User')
 
 # Enums matching the model
 class SubscriptionPlan(str, Enum):
@@ -60,7 +63,7 @@ class SubscriptionUpdate(BaseModel):
 # Schema for subscription response
 class SubscriptionResponse(SubscriptionBase):
     id: int
-    user_id: int
+    user: "User"
     status: SubscriptionStatus
     
     # Dates

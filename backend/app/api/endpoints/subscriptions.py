@@ -10,26 +10,13 @@ from app.core.auth import (
     require_premium
 )
 from app.services.subscription_service import SubscriptionService
-from app.schemas.subscription import (
-    SubscriptionCreate,
-    SubscriptionUpdate,
-    SubscriptionResponse,
-    SubscriptionWithUser,
-    SubscriptionListResponse,
-    SubscriptionStats,
-    SubscriptionUsage,
-    SubscriptionCancellation,
-    SubscriptionRenewal,
-    SubscriptionPlanInfo,
-    SubscriptionPlan,
-    SubscriptionStatus
-)
+from app import schemas
 from app.models.user import User
 
 router = APIRouter()
 
 
-@router.get("/plans", response_model=List[SubscriptionPlanInfo])
+@router.get("/plans", response_model=List[schemas.subscription.SubscriptionPlanInfo])
 async def get_subscription_plans():
     """Get available subscription plans."""
     subscription_service = SubscriptionService(None)  # No DB needed for static data
@@ -39,7 +26,7 @@ async def get_subscription_plans():
     return plans
 
 
-@router.get("/me", response_model=Optional[SubscriptionResponse])
+@router.get("/me", response_model=Optional[schemas.subscription.SubscriptionResponse])
 async def get_my_subscription(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -52,12 +39,12 @@ async def get_my_subscription(
     if not subscription:
         return None
     
-    return SubscriptionResponse.from_orm(subscription)
+    return schemas.subscription.SubscriptionResponse.from_orm(subscription)
 
 
-@router.post("/", response_model=SubscriptionResponse)
+@router.post("/", response_model=schemas.subscription.SubscriptionResponse)
 async def create_subscription(
-    subscription_data: SubscriptionCreate,
+    subscription_data: schemas.subscription.SubscriptionCreate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -69,12 +56,12 @@ async def create_subscription(
     
     subscription = subscription_service.create_subscription(subscription_data)
     
-    return SubscriptionResponse.from_orm(subscription)
+    return schemas.subscription.SubscriptionResponse.from_orm(subscription)
 
 
-@router.put("/me", response_model=SubscriptionResponse)
+@router.put("/me", response_model=schemas.subscription.SubscriptionResponse)
 async def update_my_subscription(
-    subscription_data: SubscriptionUpdate,
+    subscription_data: schemas.subscription.SubscriptionUpdate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -91,12 +78,12 @@ async def update_my_subscription(
     
     updated_subscription = subscription_service.update_subscription(subscription.id, subscription_data)
     
-    return SubscriptionResponse.from_orm(updated_subscription)
+    return schemas.subscription.SubscriptionResponse.from_orm(updated_subscription)
 
 
-@router.post("/me/cancel", response_model=SubscriptionResponse)
+@router.post("/me/cancel", response_model=schemas.subscription.SubscriptionResponse)
 async def cancel_my_subscription(
-    cancellation: SubscriptionCancellation,
+    cancellation: schemas.subscription.SubscriptionCancellation,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -113,12 +100,12 @@ async def cancel_my_subscription(
     
     cancelled_subscription = subscription_service.cancel_subscription(subscription.id, cancellation)
     
-    return SubscriptionResponse.from_orm(cancelled_subscription)
+    return schemas.subscription.SubscriptionResponse.from_orm(cancelled_subscription)
 
 
-@router.post("/me/renew", response_model=SubscriptionResponse)
+@router.post("/me/renew", response_model=schemas.subscription.SubscriptionResponse)
 async def renew_my_subscription(
-    renewal: SubscriptionRenewal,
+    renewal: schemas.subscription.SubscriptionRenewal,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -135,10 +122,10 @@ async def renew_my_subscription(
     
     renewed_subscription = subscription_service.renew_subscription(subscription.id, renewal)
     
-    return SubscriptionResponse.from_orm(renewed_subscription)
+    return schemas.subscription.SubscriptionResponse.from_orm(renewed_subscription)
 
 
-@router.get("/me/usage", response_model=SubscriptionUsage)
+@router.get("/me/usage", response_model=schemas.subscription.SubscriptionUsage)
 async def get_my_subscription_usage(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -160,12 +147,12 @@ async def get_my_subscription_usage(
 
 
 # Admin endpoints
-@router.get("/", response_model=SubscriptionListResponse, dependencies=[Depends(require_admin)])
+@router.get("/", response_model=schemas.subscription.SubscriptionListResponse, dependencies=[Depends(require_admin)])
 async def get_subscriptions(
     skip: int = Query(0, ge=0, description="Number of subscriptions to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Number of subscriptions to return"),
-    plan: Optional[SubscriptionPlan] = Query(None, description="Filter by plan"),
-    status: Optional[SubscriptionStatus] = Query(None, description="Filter by status"),
+    plan: Optional[schemas.subscription.SubscriptionPlan] = Query(None, description="Filter by plan"),
+    status: Optional[schemas.subscription.SubscriptionStatus] = Query(None, description="Filter by status"),
     active_only: bool = Query(False, description="Show only active subscriptions"),
     db: Session = Depends(get_db)
 ):
@@ -187,13 +174,13 @@ async def get_subscriptions(
     # Convert to response format with user info
     subscription_responses = []
     for subscription in subscriptions:
-        subscription_dict = SubscriptionWithUser.from_orm(subscription).dict()
+        subscription_dict = schemas.subscription.SubscriptionWithUser.from_orm(subscription).dict()
         if subscription.user:
             subscription_dict["user_email"] = subscription.user.email
             subscription_dict["user_name"] = subscription.user.full_name
-        subscription_responses.append(SubscriptionWithUser(**subscription_dict))
+        subscription_responses.append(schemas.subscription.SubscriptionWithUser(**subscription_dict))
     
-    return SubscriptionListResponse(
+    return schemas.subscription.SubscriptionListResponse(
         subscriptions=subscription_responses,
         total=total,
         page=page,
@@ -202,7 +189,7 @@ async def get_subscriptions(
     )
 
 
-@router.get("/{subscription_id}", response_model=SubscriptionWithUser, dependencies=[Depends(require_admin)])
+@router.get("/{subscription_id}", response_model=schemas.subscription.SubscriptionWithUser, dependencies=[Depends(require_admin)])
 async def get_subscription(
     subscription_id: int,
     db: Session = Depends(get_db)
@@ -223,12 +210,12 @@ async def get_subscription(
         subscription_dict["user_email"] = subscription.user.email
         subscription_dict["user_name"] = subscription.user.full_name
     
-    return SubscriptionWithUser(**subscription_dict)
+    return schemas.subscription.SubscriptionWithUser(**subscription_dict)
 
 
-@router.post("/admin/create", response_model=SubscriptionResponse, dependencies=[Depends(require_admin)])
+@router.post("/admin/create", response_model=schemas.subscription.SubscriptionResponse, dependencies=[Depends(require_admin)])
 async def create_subscription_admin(
-    subscription_data: SubscriptionCreate,
+    subscription_data: schemas.subscription.SubscriptionCreate,
     db: Session = Depends(get_db)
 ):
     """Create a subscription for any user (admin only)."""
@@ -236,13 +223,13 @@ async def create_subscription_admin(
     
     subscription = subscription_service.create_subscription(subscription_data)
     
-    return SubscriptionResponse.from_orm(subscription)
+    return schemas.subscription.SubscriptionResponse.from_orm(subscription)
 
 
-@router.put("/{subscription_id}", response_model=SubscriptionResponse, dependencies=[Depends(require_admin)])
+@router.put("/{subscription_id}", response_model=schemas.subscription.SubscriptionResponse, dependencies=[Depends(require_admin)])
 async def update_subscription(
     subscription_id: int,
-    subscription_data: SubscriptionUpdate,
+    subscription_data: schemas.subscription.SubscriptionUpdate,
     db: Session = Depends(get_db)
 ):
     """Update subscription (admin only)."""
@@ -250,13 +237,13 @@ async def update_subscription(
     
     subscription = subscription_service.update_subscription(subscription_id, subscription_data)
     
-    return SubscriptionResponse.from_orm(subscription)
+    return schemas.subscription.SubscriptionResponse.from_orm(subscription)
 
 
-@router.post("/{subscription_id}/cancel", response_model=SubscriptionResponse, dependencies=[Depends(require_admin)])
+@router.post("/{subscription_id}/cancel", response_model=schemas.subscription.SubscriptionResponse, dependencies=[Depends(require_admin)])
 async def cancel_subscription(
     subscription_id: int,
-    cancellation: SubscriptionCancellation,
+    cancellation: schemas.subscription.SubscriptionCancellation,
     db: Session = Depends(get_db)
 ):
     """Cancel subscription (admin only)."""
@@ -264,10 +251,10 @@ async def cancel_subscription(
     
     subscription = subscription_service.cancel_subscription(subscription_id, cancellation)
     
-    return SubscriptionResponse.from_orm(subscription)
+    return schemas.subscription.SubscriptionResponse.from_orm(subscription)
 
 
-@router.post("/{subscription_id}/renew", response_model=SubscriptionResponse, dependencies=[Depends(require_admin)])
+@router.post("/{subscription_id}/renew", response_model=schemas.subscription.SubscriptionResponse, dependencies=[Depends(require_admin)])
 async def renew_subscription(
     subscription_id: int,
     renewal: SubscriptionRenewal,
@@ -278,7 +265,7 @@ async def renew_subscription(
     
     subscription = subscription_service.renew_subscription(subscription_id, renewal)
     
-    return SubscriptionResponse.from_orm(subscription)
+    return schemas.subscription.SubscriptionResponse.from_orm(subscription)
 
 
 @router.get("/stats/overview", response_model=SubscriptionStats, dependencies=[Depends(require_admin)])

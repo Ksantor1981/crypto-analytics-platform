@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Crypto Signal Alert</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .signal-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .buy-signal { color: #28a745; }
+        .sell-signal { color: #dc3545; }
+        .signal-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .signal-symbol {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .signal-type {
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .buy-type { background-color: rgba(40, 167, 69, 0.8); }
+        .sell-type { background-color: rgba(220, 53, 69, 0.8); }
+        .signal-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .detail-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .detail-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        .detail-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .confidence-bar {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffc107, #28a745);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .channel-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 10px 5px;
+            text-align: center;
+        }
+        .button-secondary {
+            background-color: #6c757d;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .message-preview {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            font-style: italic;
+            border-radius: 0 6px 6px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{ company_name }}</div>
+            <div class="signal-icon {% if signal_type == 'buy' %}buy-signal{% else %}sell-signal{% endif %}">
+                {% if signal_type == 'buy' %}📈{% else %}📉{% endif %}
+            </div>
+            <h1>New {{ signal_type|title }} Signal</h1>
+            <p>{{ created_at }}</p>
+        </div>
+
+        <p>Hi {{ user_name }},</p>
+        
+        <p>A new <strong>{{ signal_type|upper }}</strong> signal has been detected for <strong>{{ symbol }}</strong>!</p>
+
+        <div class="signal-card">
+            <div class="signal-symbol">{{ symbol }}</div>
+            <div class="signal-type {% if signal_type == 'buy' %}buy-type{% else %}sell-type{% endif %}">
+                {{ signal_type }} Signal
+            </div>
+            
+            <div class="signal-details">
+                <div class="detail-item">
+                    <div class="detail-label">Entry Price</div>
+                    <div class="detail-value">${{ "%.4f"|format(entry_price) }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Target Price</div>
+                    <div class="detail-value">${{ "%.4f"|format(target_price) }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Stop Loss</div>
+                    <div class="detail-value">${{ "%.4f"|format(stop_loss) }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Confidence</div>
+                    <div class="detail-value">{{ "%.1f"|format(confidence * 100) }}%</div>
+                </div>
+            </div>
+            
+            <div class="confidence-bar">
+                <div class="confidence-fill" style="width: {{ confidence * 100 }}%"></div>
+            </div>
+        </div>
+
+        <div class="channel-info">
+            <strong>Source:</strong> {{ channel_name }} ({{ channel_type|title }})<br>
+            <strong>Signal ID:</strong> #{{ signal.id if signal else 'N/A' }}
+        </div>
+
+        {% if raw_message %}
+        <div class="message-preview">
+            <strong>Original Message:</strong><br>
+            {{ raw_message }}
+        </div>
+        {% endif %}
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ dashboard_url }}" class="button">View in Dashboard</a>
+            <a href="{{ manage_notifications_url }}" class="button button-secondary">Manage Notifications</a>
+        </div>
+
+        <p><strong>⚠️ Disclaimer:</strong> This is an automated signal detection. Always do your own research before making any trading decisions.</p>
+
+        <div class="footer">
+            <p>You're receiving this because you have Premium signal notifications enabled.</p>
+            <p><a href="{{ manage_notifications_url }}">Manage your notification preferences</a></p>
+            <p>© 2025 {{ company_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

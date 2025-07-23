@@ -1,0 +1,22 @@
+{{ company_name }} - Payment Failed
+
+Dear {{ user_name }},
+
+We attempted to charge your payment method for your {{ subscription_plan }} subscription, but the payment was declined.
+
+Error: {{ error_message }}
+
+What happens next?
+We'll automatically retry your payment on {{ retry_date }}. To avoid any service interruption, please update your payment method as soon as possible.
+
+Update Payment Method:
+{{ update_payment_url }}
+
+Important: If we can't collect payment, your subscription may be cancelled and you'll lose access to premium features.
+
+Need help? Contact us at {{ support_email }}
+
+Best regards,
+The {{ company_name }} Team
+
+© 2025 {{ company_name }}. All rights reserved.

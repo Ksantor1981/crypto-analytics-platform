@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workers
+  template:
+    metadata:
+      labels:
+        app: workers
+    spec:
+      containers:
+        - name: workers
+          image: {{ .Values.workers.image }}
+          env:
+            - name: DATABASE_URL
+              value: {{ .Values.workers.env.DATABASE_URL | quote }}
+            - name: REDIS_URL
+              value: {{ .Values.workers.env.REDIS_URL | quote }}
+            - name: ENVIRONMENT
+              value: {{ .Values.workers.env.ENVIRONMENT | quote }}
+            - name: SECRET_KEY
+              value: {{ .Values.workers.env.SECRET_KEY | quote }} 

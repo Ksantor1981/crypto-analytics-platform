@@ -3,8 +3,8 @@ import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { SignalsList, SignalsFilter, SignalsStats } from '@/components/signals';
-import { Button } from '@/components/ui/Button';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { signalsApi } from '@/lib/api';
 import { Signal, SignalFilters } from '@/types';
@@ -119,7 +119,9 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
                   Найдено сигналов: {signals.length}
                 </h2>
                 <div className="text-sm text-gray-600">
-                  {isLoading ? 'Загрузка...' : 'Последнее обновление: только что'}
+                  {isLoading
+                    ? 'Загрузка...'
+                    : 'Последнее обновление: только что'}
                 </div>
               </div>
             </CardHeader>
@@ -172,7 +174,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
                   </Card>
                 </div>
               ) : (
-                signals.map((signal) => (
+                signals.map(signal => (
                   <div key={signal.id}>
                     <SignalCard
                       signal={signal}
@@ -190,11 +192,11 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async context => {
   try {
     // В реальном приложении здесь будет запрос к API
     // const response = await signalsApi.getSignals();
-    
+
     // Пока возвращаем моковые данные
     const initialSignals: Signal[] = [
       {
@@ -223,8 +225,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           is_active: true,
-          subscription_price: 50
-        }
+          subscription_price: 50,
+        },
       },
       {
         id: '2',
@@ -252,22 +254,24 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           is_active: true,
-          subscription_price: 30
-        }
-      }
+          subscription_price: 30,
+        },
+      },
     ];
 
     return {
       props: {
-        initialSignals
-      }
+        initialSignals,
+      },
     };
   } catch (error) {
     console.error('Error fetching signals:', error);
     return {
       props: {
-        initialSignals: []
-      }
+        initialSignals: [],
+      },
     };
   }
-}; 
+};
+
+

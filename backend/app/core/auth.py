@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import verify_token
+from app import models
 from app.models.user import User, UserRole
 from app.services.user_service import UserService
 
@@ -133,4 +134,25 @@ class RoleChecker:
 # Pre-defined role checkers
 require_premium = RoleChecker([UserRole.PREMIUM_USER, UserRole.ADMIN])
 require_admin = RoleChecker([UserRole.ADMIN])
-require_user = RoleChecker([UserRole.FREE_USER, UserRole.PREMIUM_USER, UserRole.ADMIN]) 
+require_user = RoleChecker([UserRole.FREE_USER, UserRole.PREMIUM_USER, UserRole.ADMIN])
+
+
+def get_channel_for_owner_or_admin(
+    channel_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> models.Channel:
+    """
+    Get a channel and verify the current user is the owner or an admin.
+    """
+    channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    if channel.owner_id != current_user.id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+        
+    return channel

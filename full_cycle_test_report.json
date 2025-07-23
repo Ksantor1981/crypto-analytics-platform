@@ -1,0 +1,83 @@
+{
+  "timestamp": "2025-07-23T14:40:49.339001",
+  "total_tests": 7,
+  "passed_tests": 5,
+  "success_rate": 71.42857142857143,
+  "duration_seconds": 5.575975656509399,
+  "grade": "B",
+  "status": "GOOD",
+  "detailed_results": [
+    {
+      "test": "Database Connection",
+      "status": "PASS",
+      "timestamp": "2025-07-23T14:40:43.808782",
+      "details": "DB Status: Unknown"
+    },
+    {
+      "test": "Backend Authentication",
+      "status": "PASS",
+      "timestamp": "2025-07-23T14:40:44.532792",
+      "details": "User logged in successfully"
+    },
+    {
+      "test": "API Get Current User",
+      "status": "PASS",
+      "timestamp": "2025-07-23T14:40:44.561732",
+      "details": "Status: 200"
+    },
+    {
+      "test": "API Get Channels",
+      "status": "PASS",
+      "timestamp": "2025-07-23T14:40:44.572284",
+      "details": "Status: 200"
+    },
+    {
+      "test": "API Get Signals",
+      "status": "PASS",
+      "timestamp": "2025-07-23T14:40:44.659259",
+      "details": "Status: 200"
+    },
+    {
+      "test": "API Get My Subscription",
+      "status": "PASS",
+      "timestamp": "2025-07-23T14:40:45.003543",
+      "details": "Status: 200"
+    },
+    {
+      "test": "API Get Signal Stats",
+      "status": "PASS",
+      "timestamp": "2025-07-23T14:40:45.034652",
+      "details": "Status: 200"
+    },
+    {
+      "test": "Backend API Endpoints",
+      "status": "PASS",
+      "timestamp": "2025-07-23T14:40:45.034652",
+      "details": "5/5 endpoints working (100.0%)"
+    },
+    {
+      "test": "ML Service Integration",
+      "status": "FAIL",
+      "timestamp": "2025-07-23T14:40:49.130735",
+      "details": "HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /api/v1/health/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001DA33195570>: Failed to establish a new connection: [WinError 10061] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение'))"
+    },
+    {
+      "test": "Backend-ML Integration",
+      "status": "PARTIAL",
+      "timestamp": "2025-07-23T14:40:49.227672",
+      "details": "Health OK, Prediction failed: 503"
+    },
+    {
+      "test": "Telegram Integration",
+      "status": "PASS",
+      "timestamp": "2025-07-23T14:40:49.272608",
+      "details": "Health and channels accessible"
+    },
+    {
+      "test": "Data Flow Cycle",
+      "status": "FAIL",
+      "timestamp": "2025-07-23T14:40:49.334574",
+      "details": "Signal retrieval failed: 500"
+    }
+  ]
+}

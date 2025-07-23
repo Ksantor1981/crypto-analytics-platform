@@ -1,0 +1,34 @@
+{{ company_name }} - Payment Confirmation
+
+Dear {{ user_name }},
+
+Your payment has been processed successfully!
+
+Payment Details:
+- Amount: {{ payment_currency }} {{ payment_amount }}
+- Date: {{ payment_date }}
+- Subscription: {{ subscription_plan }}
+- Billing Period: {{ subscription_period_start }} - {{ subscription_period_end }}
+- Email: {{ user_email }}
+
+Your {{ subscription_plan }} subscription is now active and you have full access to all premium features.
+
+What's Next?
+Start exploring your enhanced crypto analytics dashboard with all the new features available in your {{ subscription_plan }} plan.
+
+Manage Your Subscription:
+{{ manage_subscription_url }}
+
+{% if invoice_url %}
+Download Invoice:
+{{ invoice_url }}
+{% endif %}
+
+If you have any questions, please contact us at {{ support_email }}
+
+Thank you for choosing {{ company_name }}!
+
+Best regards,
+The {{ company_name }} Team
+
+© 2025 {{ company_name }}. All rights reserved.

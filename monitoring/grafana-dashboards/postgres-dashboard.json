@@ -1,0 +1,45 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Active Connections",
+      "targets": [
+        {
+          "expr": "pg_stat_activity_count{job='postgres'}",
+          "legendFormat": "connections"
+        }
+      ],
+      "id": 1
+    },
+    {
+      "type": "graph",
+      "title": "Query Throughput",
+      "targets": [
+        {
+          "expr": "sum(rate(pg_stat_statements_calls_total{job='postgres'}[1m]))",
+          "legendFormat": "queries/sec"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "type": "graph",
+      "title": "Query Latency",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(pg_stat_statements_total_time_seconds_bucket{job='postgres'}[1m])) by (le))",
+          "legendFormat": "p95 latency"
+        }
+      ],
+      "id": 3
+    }
+  ],
+  "schemaVersion": 16,
+  "version": 1,
+  "title": "Postgres Overview"
+} 

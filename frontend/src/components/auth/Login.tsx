@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginRequest } from '@/types';
 
@@ -16,11 +16,11 @@ interface LoginProps {
 export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
   const [formData, setFormData] = useState<LoginRequest>({
     email: '',
-    password: ''
+    password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const { login } = useAuth();
   const router = useRouter();
 
@@ -47,7 +47,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -61,7 +61,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
           Войдите в свой аккаунт для доступа к платформе
         </p>
       </CardHeader>
-      
+
       <CardBody>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
@@ -74,7 +74,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
             required
             disabled={isLoading}
           />
-          
+
           <Input
             label="Пароль"
             type="password"
@@ -85,13 +85,13 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
             required
             disabled={isLoading}
           />
-          
+
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3">
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
-          
+
           <Button
             type="submit"
             variant="primary"
@@ -103,15 +103,21 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
           </Button>
         </form>
       </CardBody>
-      
+
       <CardFooter className="text-center">
         <p className="text-sm text-gray-600">
           Нет аккаунта?{' '}
-          <Link href="/auth/register" className="text-blue-600 hover:text-blue-800 font-medium">
+          <Link
+            href="/auth/register"
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
             Зарегистрироваться
           </Link>
         </p>
       </CardFooter>
     </Card>
   );
-}; 
+};
+
+
+
