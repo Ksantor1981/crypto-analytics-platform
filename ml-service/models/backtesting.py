@@ -13,7 +13,7 @@ from typing import Dict, List, Tuple, Any
 import logging
 
 from .ensemble_predictor import EnsemblePredictor
-from .signal_predictor import EnhancedSignalPredictor as SignalPredictor
+from .signal_predictor import SignalPredictor
 
 logger = logging.getLogger(__name__)
 
