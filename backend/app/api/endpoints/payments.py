@@ -525,3 +525,47 @@ async def get_premium_payment_history(
         size=limit,
         pages=pages
     ) 
+
+
+@router.post("/send-payment-reminders", dependencies=[Depends(require_admin)])
+async def send_payment_reminders(
+    db: Session = Depends(get_db)
+):
+    """Send payment reminders for upcoming billing dates (admin only)."""
+    payment_service = PaymentService(db)
+    
+    result = await payment_service.send_payment_reminders()
+    
+    if result["success"]:
+        return {
+            "message": "Payment reminders sent successfully",
+            "reminders_sent": result["reminders_sent"],
+            "total_subscriptions": result["total_subscriptions"]
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to send payment reminders: {result.get('error', 'Unknown error')}"
+        )
+
+
+@router.post("/send-expired-notifications", dependencies=[Depends(require_admin)])
+async def send_expired_subscription_notifications(
+    db: Session = Depends(get_db)
+):
+    """Send notifications for expired subscriptions (admin only)."""
+    payment_service = PaymentService(db)
+    
+    result = await payment_service.send_expired_subscription_notifications()
+    
+    if result["success"]:
+        return {
+            "message": "Expired subscription notifications sent successfully",
+            "notifications_sent": result["notifications_sent"],
+            "total_expired": result["total_expired"]
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to send expired notifications: {result.get('error', 'Unknown error')}"
+        ) 

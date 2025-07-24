@@ -27,6 +27,7 @@ from app.schemas.payment import (
     StripeWebhookPayment
 )
 from app.core.config import get_settings
+from app.services.email_service import EmailService
 
 # Configure Stripe
 stripe.api_key = get_settings().STRIPE_SECRET_KEY
@@ -39,6 +40,7 @@ class PaymentService:
     
     def __init__(self, db: Session):
         self.db = db
+        self.email_service = EmailService()
     
     def create_payment(self, payment_data: PaymentCreate) -> Payment:
         """Create a new payment record."""
@@ -246,6 +248,9 @@ class PaymentService:
                 logger.warning(f"Payment not found for Stripe payment intent: {webhook_data.payment_intent_id}")
                 return None
             
+            # Get user for email notifications
+            user = self.db.query(User).filter(User.id == payment.user_id).first()
+            
             # Update payment based on webhook event
             if webhook_data.event_type == "payment_intent.succeeded":
                 payment.status = PaymentStatus.SUCCEEDED
@@ -254,6 +259,15 @@ class PaymentService:
                 payment.stripe_subscription_id = webhook_data.subscription_id
                 payment.stripe_invoice_id = webhook_data.invoice_id
                 payment.receipt_url = webhook_data.receipt_url
+                
+                # Send payment confirmation email
+                if user:
+                    import asyncio
+                    try:
+                        asyncio.create_task(self.email_service.send_payment_confirmation(user, payment))
+                        logger.info(f"Payment confirmation email queued for user {user.email}")
+                    except Exception as e:
+                        logger.error(f"Failed to send payment confirmation email: {e}")
                 
             elif webhook_data.event_type == "payment_intent.payment_failed":
                 payment.status = PaymentStatus.FAILED
@@ -507,3 +521,74 @@ class PaymentService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Payment cancellation error: {str(e)}"
             ) 
+
+    async def send_payment_reminders(self) -> Dict[str, Any]:
+        """Send payment reminders for upcoming billing dates"""
+        try:
+            # Find subscriptions with upcoming billing dates (3 days before)
+            reminder_date = datetime.utcnow() + timedelta(days=3)
+            
+            subscriptions = self.db.query(Subscription).join(User).filter(
+                Subscription.next_billing_date <= reminder_date,
+                Subscription.status == "active",
+                Subscription.auto_renew == True
+            ).all()
+            
+            sent_count = 0
+            for subscription in subscriptions:
+                try:
+                    success = await self.email_service.send_payment_reminder(subscription.user, subscription)
+                    if success:
+                        sent_count += 1
+                        logger.info(f"Payment reminder sent to {subscription.user.email}")
+                except Exception as e:
+                    logger.error(f"Failed to send payment reminder to {subscription.user.email}: {e}")
+            
+            return {
+                "success": True,
+                "reminders_sent": sent_count,
+                "total_subscriptions": len(subscriptions)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error sending payment reminders: {e}")
+            return {"success": False, "error": str(e)}
+    
+    async def send_expired_subscription_notifications(self) -> Dict[str, Any]:
+        """Send notifications for expired subscriptions"""
+        try:
+            # Find expired subscriptions
+            expired_subscriptions = self.db.query(Subscription).join(User).filter(
+                Subscription.current_period_end < datetime.utcnow(),
+                Subscription.status == "active"
+            ).all()
+            
+            sent_count = 0
+            for subscription in expired_subscriptions:
+                try:
+                    # Update subscription status
+                    subscription.status = "expired"
+                    
+                    # Send notification
+                    success = await self.email_service.send_subscription_expired(subscription.user, subscription)
+                    if success:
+                        sent_count += 1
+                        logger.info(f"Expired subscription notification sent to {subscription.user.email}")
+                    
+                    # Update user role to free
+                    subscription.user.role = "FREE_USER"
+                    
+                except Exception as e:
+                    logger.error(f"Failed to process expired subscription for {subscription.user.email}: {e}")
+            
+            self.db.commit()
+            
+            return {
+                "success": True,
+                "notifications_sent": sent_count,
+                "total_expired": len(expired_subscriptions)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error sending expired subscription notifications: {e}")
+            return {"success": False, "error": str(e)} 

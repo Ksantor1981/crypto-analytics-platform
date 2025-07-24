@@ -48,6 +48,21 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
     
+    # Email Configuration
+    EMAIL_SMTP_HOST: Optional[str] = None
+    EMAIL_SMTP_PORT: int = 587
+    EMAIL_SMTP_USERNAME: Optional[str] = None
+    EMAIL_SMTP_PASSWORD: Optional[str] = None
+    EMAIL_FROM_ADDRESS: str = "noreply@crypto-analytics.com"
+    EMAIL_FROM_NAME: str = "Crypto Analytics Platform"
+    EMAIL_USE_TLS: bool = True
+    EMAIL_USE_SSL: bool = False
+    
+    # Alternative: SendGrid (if SMTP not available)
+    SENDGRID_API_KEY: Optional[str] = None
+    SENDGRID_FROM_EMAIL: str = "noreply@crypto-analytics.com"
+    SENDGRID_FROM_NAME: str = "Crypto Analytics Platform"
+    
     # JWT Refresh tokens
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     

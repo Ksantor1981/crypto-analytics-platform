@@ -10,6 +10,7 @@ from .core.config import get_settings
 from .core.database import engine, Base
 from .api.endpoints import channels, users, signals, subscriptions, payments, ml_integration, telegram_integration
 from app.core.middleware import SubscriptionLimitMiddleware
+from app.core.scheduler import email_scheduler
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -53,8 +54,23 @@ async def startup_event():
         # Создаем все таблицы
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully")
+        
+        # Start email scheduler
+        email_scheduler.start()
+        logger.info("Email scheduler started")
+        
     except Exception as e:
         logger.error(f"Error creating database tables: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on application shutdown"""
+    try:
+        # Stop email scheduler
+        email_scheduler.stop()
+        logger.info("Email scheduler stopped")
+    except Exception as e:
+        logger.error(f"Error stopping email scheduler: {e}")
 
 # Подключение роутеров
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
