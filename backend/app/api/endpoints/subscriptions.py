@@ -13,6 +13,14 @@ from app.services.subscription_service import SubscriptionService
 from app import schemas
 from app.models.user import User
 
+# Import specific schemas
+from app.schemas.subscription import (
+    SubscriptionPlanInfo, SubscriptionResponse, SubscriptionCreate, 
+    SubscriptionUpdate, SubscriptionCancellation, SubscriptionRenewal,
+    SubscriptionUsage, SubscriptionListResponse, SubscriptionWithUser,
+    SubscriptionStats, SubscriptionPlan, SubscriptionStatus
+)
+
 router = APIRouter()
 
 

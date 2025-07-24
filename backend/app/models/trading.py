@@ -36,7 +36,7 @@ class PositionSide(str, enum.Enum):
     LONG = "long"
     SHORT = "short"
 
-class TradingStrategy(str, enum.Enum):
+class StrategyType(str, enum.Enum):
     SIGNAL_FOLLOWING = "signal_following"
     GRID_TRADING = "grid_trading"
     DCA = "dca"
@@ -131,7 +131,7 @@ class TradingPosition(BaseModel):
     exchange_position_id = Column(String(255), nullable=True)
     
     # Metadata
-    metadata = Column(JSON, nullable=True)  # Additional exchange-specific data
+    position_metadata = Column(JSON, nullable=True)  # Additional exchange-specific data
 
 class TradingOrder(BaseModel):
     """
@@ -169,7 +169,7 @@ class TradingOrder(BaseModel):
     filled_at = Column(DateTime(timezone=True), nullable=True)
     
     # Metadata
-    metadata = Column(JSON, nullable=True)  # Additional exchange-specific data
+    order_metadata = Column(JSON, nullable=True)  # Additional exchange-specific data
 
 class TradingStrategy(BaseModel):
     """
@@ -183,7 +183,7 @@ class TradingStrategy(BaseModel):
     
     # Strategy details
     name = Column(String(255), nullable=False)
-    strategy_type = Column(Enum(TradingStrategy), nullable=False)
+    strategy_type = Column(Enum(StrategyType), nullable=False)
     is_active = Column(Boolean, default=True)
     
     # Strategy parameters

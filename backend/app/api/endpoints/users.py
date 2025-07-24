@@ -20,6 +20,12 @@ from app.services.user_service import UserService
 from app import schemas
 from app.models.user import User
 
+# Import specific schemas
+from app.schemas.user import (
+    UserResponse, UserCreate, UserUpdate, UserLogin, TokenResponse, 
+    TokenRefresh, UserProfile, UserStats, UserListResponse, UserChangePassword, UserRole
+)
+
 router = APIRouter()
 logger = get_logger(__name__)
 

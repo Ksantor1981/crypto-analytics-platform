@@ -13,8 +13,8 @@ from cryptography.fernet import Fernet
 import os
 
 from app.models.trading import (
-    TradingAccount, TradingPosition, TradingOrder, TradingStrategy, RiskManagement,
-    OrderStatus, PositionSide, OrderType, OrderSide
+    TradingAccount, TradingPosition, TradingOrder, RiskManagement,
+    OrderStatus, PositionSide, OrderType, OrderSide, StrategyType
 )
 from app.models.user import User
 from app.models.signal import Signal
