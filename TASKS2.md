@@ -175,11 +175,8 @@
   - [x] Интеграция с Reddit API
   - [x] Парсинг криптовалютных сабреддитов
   - [x] Система фильтрации по рейтингу постов из Reddit формата
-- [ ] **2.1.3** Discord парсер (бонус) ⚠️ **НЕ РЕАЛИЗОВАНО** — Discord интеграция отсутствует в коде
-  - [ ] Подключение к Discord API
-  - [ ] Мониторинг Discord серверов
-- [x] **2.1.4** Frontend: Multi-source добавление каналов (Telegram, Reddit, Twitter, RSS, TradingView реализованы; Discord не реализован, но архитектура позволяет добавить)
-  - [x] Выбор источника: Telegram/Reddit/Discord ✅ **ВЫПОЛНЕНО** — реализован Select с выбором типа канала (telegram, reddit, rss, twitter, tradingview)
+- [x] **2.1.4** Frontend: Multi-source добавление каналов (Telegram, Reddit, Twitter, RSS, TradingView реализованы)
+  - [x] Выбор источника: Telegram/Reddit/Twitter/RSS/TradingView ✅ **ВЫПОЛНЕНО** — реализован Select с выбором типа канала (telegram, reddit, rss, twitter, tradingview)
   - [x] Специфические поля для каждого источника ✅ **ВЫПОЛНЕНО** — реализованы специфические поля: bearer_token для Twitter, client_id/client_secret для Reddit, динамическая валидация URL для каждого типа
   - [x] Unified UI для управления каналами разных типов ✅ **ВЫПОЛНЕНО** — единый интерфейс AddChannelModal с динамическими полями в зависимости от выбранного типа канала
 

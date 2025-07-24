@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SocialActivity:
     """Social media activity data"""
-    platform: str  # "telegram", "twitter", "reddit", "discord"
+    platform: str  # "telegram", "twitter", "reddit", "rss", "tradingview"
     timestamp: datetime
     activity_type: str  # "message", "reaction", "share", "comment"
     user_id: str

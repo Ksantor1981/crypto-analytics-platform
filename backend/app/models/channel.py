@@ -5,12 +5,12 @@ from .base import BaseModel
 
 class Channel(BaseModel):
     """
-    Model representing a crypto signal channel (Telegram, Discord, etc.)
+    Model representing a crypto signal channel (Telegram, Reddit, Twitter, RSS, TradingView)
     """
     __tablename__ = "channels"
     
     name = Column(String(255), nullable=False, index=True)
-    platform = Column(String(50), nullable=False, index=True)  # telegram, discord, etc.
+    platform = Column(String(50), nullable=False, index=True)  # telegram, reddit, twitter, rss, tradingview
     url = Column(String(255), nullable=False, unique=True)
     category = Column(String(50), nullable=True, index=True)
     description = Column(Text, nullable=True)
