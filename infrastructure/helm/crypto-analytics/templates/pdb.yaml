@@ -1,0 +1,38 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "crypto-analytics.fullname" . }}-backend-pdb
+  labels:
+    {{- include "crypto-analytics.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "crypto-analytics.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "crypto-analytics.fullname" . }}-ml-service-pdb
+  labels:
+    {{- include "crypto-analytics.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "crypto-analytics.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ml-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "crypto-analytics.fullname" . }}-frontend-pdb
+  labels:
+    {{- include "crypto-analytics.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "crypto-analytics.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend 
