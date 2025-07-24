@@ -8,9 +8,9 @@ import logging
 
 from .core.config import get_settings
 from .core.database import engine, Base
-from .api.endpoints import channels, users, signals, subscriptions, payments, ml_integration, telegram_integration
+from .api.endpoints import channels, users, signals, subscriptions, payments, ml_integration, telegram_integration, trading
 from app.core.middleware import SubscriptionLimitMiddleware
-from app.core.scheduler import email_scheduler
+from app.core.scheduler import email_scheduler, trading_scheduler
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -59,6 +59,10 @@ async def startup_event():
         email_scheduler.start()
         logger.info("Email scheduler started")
         
+        # Start trading scheduler
+        trading_scheduler.start()
+        logger.info("Trading scheduler started")
+        
     except Exception as e:
         logger.error(f"Error creating database tables: {e}")
 
@@ -69,6 +73,9 @@ async def shutdown_event():
         # Stop email scheduler
         email_scheduler.stop()
         logger.info("Email scheduler stopped")
+        # Stop trading scheduler
+        trading_scheduler.stop()
+        logger.info("Trading scheduler stopped")
     except Exception as e:
         logger.error(f"Error stopping email scheduler: {e}")
 
@@ -78,8 +85,9 @@ app.include_router(channels.router, prefix="/api/v1/channels", tags=["channels"]
 app.include_router(signals.router, prefix="/api/v1/signals", tags=["signals"])
 app.include_router(subscriptions.router, prefix="/api/v1/subscriptions", tags=["subscriptions"])
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"])
-app.include_router(ml_integration.router, prefix="/api/v1", tags=["ml-integration"])
-app.include_router(telegram_integration.router, prefix="", tags=["telegram-integration"])
+app.include_router(ml_integration.router, prefix="/api/v1/ml", tags=["ml"])
+app.include_router(telegram_integration.router, prefix="/api/v1/telegram", tags=["telegram"])
+app.include_router(trading.router, prefix="/api/v1/trading", tags=["trading"])
 
 @app.get("/")
 async def root():
