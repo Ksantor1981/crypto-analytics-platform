@@ -345,10 +345,10 @@
   - [x] Helm charts для всех сервисов ✅ **ВЫПОЛНЕНО** — полный набор Helm charts с values.yaml
   - [x] Auto-scaling configurations ✅ **ВЫПОЛНЕНО** — HPA и VPA конфигурации для всех сервисов
   - [x] Health checks и liveness probes ✅ **ВЫПОЛНЕНО** — настроены для backend, ml-service, frontend
-- [ ] **5.1.2** CI/CD pipeline
-  - [x] GitHub Actions для automated testing
-  - [ ] Automated deployment to staging/production
-  - [ ] Blue-green deployment strategy
+- [x] **5.1.2** CI/CD pipeline ✅ **ВЫПОЛНЕНО** — созданы GitHub Actions workflows для staging и production деплоя
+  - [x] GitHub Actions для automated testing ✅ **ВЫПОЛНЕНО** — уже было реализовано
+  - [x] Automated deployment to staging/production ✅ **ВЫПОЛНЕНО** — созданы workflows deploy-staging.yml и deploy-production.yml
+  - [x] Blue-green deployment strategy ✅ **ВЫПОЛНЕНО** — реализована стратегия с переключением трафика между blue/green деплойментами
 - [ ] **5.1.3** Monitoring и alerting
   - [x] Prometheus metrics collection
   - [x] Grafana dashboards для business и technical метрик

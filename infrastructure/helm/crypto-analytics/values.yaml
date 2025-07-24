@@ -1,3 +1,9 @@
+# Blue-Green Deployment Configuration
+blueGreen:
+  enabled: false
+  activeColor: "blue"  # blue or green
+  switchThreshold: 0.95  # 95% success rate required for switch
+
 # Default values for crypto-analytics
 replicaCount: 1
 
