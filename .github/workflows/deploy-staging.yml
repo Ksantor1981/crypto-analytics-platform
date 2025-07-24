@@ -1,0 +1,165 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        cd ../ml-service
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      run: |
+        cd backend
+        python -m pytest tests/ -v
+        cd ../ml-service
+        python -m pytest tests/ -v
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Run frontend tests
+      run: |
+        cd frontend
+        npm run lint
+        npm run type-check
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=staging,enable={{is_default_branch}}
+    
+    - name: Build and push Backend
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ steps.meta.outputs.version }}
+        labels: ${{ steps.meta.outputs.labels }}
+    
+    - name: Build and push ML Service
+      uses: docker/build-push-action@v5
+      with:
+        context: ./ml-service
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ml-service:${{ steps.meta.outputs.version }}
+        labels: ${{ steps.meta.outputs.labels }}
+    
+    - name: Build and push Frontend
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ steps.meta.outputs.version }}
+        labels: ${{ steps.meta.outputs.labels }}
+    
+    - name: Build and push Workers
+      uses: docker/build-push-action@v5
+      with:
+        context: ./workers
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-workers:${{ steps.meta.outputs.version }}
+        labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-staging:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    environment: staging
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+    
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.STAGING_KUBECONFIG }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    - name: Deploy to staging
+      run: |
+        # Update Helm values with new image tags
+        export IMAGE_TAG=${{ steps.meta.outputs.version }}
+        
+        # Deploy using Helm
+        helm upgrade --install crypto-analytics-staging ./infrastructure/helm/crypto-analytics \
+          --namespace staging \
+          --create-namespace \
+          --set image.tag=$IMAGE_TAG \
+          --set environment=staging \
+          --wait --timeout=10m
+    
+    - name: Verify deployment
+      run: |
+        kubectl get pods -n staging
+        kubectl get services -n staging
+        
+        # Wait for all pods to be ready
+        kubectl wait --for=condition=ready pod -l app=crypto-analytics -n staging --timeout=300s
+    
+    - name: Run smoke tests
+      run: |
+        # Basic health checks
+        kubectl get svc -n staging crypto-analytics-staging-backend
+        kubectl get svc -n staging crypto-analytics-staging-frontend
+        
+        # Test backend health endpoint
+        BACKEND_URL=$(kubectl get svc -n staging crypto-analytics-staging-backend -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        curl -f http://$BACKEND_URL:8000/health || exit 1 

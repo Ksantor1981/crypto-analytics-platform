@@ -1,0 +1,135 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy'
+        required: true
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.ref_name }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  deploy-production:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+    
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.PRODUCTION_KUBECONFIG }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    - name: Deploy to production
+      run: |
+        # Determine version to deploy
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION="${{ github.ref_name }}"
+        fi
+        
+        echo "Deploying version: $VERSION"
+        
+        # Deploy using Helm with blue-green strategy
+        helm upgrade --install crypto-analytics-blue ./infrastructure/helm/crypto-analytics \
+          --namespace production \
+          --create-namespace \
+          --set image.tag=$VERSION \
+          --set environment=production \
+          --set blueGreen.enabled=true \
+          --set blueGreen.color=blue \
+          --wait --timeout=15m
+    
+    - name: Run production tests
+      run: |
+        # Wait for deployment to be ready
+        kubectl wait --for=condition=ready pod -l app=crypto-analytics -n production --timeout=600s
+        
+        # Run comprehensive tests
+        kubectl get pods -n production
+        kubectl get services -n production
+        
+        # Test all endpoints
+        BACKEND_URL=$(kubectl get svc -n production crypto-analytics-blue-backend -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        FRONTEND_URL=$(kubectl get svc -n production crypto-analytics-blue-frontend -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        
+        # Health checks
+        curl -f http://$BACKEND_URL:8000/health || exit 1
+        curl -f http://$FRONTEND_URL:3000 || exit 1
+        
+        # API tests
+        curl -f http://$BACKEND_URL:8000/api/v1/health || exit 1
+    
+    - name: Switch traffic to new deployment
+      run: |
+        # Update ingress to point to new deployment
+        kubectl patch ingress crypto-analytics-ingress -n production \
+          --type='json' \
+          -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/name", "value": "crypto-analytics-blue-backend"}]'
+        
+        # Wait for traffic to stabilize
+        sleep 30
+        
+        # Verify traffic is flowing
+        kubectl get pods -n production -l app=crypto-analytics
+    
+    - name: Cleanup old deployment
+      run: |
+        # Remove old green deployment if it exists
+        helm uninstall crypto-analytics-green -n production || true
+        
+        # Clean up old resources
+        kubectl delete pvc -l app=crypto-analytics,color=green -n production || true
+    
+    - name: Notify deployment success
+      if: success()
+      run: |
+        echo "Production deployment successful!"
+        # Add notification logic here (Slack, email, etc.)
+    
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        echo "Deployment failed, rolling back..."
+        
+        # Switch traffic back to previous deployment
+        kubectl patch ingress crypto-analytics-ingress -n production \
+          --type='json' \
+          -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/name", "value": "crypto-analytics-green-backend"}]'
+        
+        # Remove failed deployment
+        helm uninstall crypto-analytics-blue -n production || true
+        
+        echo "Rollback completed" 

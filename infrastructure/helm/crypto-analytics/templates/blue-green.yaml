@@ -1,0 +1,169 @@
+{{- if .Values.blueGreen.enabled }}
+# Blue-Green Deployment Configuration
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crypto-analytics.fullname" . }}-{{ .Values.blueGreen.color }}-backend
+  labels:
+    {{- include "crypto-analytics.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+    color: {{ .Values.blueGreen.color }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "crypto-analytics.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+    color: {{ .Values.blueGreen.color }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crypto-analytics.fullname" . }}-{{ .Values.blueGreen.color }}-frontend
+  labels:
+    {{- include "crypto-analytics.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+    color: {{ .Values.blueGreen.color }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "crypto-analytics.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+    color: {{ .Values.blueGreen.color }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crypto-analytics.fullname" . }}-{{ .Values.blueGreen.color }}-backend
+  labels:
+    {{- include "crypto-analytics.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+    color: {{ .Values.blueGreen.color }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "crypto-analytics.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+      color: {{ .Values.blueGreen.color }}
+  template:
+    metadata:
+      labels:
+        {{- include "crypto-analytics.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+        color: {{ .Values.blueGreen.color }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-backend
+          image: "{{ .Values.image.repository }}-backend:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.backend.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.backend.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres123@{{ include "crypto-analytics.fullname" . }}-postgres:5432/crypto_analytics"
+            - name: REDIS_URL
+              value: "redis://{{ include "crypto-analytics.fullname" . }}-redis:6379/0"
+            - name: ENVIRONMENT
+              value: "production"
+            - name: DEPLOYMENT_COLOR
+              value: "{{ .Values.blueGreen.color }}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crypto-analytics.fullname" . }}-{{ .Values.blueGreen.color }}-frontend
+  labels:
+    {{- include "crypto-analytics.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+    color: {{ .Values.blueGreen.color }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "crypto-analytics.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+      color: {{ .Values.blueGreen.color }}
+  template:
+    metadata:
+      labels:
+        {{- include "crypto-analytics.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+        color: {{ .Values.blueGreen.color }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-frontend
+          image: "{{ .Values.image.repository }}-frontend:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.frontend.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.frontend.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "http://{{ include "crypto-analytics.fullname" . }}-{{ .Values.blueGreen.color }}-backend:8000/api/v1"
+            - name: NEXT_PUBLIC_ML_URL
+              value: "http://{{ include "crypto-analytics.fullname" . }}-ml-service:8001/api/v1"
+            - name: DEPLOYMENT_COLOR
+              value: "{{ .Values.blueGreen.color }}"
+---
+# Traffic switching service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crypto-analytics.fullname" . }}-backend
+  labels:
+    {{- include "crypto-analytics.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "crypto-analytics.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+    color: {{ .Values.blueGreen.activeColor | default "blue" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crypto-analytics.fullname" . }}-frontend
+  labels:
+    {{- include "crypto-analytics.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "crypto-analytics.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+    color: {{ .Values.blueGreen.activeColor | default "blue" }}
+{{- end }} 
