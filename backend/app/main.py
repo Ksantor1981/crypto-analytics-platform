@@ -9,6 +9,7 @@ import logging
 from .core.config import get_settings
 from .core.database import engine, Base
 from .api.endpoints import channels, users, signals, subscriptions, payments, ml_integration, telegram_integration
+from app.core.middleware import SubscriptionLimitMiddleware
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -40,6 +41,9 @@ if settings.ENVIRONMENT == "production":
         TrustedHostMiddleware,
         allowed_hosts=settings.BACKEND_CORS_ORIGINS
     )
+
+# Добавляем middleware для ограничения подписок
+app.add_middleware(SubscriptionLimitMiddleware)
 
 # Создание таблиц при запуске
 @app.on_event("startup")
