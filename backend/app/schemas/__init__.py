@@ -1,5 +1,9 @@
 # Pydantic schemas package
 
+from .channel import (
+    ChannelBase, ChannelCreate, ChannelUpdate, ChannelInDB, ChannelResponse,
+    ChannelListResponse, ChannelWithStats
+)
 from .payment import (
     PaymentBase, PaymentCreate, PaymentUpdate, PaymentInDB, PaymentResponse, 
     PaymentListResponse, PaymentIntentCreate, PaymentIntentResponse, RefundRequest, RefundResponse,
@@ -12,10 +16,10 @@ from .signal import (
     ChannelSignalStats, AssetPerformance, TelegramSignalCreate, TelegramSignalResponse
 )
 from .subscription import (
-    SubscriptionPlanBase, SubscriptionPlanCreate, SubscriptionPlanUpdate, 
-    SubscriptionPlanInDB, SubscriptionPlanResponse, SubscriptionBase, 
-    SubscriptionCreate, SubscriptionUpdate, SubscriptionInDB, SubscriptionResponse, 
-    SubscriptionListResponse
+    SubscriptionBase, SubscriptionCreate, SubscriptionUpdate, 
+    SubscriptionResponse, SubscriptionListResponse, SubscriptionPlanInfo,
+    SubscriptionStats, SubscriptionUsage, SubscriptionCancellation, 
+    SubscriptionRenewal, StripeWebhookData
 )
 from .token import Token, TokenPayload, TokenRefresh
 from .user import (
@@ -23,7 +27,8 @@ from .user import (
     UserListResponse, UserProfile
 )
 
-# Rebuild models to resolve forward references
-UserProfile.model_rebuild()
-SubscriptionResponse.model_rebuild()
-ChannelWithStats.model_rebuild()
+# Aliases for backward compatibility
+Channel = ChannelResponse
+
+# Import and execute model rebuilds
+from .model_rebuild_all import *

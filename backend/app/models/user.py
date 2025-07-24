@@ -94,7 +94,6 @@ class User(BaseModel):
     # Relationships
     subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
     channels = relationship("Channel", back_populates="owner", cascade="all, delete-orphan")
-    signals = relationship("Signal", back_populates="user")
     api_keys = relationship("APIKey", back_populates="user", cascade="all, delete-orphan")
     custom_alerts = relationship("CustomAlert", back_populates="user", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")

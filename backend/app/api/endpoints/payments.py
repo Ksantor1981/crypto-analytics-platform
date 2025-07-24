@@ -17,6 +17,14 @@ from app.services.payment_service import PaymentService
 from app import schemas
 from app.models.user import User, UserRole
 
+# Import specific schemas
+from app.schemas.payment import (
+    PaymentIntentResponse, PaymentIntentCreate, PaymentListResponse,
+    PaymentWithUser, PaymentResponse, PaymentStatus, PaymentMethod,
+    PaymentCreate, PaymentUpdate, RefundRequest, RefundResponse,
+    PaymentStats, CustomerCreate, CustomerResponse, InvoiceCreate, InvoiceResponse
+)
+
 # Получаем настройки
 settings = get_settings()
 

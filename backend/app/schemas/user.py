@@ -1,10 +1,7 @@
-from typing import Optional, List, ForwardRef
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, Field, validator, EmailStr
+from typing import Optional, List, Any
 from datetime import datetime
 from enum import Enum
-
-# Forward references for circular dependencies
-Subscription = ForwardRef('Subscription')
 
 class UserRole(str, Enum):
     FREE_USER = "FREE_USER"
@@ -65,7 +62,7 @@ class UserInDB(UserBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    subscriptions: List['Subscription'] = []
+    subscriptions: List[Any] = []  # Will be resolved in model_rebuild
     
     class Config:
         from_attributes = True
@@ -101,7 +98,7 @@ class UserProfile(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
-    subscription: Optional['Subscription'] = None
+    subscription: Optional[Any] = None  # Will be resolved in model_rebuild
     
     # Subscription details
     current_subscription_expires: Optional[datetime] = None

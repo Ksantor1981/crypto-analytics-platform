@@ -1,412 +1,363 @@
 #!/usr/bin/env python3
 """
-Тест ML-сервиса с реальными рыночными данными
+Тест ML-модели на реальных данных Bybit
+Оценивает точность на реальных рыночных условиях
 """
 
-import requests
+import asyncio
+import aiohttp
 import json
 import time
 from datetime import datetime
+from typing import Dict, List, Any
+import statistics
+import sys
+import os
 
-# Конфигурация
-ML_SERVICE_URL = "http://localhost:8001"
+# Добавляем путь к workers для импорта
+workers_path = os.path.join(os.path.dirname(__file__), 'workers')
+sys.path.insert(0, workers_path)
 
-def test_real_market_scenarios():
-    """Тест с реальными рыночными сценариями"""
-    print("🔍 Тестируем реальные рыночные сценарии...")
+from exchange.bybit_client import BybitClient
+
+class RealDataMLTester:
+    """Тестер ML-модели на реальных данных"""
     
-    # Реальные рыночные данные (примерные)
-    real_scenarios = [
-        {
-            "name": "Bitcoin Bull Run (2024)",
-            "data": {
-                "asset": "BTC",
-                "direction": "LONG",
-                "entry_price": 45000,
-                "target_price": 65000,
-                "stop_loss": 42000,
-                "channel_accuracy": 0.85,
-                "confidence": 0.8
-            }
-        },
-        {
-            "name": "Ethereum Merge Signal",
-            "data": {
-                "asset": "ETH",
-                "direction": "LONG",
-                "entry_price": 1800,
-                "target_price": 2200,
-                "stop_loss": 1700,
-                "channel_accuracy": 0.75,
-                "confidence": 0.7
-            }
-        },
-        {
-            "name": "Altcoin Season Signal",
-            "data": {
-                "asset": "SOL",
-                "direction": "LONG",
-                "entry_price": 80,
-                "target_price": 120,
-                "stop_loss": 75,
-                "channel_accuracy": 0.6,
-                "confidence": 0.65
-            }
-        },
-        {
-            "name": "Bear Market Signal",
-            "data": {
-                "asset": "BTC",
-                "direction": "SHORT",
-                "entry_price": 35000,
-                "target_price": 30000,
-                "stop_loss": 37000,
-                "channel_accuracy": 0.7,
-                "confidence": 0.6
-            }
-        },
-        {
-            "name": "High Frequency Trading",
-            "data": {
-                "asset": "ETH",
-                "direction": "LONG",
-                "entry_price": 2000,
-                "target_price": 2050,
-                "stop_loss": 1990,
-                "channel_accuracy": 0.55,
-                "confidence": 0.5
-            }
-        }
-    ]
-    
-    results = []
-    
-    for scenario in real_scenarios:
-        print(f"\n   📊 Сценарий: {scenario['name']}")
+    def __init__(self):
+        self.ml_service_url = "http://localhost:8001"
+        self.bybit_client = None
+        self.test_results = []
         
-        try:
-            response = requests.post(
-                f"{ML_SERVICE_URL}/api/v1/predictions/predict",
-                json=scenario['data'],
-                headers={'Content-Type': 'application/json'}
-            )
+    async def __aenter__(self):
+        self.bybit_client = BybitClient()
+        await self.bybit_client.__aenter__()
+        return self
+        
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.bybit_client:
+            await self.bybit_client.__aexit__(exc_type, exc_val, exc_tb)
+    
+    async def get_real_market_data(self) -> Dict[str, Dict]:
+        """Получение реальных рыночных данных"""
+        print("📊 Получение реальных рыночных данных...")
+        
+        symbols = ["BTCUSDT", "ETHUSDT", "ADAUSDT", "SOLUSDT", "DOGEUSDT"]
+        market_data = await self.bybit_client.get_market_data(symbols)
+        
+        if market_data:
+            print(f"   ✅ Получены данные для {len(market_data)} пар")
+            for symbol, data in market_data.items():
+                print(f"      {symbol}: ${data['current_price']:,.4f} ({data.get('change_24h', 0):+.2f}%)")
+        else:
+            print("   ❌ Не удалось получить рыночные данные")
             
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Анализируем результат
-                recommendation = data.get('recommendation', 'N/A')
-                confidence = data.get('confidence', 0)
-                success_prob = data.get('success_probability', 0)
-                
-                # Определяем качество сигнала
-                if recommendation == 'BUY' and confidence > 0.7:
-                    signal_quality = "🔥 СИЛЬНЫЙ"
-                elif recommendation == 'BUY' and confidence > 0.6:
-                    signal_quality = "✅ ХОРОШИЙ"
-                elif recommendation == 'HOLD':
-                    signal_quality = "⚠️ НЕЙТРАЛЬНЫЙ"
-                else:
-                    signal_quality = "❌ СЛАБЫЙ"
-                
-                print(f"   ✅ Результат:")
-                print(f"      Качество сигнала: {signal_quality}")
-                print(f"      Рекомендация: {recommendation}")
-                print(f"      Уверенность: {confidence:.3f}")
-                print(f"      Вероятность успеха: {success_prob}")
-                
-                results.append({
-                    'scenario': scenario['name'],
-                    'status': 'success',
-                    'quality': signal_quality,
-                    'recommendation': recommendation,
-                    'confidence': confidence
-                })
-            else:
-                print(f"   ❌ Ошибка: {response.status_code}")
-                results.append({
-                    'scenario': scenario['name'],
-                    'status': 'error',
-                    'code': response.status_code
-                })
-                
-        except Exception as e:
-            print(f"   ❌ Исключение: {e}")
-            results.append({
-                'scenario': scenario['name'],
-                'status': 'exception',
-                'error': str(e)
+        return market_data
+    
+    def create_realistic_test_cases(self, market_data: Dict) -> List[Dict]:
+        """Создание реалистичных тестовых случаев на основе реальных данных"""
+        test_cases = []
+        
+        for symbol, data in market_data.items():
+            current_price = float(data['current_price'])
+            change_24h = float(data.get('change_24h', 0))
+            
+            # Тест 1: Консервативная LONG позиция (2% прибыль, 1% риск)
+            test_cases.append({
+                'name': f'{symbol}_Conservative_Long',
+                'request': {
+                    'asset': symbol,
+                    'entry_price': current_price,
+                    'target_price': current_price * 1.02,  # +2%
+                    'stop_loss': current_price * 0.99,     # -1%
+                    'direction': 'LONG'
+                },
+                'expected_behavior': 'buy',
+                'description': 'Консервативная LONG позиция с хорошим соотношением риск/прибыль'
             })
-    
-    # Анализ результатов
-    successful = sum(1 for r in results if r['status'] == 'success')
-    strong_signals = sum(1 for r in results if r.get('quality') == '🔥 СИЛЬНЫЙ')
-    good_signals = sum(1 for r in results if r.get('quality') == '✅ ХОРОШИЙ')
-    
-    print(f"\n   📈 Анализ результатов:")
-    print(f"      Успешных запросов: {successful}/{len(real_scenarios)}")
-    print(f"      Сильных сигналов: {strong_signals}")
-    print(f"      Хороших сигналов: {good_signals}")
-    print(f"      Общее качество: {(strong_signals + good_signals)/successful*100:.1f}%" if successful > 0 else "N/A")
-    
-    return successful == len(real_scenarios)
-
-def test_risk_management():
-    """Тест управления рисками"""
-    print("\n🔍 Тестируем управление рисками...")
-    
-    risk_scenarios = [
-        {
-            "name": "Высокий риск - низкая прибыль",
-            "data": {
-                "asset": "BTC",
-                "direction": "LONG",
-                "entry_price": 50000,
-                "target_price": 50100,  # Очень маленькая прибыль
-                "stop_loss": 49000,     # Большой риск
-                "channel_accuracy": 0.5,
-                "confidence": 0.5
-            }
-        },
-        {
-            "name": "Низкий риск - высокая прибыль",
-            "data": {
-                "asset": "ETH",
-                "direction": "LONG",
-                "entry_price": 3000,
-                "target_price": 3600,   # 20% прибыль
-                "stop_loss": 2950,      # Маленький риск
-                "channel_accuracy": 0.8,
-                "confidence": 0.8
-            }
-        },
-        {
-            "name": "Сбалансированный риск",
-            "data": {
-                "asset": "BNB",
-                "direction": "LONG",
-                "entry_price": 400,
-                "target_price": 480,    # 20% прибыль
-                "stop_loss": 360,       # 10% риск
-                "channel_accuracy": 0.7,
-                "confidence": 0.7
-            }
-        }
-    ]
-    
-    results = []
-    
-    for scenario in risk_scenarios:
-        print(f"\n   📊 Сценарий: {scenario['name']}")
-        
-        try:
-            response = requests.post(
-                f"{ML_SERVICE_URL}/api/v1/predictions/predict",
-                json=scenario['data'],
-                headers={'Content-Type': 'application/json'}
-            )
             
-            if response.status_code == 200:
-                data = response.json()
-                recommendation = data.get('recommendation', 'N/A')
-                confidence = data.get('confidence', 0)
-                
-                # Анализируем риск/прибыль
-                entry = scenario['data']['entry_price']
-                target = scenario['data'].get('target_price', entry)
-                stop_loss = scenario['data'].get('stop_loss', entry)
-                
-                if target and stop_loss:
-                    potential_profit = abs(target - entry) / entry * 100
-                    potential_loss = abs(stop_loss - entry) / entry * 100
-                    risk_reward_ratio = potential_profit / potential_loss if potential_loss > 0 else 0
-                    
-                    print(f"   ✅ Анализ риска:")
-                    print(f"      Потенциальная прибыль: {potential_profit:.1f}%")
-                    print(f"      Потенциальный убыток: {potential_loss:.1f}%")
-                    print(f"      Соотношение риск/прибыль: {risk_reward_ratio:.2f}")
-                    print(f"      Рекомендация: {recommendation}")
-                    print(f"      Уверенность: {confidence:.3f}")
-                    
-                    # Оценка качества сигнала
-                    if risk_reward_ratio > 2 and recommendation == 'BUY':
-                        quality = "🔥 ОТЛИЧНЫЙ"
-                    elif risk_reward_ratio > 1.5 and recommendation == 'BUY':
-                        quality = "✅ ХОРОШИЙ"
-                    elif recommendation == 'HOLD':
-                        quality = "⚠️ НЕЙТРАЛЬНЫЙ"
-                    else:
-                        quality = "❌ ПЛОХОЙ"
-                    
-                    print(f"      Качество: {quality}")
-                    
-                    results.append({
-                        'scenario': scenario['name'],
-                        'risk_reward_ratio': risk_reward_ratio,
-                        'recommendation': recommendation,
-                        'quality': quality
-                    })
-            else:
-                print(f"   ❌ Ошибка: {response.status_code}")
-                
-        except Exception as e:
-            print(f"   ❌ Исключение: {e}")
-    
-    # Анализ результатов управления рисками
-    good_signals = sum(1 for r in results if '🔥 ОТЛИЧНЫЙ' in r.get('quality', ''))
-    acceptable_signals = sum(1 for r in results if '✅ ХОРОШИЙ' in r.get('quality', ''))
-    
-    print(f"\n   📈 Результаты управления рисками:")
-    print(f"      Отличных сигналов: {good_signals}")
-    print(f"      Хороших сигналов: {acceptable_signals}")
-    print(f"      Общее качество: {(good_signals + acceptable_signals)/len(results)*100:.1f}%" if results else "N/A")
-    
-    return len(results) == len(risk_scenarios)
-
-def test_market_regime_adaptation():
-    """Тест адаптации к рыночным режимам"""
-    print("\n🔍 Тестируем адаптацию к рыночным режимам...")
-    
-    market_regimes = [
-        {
-            "name": "Бычий рынок (Bull Market)",
-            "scenarios": [
-                {"asset": "BTC", "direction": "LONG", "entry_price": 50000, "channel_accuracy": 0.8, "confidence": 0.8},
-                {"asset": "ETH", "direction": "LONG", "entry_price": 3000, "channel_accuracy": 0.7, "confidence": 0.7},
-                {"asset": "SOL", "direction": "LONG", "entry_price": 100, "channel_accuracy": 0.6, "confidence": 0.6}
-            ]
-        },
-        {
-            "name": "Медвежий рынок (Bear Market)",
-            "scenarios": [
-                {"asset": "BTC", "direction": "SHORT", "entry_price": 35000, "channel_accuracy": 0.7, "confidence": 0.6},
-                {"asset": "ETH", "direction": "SHORT", "entry_price": 2000, "channel_accuracy": 0.6, "confidence": 0.5},
-                {"asset": "BNB", "direction": "SHORT", "entry_price": 300, "channel_accuracy": 0.5, "confidence": 0.4}
-            ]
-        },
-        {
-            "name": "Боковой рынок (Sideways Market)",
-            "scenarios": [
-                {"asset": "BTC", "direction": "LONG", "entry_price": 45000, "channel_accuracy": 0.5, "confidence": 0.5},
-                {"asset": "ETH", "direction": "LONG", "entry_price": 2500, "channel_accuracy": 0.5, "confidence": 0.5},
-                {"asset": "ADA", "direction": "LONG", "entry_price": 0.5, "channel_accuracy": 0.4, "confidence": 0.4}
-            ]
-        }
-    ]
-    
-    regime_results = {}
-    
-    for regime in market_regimes:
-        print(f"\n   📊 Рыночный режим: {regime['name']}")
+            # Тест 2: Агрессивная LONG позиция (10% прибыль, 5% риск)
+            test_cases.append({
+                'name': f'{symbol}_Aggressive_Long',
+                'request': {
+                    'asset': symbol,
+                    'entry_price': current_price,
+                    'target_price': current_price * 1.10,  # +10%
+                    'stop_loss': current_price * 0.95,     # -5%
+                    'direction': 'LONG'
+                },
+                'expected_behavior': 'strong_buy',
+                'description': 'Агрессивная LONG позиция с отличным соотношением риск/прибыль'
+            })
+            
+            # Тест 3: Плохая сделка (2% прибыль, 10% риск)
+            test_cases.append({
+                'name': f'{symbol}_Poor_RR',
+                'request': {
+                    'asset': symbol,
+                    'entry_price': current_price,
+                    'target_price': current_price * 1.02,  # +2%
+                    'stop_loss': current_price * 0.90,     # -10%
+                    'direction': 'LONG'
+                },
+                'expected_behavior': 'caution',
+                'description': 'Плохое соотношение риск/прибыль'
+            })
+            
+            # Тест 4: SHORT позиция (если рынок падает)
+            if change_24h < -1:  # Если падение более 1%
+                test_cases.append({
+                    'name': f'{symbol}_Short_Down',
+                    'request': {
+                        'asset': symbol,
+                        'entry_price': current_price,
+                        'target_price': current_price * 0.95,  # -5%
+                        'stop_loss': current_price * 1.02,     # +2%
+                        'direction': 'SHORT'
+                    },
+                    'expected_behavior': 'sell',
+                    'description': 'SHORT позиция на падающем рынке'
+                })
+            
+            # Тест 5: Нейтральная сделка (1% прибыль, 1% риск)
+            test_cases.append({
+                'name': f'{symbol}_Neutral',
+                'request': {
+                    'asset': symbol,
+                    'entry_price': current_price,
+                    'target_price': current_price * 1.01,  # +1%
+                    'stop_loss': current_price * 0.99,     # -1%
+                    'direction': 'LONG'
+                },
+                'expected_behavior': 'neutral',
+                'description': 'Нейтральная сделка с равным соотношением'
+            })
         
-        regime_signals = []
-        for scenario in regime['scenarios']:
-            try:
-                response = requests.post(
-                    f"{ML_SERVICE_URL}/api/v1/predictions/predict",
-                    json=scenario,
-                    headers={'Content-Type': 'application/json'}
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    recommendation = data.get('recommendation', 'N/A')
-                    confidence = data.get('confidence', 0)
-                    
-                    print(f"      {scenario['asset']}: {recommendation} (уверенность: {confidence:.3f})")
-                    
-                    regime_signals.append({
-                        'asset': scenario['asset'],
-                        'recommendation': recommendation,
-                        'confidence': confidence,
-                        'expected_direction': scenario['direction']
-                    })
-                else:
-                    print(f"      {scenario['asset']}: ошибка {response.status_code}")
-                    
-            except Exception as e:
-                print(f"      {scenario['asset']}: исключение - {e}")
-        
-        # Анализируем результаты для данного режима
-        correct_signals = 0
-        for signal in regime_signals:
-            if (signal['expected_direction'] == 'LONG' and signal['recommendation'] == 'BUY') or \
-               (signal['expected_direction'] == 'SHORT' and signal['recommendation'] == 'SELL'):
-                correct_signals += 1
-        
-        accuracy = correct_signals / len(regime_signals) if regime_signals else 0
-        regime_results[regime['name']] = {
-            'signals': regime_signals,
-            'accuracy': accuracy,
-            'total_signals': len(regime_signals)
-        }
-        
-        print(f"      Точность для режима: {accuracy*100:.1f}%")
+        return test_cases
     
-    # Общий анализ
-    total_accuracy = sum(r['accuracy'] for r in regime_results.values()) / len(regime_results)
-    print(f"\n   📈 Общая точность по режимам: {total_accuracy*100:.1f}%")
-    
-    return total_accuracy > 0.5  # Требуем минимум 50% точности
-
-def main():
-    """Основная функция тестирования с реальными данными"""
-    print("🚀 Тестирование ML-сервиса с реальными рыночными данными")
-    print("=" * 70)
-    
-    # Проверяем доступность сервиса
-    try:
-        response = requests.get(f"{ML_SERVICE_URL}/api/v1/health", timeout=5)
-        if response.status_code != 200:
-            print("❌ ML-сервис недоступен")
-            return
-    except Exception as e:
-        print(f"❌ Не удается подключиться к ML-сервису: {e}")
-        return
-    
-    # Запускаем тесты
-    tests = [
-        ("Реальные рыночные сценарии", test_real_market_scenarios),
-        ("Управление рисками", test_risk_management),
-        ("Адаптация к рыночным режимам", test_market_regime_adaptation)
-    ]
-    
-    results = []
-    
-    for test_name, test_func in tests:
-        print(f"\n{'='*25} {test_name} {'='*25}")
+    async def test_single_prediction(self, test_case: Dict) -> Dict:
+        """Тест одного предсказания"""
         try:
-            result = test_func()
-            results.append((test_name, result))
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{self.ml_service_url}/api/v1/predictions/predict",
+                    json=test_case['request'],
+                    timeout=10
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        return {
+                            'test_case': test_case['name'],
+                            'description': test_case['description'],
+                            'request': test_case['request'],
+                            'response': result,
+                            'success': True,
+                            'prediction': result.get('prediction', 'UNKNOWN'),
+                            'confidence': result.get('confidence', 0.0),
+                            'success_probability': result.get('success_probability', 0.0),
+                            'expected_behavior': test_case.get('expected_behavior', 'neutral')
+                        }
+                    else:
+                        return {
+                            'test_case': test_case['name'],
+                            'description': test_case['description'],
+                            'request': test_case['request'],
+                            'success': False,
+                            'error': f"HTTP {response.status}"
+                        }
         except Exception as e:
-            print(f"❌ Ошибка в тесте {test_name}: {e}")
-            results.append((test_name, False))
+            return {
+                'test_case': test_case['name'],
+                'description': test_case['description'],
+                'request': test_case['request'],
+                'success': False,
+                'error': str(e)
+            }
     
-    # Итоговый отчет
-    print("\n" + "=" * 70)
-    print("📊 ИТОГОВЫЙ ОТЧЕТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ ДАННЫМИ")
-    print("=" * 70)
+    def analyze_realistic_results(self, results: List[Dict]) -> Dict:
+        """Анализ результатов на реалистичных данных"""
+        successful_tests = [r for r in results if r['success']]
+        failed_tests = [r for r in results if not r['success']]
+        
+        if not successful_tests:
+            return {
+                'total_tests': len(results),
+                'successful_tests': 0,
+                'failed_tests': len(failed_tests),
+                'success_rate': 0.0,
+                'average_confidence': 0.0,
+                'prediction_distribution': {},
+                'errors': [r.get('error', 'Unknown error') for r in failed_tests]
+            }
+        
+        # Статистика по уверенности и вероятности успеха
+        confidences = [r['confidence'] for r in successful_tests]
+        probabilities = [r['success_probability'] for r in successful_tests]
+        
+        # Распределение предсказаний
+        prediction_counts = {}
+        for result in successful_tests:
+            pred = result['prediction']
+            prediction_counts[pred] = prediction_counts.get(pred, 0) + 1
+        
+        # Анализ по типам сделок
+        trade_type_analysis = {}
+        for result in successful_tests:
+            trade_type = result['expected_behavior']
+            if trade_type not in trade_type_analysis:
+                trade_type_analysis[trade_type] = {
+                    'total': 0, 'correct': 0, 'avg_confidence': 0.0, 'avg_probability': 0.0
+                }
+            
+            analysis = trade_type_analysis[trade_type]
+            analysis['total'] += 1
+            analysis['avg_confidence'] += result['confidence']
+            analysis['avg_probability'] += result['success_probability']
+            
+            # Проверяем соответствие ожидаемому поведению
+            direction = result['request'].get('direction', 'LONG')
+            actual = result['prediction']
+            is_correct = False
+            
+            if trade_type == 'strong_buy' and direction == 'LONG' and 'СИЛЬНАЯ ПОКУПКА' in actual:
+                is_correct = True
+            elif trade_type == 'buy' and direction == 'LONG' and 'ПОКУПКА' in actual:
+                is_correct = True
+            elif trade_type == 'sell' and direction == 'SHORT' and 'ПРОДАЖА' in actual:
+                is_correct = True
+            elif trade_type == 'neutral' and 'НЕЙТРАЛЬНО' in actual:
+                is_correct = True
+            elif trade_type == 'caution' and ('ОСТОРОЖНО' in actual or 'ИЗБЕГАТЬ' in actual):
+                is_correct = True
+            
+            if is_correct:
+                analysis['correct'] += 1
+        
+        # Нормализуем средние значения
+        for trade_type in trade_type_analysis:
+            analysis = trade_type_analysis[trade_type]
+            if analysis['total'] > 0:
+                analysis['avg_confidence'] /= analysis['total']
+                analysis['avg_probability'] /= analysis['total']
+        
+        # Общая точность
+        total_expected = sum(analysis['total'] for analysis in trade_type_analysis.values())
+        total_correct = sum(analysis['correct'] for analysis in trade_type_analysis.values())
+        overall_accuracy = (total_correct / total_expected * 100) if total_expected > 0 else 0
+        
+        return {
+            'total_tests': len(results),
+            'successful_tests': len(successful_tests),
+            'failed_tests': len(failed_tests),
+            'success_rate': (len(successful_tests) / len(results)) * 100,
+            'overall_accuracy': overall_accuracy,
+            'average_confidence': round(statistics.mean(confidences), 3),
+            'average_probability': round(statistics.mean(probabilities), 3),
+            'min_confidence': round(min(confidences), 3),
+            'max_confidence': round(max(confidences), 3),
+            'confidence_std': round(statistics.stdev(confidences), 3) if len(confidences) > 1 else 0,
+            'prediction_distribution': prediction_counts,
+            'trade_type_analysis': trade_type_analysis,
+            'errors': [r.get('error', 'Unknown error') for r in failed_tests]
+        }
     
-    passed = 0
-    total = len(results)
+    def print_realistic_analysis(self, analysis: Dict):
+        """Вывод анализа реалистичных результатов"""
+        print("\n" + "="*70)
+        print("📊 АНАЛИЗ ML-МОДЕЛИ НА РЕАЛЬНЫХ ДАННЫХ")
+        print("="*70)
+        
+        print(f"Всего тестов: {analysis['total_tests']}")
+        print(f"Успешных тестов: {analysis['successful_tests']}")
+        print(f"Проваленных тестов: {analysis['failed_tests']}")
+        print(f"Успешность запросов: {analysis['success_rate']:.1f}%")
+        print(f"Общая точность предсказаний: {analysis['overall_accuracy']:.1f}%")
+        
+        print(f"\n📈 Статистика модели:")
+        print(f"  Средняя уверенность: {analysis['average_confidence']}")
+        print(f"  Средняя вероятность успеха: {analysis['average_probability']}")
+        print(f"  Диапазон уверенности: {analysis['min_confidence']} - {analysis['max_confidence']}")
+        print(f"  Стандартное отклонение: {analysis['confidence_std']}")
+        
+        print(f"\n🎯 Распределение предсказаний:")
+        for pred, count in analysis['prediction_distribution'].items():
+            percentage = (count / analysis['successful_tests']) * 100
+            print(f"  {pred}: {count} ({percentage:.1f}%)")
+        
+        print(f"\n✅ Анализ по типам сделок:")
+        for trade_type, stats in analysis['trade_type_analysis'].items():
+            accuracy = (stats['correct'] / stats['total'] * 100) if stats['total'] > 0 else 0
+            print(f"  {trade_type}:")
+            print(f"    Точность: {stats['correct']}/{stats['total']} ({accuracy:.1f}%)")
+            print(f"    Средняя уверенность: {stats['avg_confidence']:.3f}")
+            print(f"    Средняя вероятность: {stats['avg_probability']:.3f}")
+        
+        if analysis['errors']:
+            print(f"\n❌ Ошибки:")
+            for error in analysis['errors']:
+                print(f"  - {error}")
+        
+        print("\n" + "="*70)
+        
+        # Оценка качества модели
+        if analysis['overall_accuracy'] >= 70:
+            print("🎉 ОТЛИЧНАЯ ТОЧНОСТЬ МОДЕЛИ НА РЕАЛЬНЫХ ДАННЫХ!")
+        elif analysis['overall_accuracy'] >= 50:
+            print("✅ ХОРОШАЯ ТОЧНОСТЬ МОДЕЛИ НА РЕАЛЬНЫХ ДАННЫХ")
+        elif analysis['overall_accuracy'] >= 30:
+            print("⚠️ СРЕДНЯЯ ТОЧНОСТЬ МОДЕЛИ НА РЕАЛЬНЫХ ДАННЫХ")
+        else:
+            print("❌ НИЗКАЯ ТОЧНОСТЬ МОДЕЛИ НА РЕАЛЬНЫХ ДАННЫХ")
+        
+        print("="*70)
+        
+        return analysis['overall_accuracy'] >= 50
+
+async def main():
+    """Основная функция тестирования на реальных данных"""
+    print("🧪 ТЕСТИРОВАНИЕ ML-МОДЕЛИ НА РЕАЛЬНЫХ ДАННЫХ BYBIT")
+    print("="*70)
+    print(f"Время запуска: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("="*70)
     
-    for test_name, result in results:
-        status = "✅ ПРОШЕЛ" if result else "❌ НЕ ПРОШЕЛ"
-        print(f"{test_name}: {status}")
-        if result:
-            passed += 1
-    
-    print(f"\n📈 Результат: {passed}/{total} тестов прошли успешно")
-    
-    if passed == total:
-        print("🎉 Все тесты с реальными данными прошли успешно!")
-        print("🚀 ML-сервис готов к работе с реальными рыночными данными!")
-    elif passed >= total * 0.7:
-        print("✅ Большинство тестов прошли успешно. Сервис работает хорошо.")
-    else:
-        print("⚠️  Много тестов не прошли. Требуется доработка алгоритмов.")
-    
-    print(f"\n⏰ Время тестирования: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    async with RealDataMLTester() as tester:
+        # Получаем реальные рыночные данные
+        market_data = await tester.get_real_market_data()
+        
+        if not market_data:
+            print("❌ Не удалось получить рыночные данные для тестирования")
+            return False
+        
+        # Создаем реалистичные тестовые случаи
+        test_cases = tester.create_realistic_test_cases(market_data)
+        print(f"\nСоздано {len(test_cases)} реалистичных тестовых случаев")
+        
+        # Выполняем тесты
+        results = []
+        for i, test_case in enumerate(test_cases, 1):
+            print(f"\n{i}/{len(test_cases)} Тестируем: {test_case['name']}")
+            print(f"   {test_case['description']}")
+            result = await tester.test_single_prediction(test_case)
+            results.append(result)
+            
+            if result['success']:
+                print(f"   ✅ {result['prediction']} (уверенность: {result['confidence']:.3f}, вероятность: {result['success_probability']:.3f})")
+            else:
+                print(f"   ❌ Ошибка: {result.get('error', 'Unknown')}")
+        
+        # Анализируем результаты
+        analysis = tester.analyze_realistic_results(results)
+        success = tester.print_realistic_analysis(analysis)
+        
+        return success
 
 if __name__ == "__main__":
-    main() 
+    try:
+        success = asyncio.run(main())
+        exit_code = 0 if success else 1
+        exit(exit_code)
+    except KeyboardInterrupt:
+        print("\n⚠️ Тестирование прервано пользователем")
+        exit(1)
+    except Exception as e:
+        print(f"\n❌ Критическая ошибка: {e}")
+        exit(1) 

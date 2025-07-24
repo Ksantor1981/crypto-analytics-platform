@@ -10,7 +10,7 @@ from .core.config import get_settings
 from .core.database import engine, Base
 from .api.endpoints import channels, users, signals, subscriptions, payments, ml_integration, telegram_integration, trading
 from app.core.middleware import SubscriptionLimitMiddleware
-from app.core.scheduler import email_scheduler, trading_scheduler
+from app.core.scheduler import TradingScheduler
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -55,11 +55,8 @@ async def startup_event():
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully")
         
-        # Start email scheduler
-        email_scheduler.start()
-        logger.info("Email scheduler started")
-        
         # Start trading scheduler
+        trading_scheduler = TradingScheduler()
         trading_scheduler.start()
         logger.info("Trading scheduler started")
         
@@ -70,14 +67,12 @@ async def startup_event():
 async def shutdown_event():
     """Cleanup on application shutdown"""
     try:
-        # Stop email scheduler
-        email_scheduler.stop()
-        logger.info("Email scheduler stopped")
         # Stop trading scheduler
-        trading_scheduler.stop()
-        logger.info("Trading scheduler stopped")
+        if 'trading_scheduler' in locals():
+            trading_scheduler.stop()
+            logger.info("Trading scheduler stopped")
     except Exception as e:
-        logger.error(f"Error stopping email scheduler: {e}")
+        logger.error(f"Error stopping trading scheduler: {e}")
 
 # Подключение роутеров
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])

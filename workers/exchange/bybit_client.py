@@ -14,8 +14,16 @@ import logging
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from contextlib import asynccontextmanager
+import sys
+import os
 
-from ..real_data_config import BYBIT_API_KEY, BYBIT_API_SECRET, CRYPTO_SYMBOLS
+# Импорт конфигурации с fallback
+try:
+    from ..real_data_config import BYBIT_API_KEY, BYBIT_API_SECRET, CRYPTO_SYMBOLS
+except ImportError:
+    # Fallback for direct execution
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+    from real_data_config import BYBIT_API_KEY, BYBIT_API_SECRET, CRYPTO_SYMBOLS
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +73,23 @@ class BybitClient:
         self._consecutive_failures = 0
         self._max_consecutive_failures = 5
         
+        # Bybit interval mapping
+        self._interval_mapping = {
+            "1": "1",      # 1 minute
+            "3": "3",      # 3 minutes
+            "5": "5",      # 5 minutes
+            "15": "15",    # 15 minutes
+            "30": "30",    # 30 minutes
+            "60": "60",    # 1 hour
+            "120": "120",  # 2 hours
+            "240": "240",  # 4 hours
+            "360": "360",  # 6 hours
+            "720": "720",  # 12 hours
+            "D": "D",      # 1 day
+            "W": "W",      # 1 week
+            "M": "M"       # 1 month
+        }
+    
     async def __aenter__(self):
         await self._initialize_session()
         return self
@@ -287,14 +312,44 @@ class BybitClient:
             
         return prices
     
+    def _normalize_interval(self, interval: str) -> str:
+        """Normalize interval to Bybit API format"""
+        # Handle common interval formats
+        interval_map = {
+            "1m": "1", "1min": "1", "1minute": "1",
+            "5m": "5", "5min": "5", "5minutes": "5",
+            "15m": "15", "15min": "15", "15minutes": "15",
+            "30m": "30", "30min": "30", "30minutes": "30",
+            "1h": "60", "1hour": "60", "1hr": "60",
+            "4h": "240", "4hour": "240", "4hours": "240",
+            "1d": "D", "1day": "D", "1day": "D",
+            "1w": "W", "1week": "W", "1week": "W",
+            "1M": "M", "1month": "M", "1month": "M"
+        }
+        
+        # Check if interval is already in correct format
+        if interval in self._interval_mapping:
+            return interval
+            
+        # Try to map from common formats
+        if interval in interval_map:
+            return interval_map[interval]
+            
+        # Default to 1 minute if unknown
+        logger.warning(f"Unknown interval format '{interval}', using '1'")
+        return "1"
+
     async def get_klines(self, symbol: str, interval: str = "1", limit: int = 200,
                         start_time: Optional[int] = None, end_time: Optional[int] = None) -> List[Dict]:
         """Get kline/candlestick data with time range support"""
         
+        # Normalize interval to Bybit format
+        normalized_interval = self._normalize_interval(interval)
+        
         params = {
             "category": "spot",
             "symbol": symbol,
-            "interval": interval,
+            "interval": normalized_interval,
             "limit": min(limit, 1000)  # Bybit max limit
         }
         
@@ -321,7 +376,7 @@ class BybitClient:
                     except (ValueError, TypeError, IndexError):
                         continue
                         
-                logger.info(f"Retrieved {len(klines)} klines for {symbol}")
+                logger.info(f"Retrieved {len(klines)} klines for {symbol} (interval: {normalized_interval})")
                 return klines
                 
         except Exception as e:

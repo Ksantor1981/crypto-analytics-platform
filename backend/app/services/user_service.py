@@ -186,10 +186,10 @@ class UserService:
         ).all()
         
         total_signals = len(user_signals)
-        successful_signals = len([s for s in user_signals if s.status == SignalStatus.COMPLETED and s.roi_percentage and s.roi_percentage > 0])
+        successful_signals = len([s for s in user_signals if s.is_successful])
         accuracy_rate = (successful_signals / total_signals * 100) if total_signals > 0 else 0.0
         
-        roi_values = [s.roi_percentage for s in user_signals if s.roi_percentage is not None]
+        roi_values = [s.profit_loss_percentage for s in user_signals if s.profit_loss_percentage is not None]
         avg_roi = sum(roi_values) / len(roi_values) if roi_values else 0.0
         
         signals_stats = {

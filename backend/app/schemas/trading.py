@@ -9,7 +9,7 @@ from enum import Enum
 
 from app.models.trading import (
     ExchangeType, OrderType, OrderSide, OrderStatus, 
-    PositionSide, TradingStrategy
+    PositionSide, StrategyType
 )
 
 # Base schemas
@@ -126,7 +126,7 @@ class TradingOrderResponse(TradingOrderBase):
 # Strategy schemas
 class TradingStrategyBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    strategy_type: TradingStrategy
+    strategy_type: StrategyType
     parameters: Optional[Dict[str, Any]] = None
 
 class TradingStrategyCreate(TradingStrategyBase):
@@ -165,8 +165,8 @@ class RiskManagementBase(BaseModel):
     risk_per_trade: float = Field(default=0.02, ge=0, le=1)
     max_positions_per_symbol: int = Field(default=1, ge=1, le=10)
     max_total_positions: int = Field(default=5, ge=1, le=20)
-    trading_hours_start: str = Field(default="00:00", regex=r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
-    trading_hours_end: str = Field(default="23:59", regex=r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
+    trading_hours_start: str = Field(default="00:00", pattern=r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
+    trading_hours_end: str = Field(default="23:59", pattern=r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
     weekend_trading: bool = False
     min_volume_usd: Decimal = Field(default=1000000.0, ge=0)
     max_spread_percent: float = Field(default=0.005, ge=0, le=1)
@@ -185,8 +185,8 @@ class RiskManagementUpdate(BaseModel):
     risk_per_trade: Optional[float] = Field(None, ge=0, le=1)
     max_positions_per_symbol: Optional[int] = Field(None, ge=1, le=10)
     max_total_positions: Optional[int] = Field(None, ge=1, le=20)
-    trading_hours_start: Optional[str] = Field(None, regex=r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
-    trading_hours_end: Optional[str] = Field(None, regex=r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
+    trading_hours_start: Optional[str] = Field(None, pattern=r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
+    trading_hours_end: Optional[str] = Field(None, pattern=r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$")
     weekend_trading: Optional[bool] = None
     min_volume_usd: Optional[Decimal] = Field(None, ge=0)
     max_spread_percent: Optional[float] = Field(None, ge=0, le=1)
@@ -210,7 +210,7 @@ class PlaceOrderRequest(BaseModel):
     price: Optional[Decimal] = Field(None, gt=0)
     stop_loss: Optional[Decimal] = Field(None, gt=0)
     take_profit: Optional[Decimal] = Field(None, gt=0)
-    time_in_force: str = Field(default="GTC", regex=r"^(GTC|IOC|FOK)$")
+    time_in_force: str = Field(default="GTC", pattern=r"^(GTC|IOC|FOK)$")
 
 class ClosePositionRequest(BaseModel):
     position_id: int
