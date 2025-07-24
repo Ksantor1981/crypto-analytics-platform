@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 class ChannelType(str, Enum):
     """Types of channels supported by the platform"""
     TELEGRAM = "telegram"
-    DISCORD = "discord"
     REDDIT = "reddit"
     RSS = "rss"
     TWITTER = "twitter"
