@@ -1,449 +1,428 @@
 """
-Email Service - Email notifications for payments and subscriptions
-Part of Task 2.2.4: Email уведомления о платежах
+Email Service for sending payment notifications
+Supports both SMTP and SendGrid providers
 """
-import logging
 import smtplib
+import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
-from typing import Optional, Dict, Any, List
-from datetime import datetime, timedelta
-import asyncio
-from jinja2 import Environment, FileSystemLoader, Template
-import os
+from typing import Optional, List, Dict, Any
+from datetime import datetime
+import logging
+import httpx
+from jinja2 import Template
 
-from ..core.config import settings
-from ..models.user import User, SubscriptionPlan
-from ..models.subscription import Subscription, Payment
+from app.core.config import get_settings
+from app.models.user import User
+from app.models.payment import Payment
+from app.models.subscription import Subscription
 
 logger = logging.getLogger(__name__)
 
 class EmailService:
-    """
-    Service for sending email notifications related to payments and subscriptions
-    """
+    """Service for sending email notifications"""
     
     def __init__(self):
-        self.smtp_server = settings.SMTP_SERVER
-        self.smtp_port = settings.SMTP_PORT
-        self.smtp_username = settings.SMTP_USERNAME
-        self.smtp_password = settings.SMTP_PASSWORD
-        self.from_email = settings.FROM_EMAIL
-        self.from_name = settings.FROM_NAME or "Crypto Analytics"
+        self.settings = get_settings()
+        self.smtp_configured = bool(
+            self.settings.EMAIL_SMTP_HOST and 
+            self.settings.EMAIL_SMTP_USERNAME and 
+            self.settings.EMAIL_SMTP_PASSWORD
+        )
+        self.sendgrid_configured = bool(self.settings.SENDGRID_API_KEY)
         
-        # Setup Jinja2 for email templates
-        template_dir = os.path.join(os.path.dirname(__file__), "..", "templates", "emails")
-        self.jinja_env = Environment(loader=FileSystemLoader(template_dir))
+        if not self.smtp_configured and not self.sendgrid_configured:
+            logger.warning("No email provider configured - email notifications will be disabled")
     
-    async def send_email(
-        self,
-        to_email: str,
-        subject: str,
-        html_content: str,
-        text_content: Optional[str] = None,
-        attachments: Optional[List[Dict[str, Any]]] = None
-    ) -> bool:
-        """
-        Send email with HTML and optional text content
-        
-        Args:
-            to_email: Recipient email address
-            subject: Email subject
-            html_content: HTML email content
-            text_content: Plain text content (optional)
-            attachments: List of attachments (optional)
-        
-        Returns:
-            bool: True if email sent successfully
-        """
+    async def send_payment_confirmation(self, user: User, payment: Payment) -> bool:
+        """Send payment confirmation email"""
         try:
-            # Create message
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = f"{self.from_name} <{self.from_email}>"
-            msg['To'] = to_email
+            subject = "Payment Confirmed - Crypto Analytics Platform"
             
-            # Add text content
-            if text_content:
-                text_part = MIMEText(text_content, 'plain', 'utf-8')
-                msg.attach(text_part)
+            # Prepare email data
+            email_data = {
+                "user_name": user.full_name or user.email,
+                "payment_amount": f"${payment.amount:.2f}",
+                "payment_currency": payment.currency,
+                "payment_date": payment.processed_at.strftime("%B %d, %Y at %H:%M UTC"),
+                "payment_id": payment.internal_transaction_id,
+                "receipt_url": payment.receipt_url,
+                "subscription_plan": self._get_subscription_plan_name(payment),
+                "support_email": "support@crypto-analytics.com"
+            }
             
-            # Add HTML content
-            html_part = MIMEText(html_content, 'html', 'utf-8')
-            msg.attach(html_part)
+            html_content = self._render_payment_confirmation_template(email_data)
+            text_content = self._render_payment_confirmation_text(email_data)
             
-            # Add attachments
-            if attachments:
-                for attachment in attachments:
-                    self._add_attachment(msg, attachment)
+            return await self._send_email(
+                to_email=user.email,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content
+            )
             
-            # Send email
-            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
-                server.starttls()
-                server.login(self.smtp_username, self.smtp_password)
-                server.send_message(msg)
+        except Exception as e:
+            logger.error(f"Error sending payment confirmation email: {e}")
+            return False
+    
+    async def send_payment_reminder(self, user: User, subscription: Subscription) -> bool:
+        """Send payment reminder email"""
+        try:
+            subject = "Payment Reminder - Crypto Analytics Platform"
             
-            logger.info(f"Email sent successfully to {to_email}: {subject}")
+            email_data = {
+                "user_name": user.full_name or user.email,
+                "subscription_plan": subscription.plan.value.title(),
+                "next_billing_date": subscription.next_billing_date.strftime("%B %d, %Y"),
+                "amount": f"${subscription.price:.2f}",
+                "currency": subscription.currency,
+                "support_email": "support@crypto-analytics.com"
+            }
+            
+            html_content = self._render_payment_reminder_template(email_data)
+            text_content = self._render_payment_reminder_text(email_data)
+            
+            return await self._send_email(
+                to_email=user.email,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content
+            )
+            
+        except Exception as e:
+            logger.error(f"Error sending payment reminder email: {e}")
+            return False
+    
+    async def send_subscription_expired(self, user: User, subscription: Subscription) -> bool:
+        """Send subscription expired notification"""
+        try:
+            subject = "Subscription Expired - Crypto Analytics Platform"
+            
+            email_data = {
+                "user_name": user.full_name or user.email,
+                "subscription_plan": subscription.plan.value.title(),
+                "expired_date": subscription.current_period_end.strftime("%B %d, %Y"),
+                "support_email": "support@crypto-analytics.com"
+            }
+            
+            html_content = self._render_subscription_expired_template(email_data)
+            text_content = self._render_subscription_expired_text(email_data)
+            
+            return await self._send_email(
+                to_email=user.email,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content
+            )
+            
+        except Exception as e:
+            logger.error(f"Error sending subscription expired email: {e}")
+            return False
+    
+    async def _send_email(self, to_email: str, subject: str, html_content: str, text_content: str) -> bool:
+        """Send email using configured provider"""
+        if self.sendgrid_configured:
+            return await self._send_via_sendgrid(to_email, subject, html_content, text_content)
+        elif self.smtp_configured:
+            return await self._send_via_smtp(to_email, subject, html_content, text_content)
+        else:
+            logger.warning("No email provider configured - skipping email send")
+            return False
+    
+    async def _send_via_sendgrid(self, to_email: str, subject: str, html_content: str, text_content: str) -> bool:
+        """Send email via SendGrid API"""
+        try:
+            url = "https://api.sendgrid.com/v3/mail/send"
+            headers = {
+                "Authorization": f"Bearer {self.settings.SENDGRID_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            
+            data = {
+                "personalizations": [
+                    {
+                        "to": [{"email": to_email}],
+                        "subject": subject
+                    }
+                ],
+                "from": {
+                    "email": self.settings.SENDGRID_FROM_EMAIL,
+                    "name": self.settings.SENDGRID_FROM_NAME
+                },
+                "content": [
+                    {
+                        "type": "text/html",
+                        "value": html_content
+                    },
+                    {
+                        "type": "text/plain",
+                        "value": text_content
+                    }
+                ]
+            }
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, headers=headers, json=data)
+                
+                if response.status_code == 202:
+                    logger.info(f"Email sent successfully via SendGrid to {to_email}")
+                    return True
+                else:
+                    logger.error(f"SendGrid API error: {response.status_code} - {response.text}")
+                    return False
+                    
+        except Exception as e:
+            logger.error(f"Error sending email via SendGrid: {e}")
+            return False
+    
+    async def _send_via_smtp(self, to_email: str, subject: str, html_content: str, text_content: str) -> bool:
+        """Send email via SMTP"""
+        try:
+            message = MIMEMultipart("alternative")
+            message["Subject"] = subject
+            message["From"] = f"{self.settings.EMAIL_FROM_NAME} <{self.settings.EMAIL_FROM_ADDRESS}>"
+            message["To"] = to_email
+            
+            # Attach both HTML and text versions
+            text_part = MIMEText(text_content, "plain")
+            html_part = MIMEText(html_content, "html")
+            
+            message.attach(text_part)
+            message.attach(html_part)
+            
+            # Create SMTP connection
+            context = ssl.create_default_context()
+            
+            with smtplib.SMTP(self.settings.EMAIL_SMTP_HOST, self.settings.EMAIL_SMTP_PORT) as server:
+                if self.settings.EMAIL_USE_TLS:
+                    server.starttls(context=context)
+                elif self.settings.EMAIL_USE_SSL:
+                    server = smtplib.SMTP_SSL(self.settings.EMAIL_SMTP_HOST, self.settings.EMAIL_SMTP_PORT, context=context)
+                
+                server.login(self.settings.EMAIL_SMTP_USERNAME, self.settings.EMAIL_SMTP_PASSWORD)
+                server.send_message(message)
+                
+            logger.info(f"Email sent successfully via SMTP to {to_email}")
             return True
             
         except Exception as e:
-            logger.error(f"Failed to send email to {to_email}: {e}")
+            logger.error(f"Error sending email via SMTP: {e}")
             return False
     
-    def _add_attachment(self, msg: MIMEMultipart, attachment: Dict[str, Any]) -> None:
-        """Add attachment to email message"""
-        try:
-            part = MIMEBase('application', 'octet-stream')
-            part.set_payload(attachment['content'])
-            encoders.encode_base64(part)
-            part.add_header(
-                'Content-Disposition',
-                f'attachment; filename= {attachment["filename"]}'
-            )
-            msg.attach(part)
-        except Exception as e:
-            logger.error(f"Failed to add attachment {attachment.get('filename', 'unknown')}: {e}")
+    def _get_subscription_plan_name(self, payment: Payment) -> str:
+        """Get subscription plan name from payment"""
+        if payment.stripe_subscription_id:
+            # In a real implementation, you'd fetch this from Stripe
+            return "Premium Plan"
+        return "Unknown Plan"
     
-    def _render_template(self, template_name: str, context: Dict[str, Any]) -> str:
-        """Render email template with context"""
-        try:
-            template = self.jinja_env.get_template(template_name)
-            return template.render(**context)
-        except Exception as e:
-            logger.error(f"Failed to render template {template_name}: {e}")
-            return ""
+    def _render_payment_confirmation_template(self, data: Dict[str, Any]) -> str:
+        """Render payment confirmation HTML template"""
+        template = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Payment Confirmed</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #2563eb; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background: #f9fafb; }
+                .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+                .button { display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Payment Confirmed</h1>
+                </div>
+                <div class="content">
+                    <h2>Hello {{ user_name }},</h2>
+                    <p>Thank you for your payment! Your transaction has been successfully processed.</p>
+                    
+                    <h3>Payment Details:</h3>
+                    <ul>
+                        <li><strong>Amount:</strong> {{ payment_amount }} {{ payment_currency }}</li>
+                        <li><strong>Date:</strong> {{ payment_date }}</li>
+                        <li><strong>Transaction ID:</strong> {{ payment_id }}</li>
+                        <li><strong>Plan:</strong> {{ subscription_plan }}</li>
+                    </ul>
+                    
+                    {% if receipt_url %}
+                    <p><a href="{{ receipt_url }}" class="button">View Receipt</a></p>
+                    {% endif %}
+                    
+                    <p>Your subscription is now active. You can access all premium features immediately.</p>
+                    
+                    <p>If you have any questions, please contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+                </div>
+                <div class="footer">
+                    <p>Crypto Analytics Platform</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return Template(template).render(**data)
     
-    async def send_payment_success_notification(
-        self,
-        user: User,
-        payment: Payment,
-        subscription: Subscription
-    ) -> bool:
-        """
-        Send payment success notification
-        
-        Args:
-            user: User who made the payment
-            payment: Payment record
-            subscription: Associated subscription
-        
-        Returns:
-            bool: True if email sent successfully
-        """
-        context = {
-            'user_name': user.full_name or user.username or user.email.split('@')[0],
-            'user_email': user.email,
-            'payment_amount': payment.amount,
-            'payment_currency': payment.currency,
-            'payment_date': payment.created_at.strftime('%B %d, %Y'),
-            'subscription_plan': subscription.plan_name,
-            'subscription_period_start': subscription.current_period_start.strftime('%B %d, %Y'),
-            'subscription_period_end': subscription.current_period_end.strftime('%B %d, %Y'),
-            'invoice_url': payment.stripe_invoice_url,
-            'manage_subscription_url': f"{settings.FRONTEND_URL}/subscription/manage",
-            'support_email': settings.SUPPORT_EMAIL,
-            'company_name': "Crypto Analytics"
-        }
-        
-        html_content = self._render_template('payment_success.html', context)
-        text_content = self._render_template('payment_success.txt', context)
-        
-        subject = f"Payment Confirmation - {subscription.plan_name} Subscription"
-        
-        return await self.send_email(
-            to_email=user.email,
-            subject=subject,
-            html_content=html_content,
-            text_content=text_content
-        )
-    
-    async def send_payment_failed_notification(
-        self,
-        user: User,
-        subscription: Subscription,
-        error_message: str
-    ) -> bool:
-        """
-        Send payment failed notification
-        
-        Args:
-            user: User whose payment failed
-            subscription: Associated subscription
-            error_message: Error message from payment processor
-        
-        Returns:
-            bool: True if email sent successfully
-        """
-        context = {
-            'user_name': user.full_name or user.username or user.email.split('@')[0],
-            'subscription_plan': subscription.plan_name,
-            'error_message': error_message,
-            'retry_date': (datetime.utcnow() + timedelta(days=3)).strftime('%B %d, %Y'),
-            'update_payment_url': f"{settings.FRONTEND_URL}/subscription/payment-method",
-            'support_email': settings.SUPPORT_EMAIL,
-            'company_name': "Crypto Analytics"
-        }
-        
-        html_content = self._render_template('payment_failed.html', context)
-        text_content = self._render_template('payment_failed.txt', context)
-        
-        subject = "Payment Failed - Action Required"
-        
-        return await self.send_email(
-            to_email=user.email,
-            subject=subject,
-            html_content=html_content,
-            text_content=text_content
-        )
-    
-    async def send_subscription_renewal_reminder(
-        self,
-        user: User,
-        subscription: Subscription,
-        days_until_renewal: int
-    ) -> bool:
-        """
-        Send subscription renewal reminder
-        
-        Args:
-            user: User to notify
-            subscription: Subscription that will renew
-            days_until_renewal: Number of days until renewal
-        
-        Returns:
-            bool: True if email sent successfully
-        """
-        context = {
-            'user_name': user.full_name or user.username or user.email.split('@')[0],
-            'subscription_plan': subscription.plan_name,
-            'renewal_date': subscription.current_period_end.strftime('%B %d, %Y'),
-            'renewal_amount': subscription.plan_price,
-            'days_until_renewal': days_until_renewal,
-            'manage_subscription_url': f"{settings.FRONTEND_URL}/subscription/manage",
-            'cancel_subscription_url': f"{settings.FRONTEND_URL}/subscription/cancel",
-            'support_email': settings.SUPPORT_EMAIL,
-            'company_name': "Crypto Analytics"
-        }
-        
-        html_content = self._render_template('subscription_renewal_reminder.html', context)
-        text_content = self._render_template('subscription_renewal_reminder.txt', context)
-        
-        if days_until_renewal <= 3:
-            subject = f"Your {subscription.plan_name} subscription renews in {days_until_renewal} day{'s' if days_until_renewal != 1 else ''}"
-        else:
-            subject = f"Your {subscription.plan_name} subscription renews soon"
-        
-        return await self.send_email(
-            to_email=user.email,
-            subject=subject,
-            html_content=html_content,
-            text_content=text_content
-        )
-    
-    async def send_subscription_cancelled_notification(
-        self,
-        user: User,
-        subscription: Subscription
-    ) -> bool:
-        """
-        Send subscription cancellation notification
-        
-        Args:
-            user: User whose subscription was cancelled
-            subscription: Cancelled subscription
-        
-        Returns:
-            bool: True if email sent successfully
-        """
-        context = {
-            'user_name': user.full_name or user.username or user.email.split('@')[0],
-            'subscription_plan': subscription.plan_name,
-            'cancellation_date': datetime.utcnow().strftime('%B %d, %Y'),
-            'access_until_date': subscription.current_period_end.strftime('%B %d, %Y'),
-            'reactivate_url': f"{settings.FRONTEND_URL}/subscription/plans",
-            'export_data_url': f"{settings.FRONTEND_URL}/export",
-            'support_email': settings.SUPPORT_EMAIL,
-            'company_name': "Crypto Analytics"
-        }
-        
-        html_content = self._render_template('subscription_cancelled.html', context)
-        text_content = self._render_template('subscription_cancelled.txt', context)
-        
-        subject = f"Subscription Cancelled - {subscription.plan_name}"
-        
-        return await self.send_email(
-            to_email=user.email,
-            subject=subject,
-            html_content=html_content,
-            text_content=text_content
-        )
-    
-    async def send_subscription_expired_notification(
-        self,
-        user: User,
-        subscription: Subscription
-    ) -> bool:
-        """
-        Send subscription expired notification
-        
-        Args:
-            user: User whose subscription expired
-            subscription: Expired subscription
-        
-        Returns:
-            bool: True if email sent successfully
-        """
-        context = {
-            'user_name': user.full_name or user.username or user.email.split('@')[0],
-            'subscription_plan': subscription.plan_name,
-            'expiration_date': subscription.current_period_end.strftime('%B %d, %Y'),
-            'free_plan_limits': {
-                'channels': 3,
-                'api_calls': 100
-            },
-            'resubscribe_url': f"{settings.FRONTEND_URL}/subscription/plans",
-            'support_email': settings.SUPPORT_EMAIL,
-            'company_name': "Crypto Analytics"
-        }
-        
-        html_content = self._render_template('subscription_expired.html', context)
-        text_content = self._render_template('subscription_expired.txt', context)
-        
-        subject = f"Subscription Expired - {subscription.plan_name}"
-        
-        return await self.send_email(
-            to_email=user.email,
-            subject=subject,
-            html_content=html_content,
-            text_content=text_content
-        )
-    
-    async def send_welcome_email(self, user: User) -> bool:
-        """
-        Send welcome email to new user
-        
-        Args:
-            user: New user
-        
-        Returns:
-            bool: True if email sent successfully
-        """
-        context = {
-            'user_name': user.full_name or user.username or user.email.split('@')[0],
-            'login_url': f"{settings.FRONTEND_URL}/login",
-            'dashboard_url': f"{settings.FRONTEND_URL}/dashboard",
-            'channels_url': f"{settings.FRONTEND_URL}/channels",
-            'upgrade_url': f"{settings.FRONTEND_URL}/subscription/plans",
-            'support_email': settings.SUPPORT_EMAIL,
-            'company_name': "Crypto Analytics"
-        }
-        
-        html_content = self._render_template('welcome.html', context)
-        text_content = self._render_template('welcome.txt', context)
-        
-        subject = "Welcome to Crypto Analytics!"
-        
-        return await self.send_email(
-            to_email=user.email,
-            subject=subject,
-            html_content=html_content,
-            text_content=text_content
-        )
+    def _render_payment_confirmation_text(self, data: Dict[str, Any]) -> str:
+        """Render payment confirmation text template"""
+        template = """
+Payment Confirmed - Crypto Analytics Platform
 
+Hello {{ user_name }},
 
-# Global email service instance
-email_service = EmailService()
+Thank you for your payment! Your transaction has been successfully processed.
 
+Payment Details:
+- Amount: {{ payment_amount }} {{ payment_currency }}
+- Date: {{ payment_date }}
+- Transaction ID: {{ payment_id }}
+- Plan: {{ subscription_plan }}
 
-# Background task for sending emails
-async def send_email_background(
-    to_email: str,
-    subject: str,
-    html_content: str,
-    text_content: Optional[str] = None
-) -> None:
-    """Background task for sending emails without blocking the main thread"""
-    try:
-        await email_service.send_email(
-            to_email=to_email,
-            subject=subject,
-            html_content=html_content,
-            text_content=text_content
-        )
-    except Exception as e:
-        logger.error(f"Background email task failed: {e}")
+Your subscription is now active. You can access all premium features immediately.
 
+If you have any questions, please contact us at {{ support_email }}.
 
-# Scheduled tasks for subscription reminders
-async def send_renewal_reminders() -> None:
-    """
-    Send renewal reminders for subscriptions that will renew soon
-    This should be run as a scheduled task (e.g., daily)
-    """
-    from ..database import get_db
-    from sqlalchemy.orm import Session
+Best regards,
+Crypto Analytics Platform Team
+        """
+        return Template(template).render(**data)
     
-    try:
-        db = next(get_db())
-        
-        # Get subscriptions that will renew in 7, 3, or 1 day(s)
-        reminder_days = [7, 3, 1]
-        
-        for days in reminder_days:
-            target_date = datetime.utcnow() + timedelta(days=days)
-            
-            subscriptions = db.query(Subscription).filter(
-                Subscription.status == 'active',
-                Subscription.current_period_end.date() == target_date.date()
-            ).all()
-            
-            for subscription in subscriptions:
-                if subscription.user:
-                    await email_service.send_subscription_renewal_reminder(
-                        user=subscription.user,
-                        subscription=subscription,
-                        days_until_renewal=days
-                    )
-        
-        logger.info(f"Sent renewal reminders for {len(subscriptions)} subscriptions")
-        
-    except Exception as e:
-        logger.error(f"Failed to send renewal reminders: {e}")
-    finally:
-        db.close()
-
-
-async def send_expiration_notifications() -> None:
-    """
-    Send notifications for expired subscriptions
-    This should be run as a scheduled task (e.g., daily)
-    """
-    from ..database import get_db
-    from sqlalchemy.orm import Session
+    def _render_payment_reminder_template(self, data: Dict[str, Any]) -> str:
+        """Render payment reminder HTML template"""
+        template = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Payment Reminder</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #f59e0b; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background: #f9fafb; }
+                .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+                .button { display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Payment Reminder</h1>
+                </div>
+                <div class="content">
+                    <h2>Hello {{ user_name }},</h2>
+                    <p>This is a friendly reminder that your subscription payment is due soon.</p>
+                    
+                    <h3>Subscription Details:</h3>
+                    <ul>
+                        <li><strong>Plan:</strong> {{ subscription_plan }}</li>
+                        <li><strong>Next Billing Date:</strong> {{ next_billing_date }}</li>
+                        <li><strong>Amount:</strong> {{ amount }} {{ currency }}</li>
+                    </ul>
+                    
+                    <p>To ensure uninterrupted access to your premium features, please make sure your payment method is up to date.</p>
+                    
+                    <p>If you have any questions, please contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+                </div>
+                <div class="footer">
+                    <p>Crypto Analytics Platform</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return Template(template).render(**data)
     
-    try:
-        db = next(get_db())
-        
-        # Get subscriptions that expired yesterday
-        yesterday = datetime.utcnow() - timedelta(days=1)
-        
-        expired_subscriptions = db.query(Subscription).filter(
-            Subscription.status == 'expired',
-            Subscription.current_period_end.date() == yesterday.date()
-        ).all()
-        
-        for subscription in expired_subscriptions:
-            if subscription.user:
-                await email_service.send_subscription_expired_notification(
-                    user=subscription.user,
-                    subscription=subscription
-                )
-        
-        logger.info(f"Sent expiration notifications for {len(expired_subscriptions)} subscriptions")
-        
-    except Exception as e:
-        logger.error(f"Failed to send expiration notifications: {e}")
-    finally:
-        db.close()
+    def _render_payment_reminder_text(self, data: Dict[str, Any]) -> str:
+        """Render payment reminder text template"""
+        template = """
+Payment Reminder - Crypto Analytics Platform
+
+Hello {{ user_name }},
+
+This is a friendly reminder that your subscription payment is due soon.
+
+Subscription Details:
+- Plan: {{ subscription_plan }}
+- Next Billing Date: {{ next_billing_date }}
+- Amount: {{ amount }} {{ currency }}
+
+To ensure uninterrupted access to your premium features, please make sure your payment method is up to date.
+
+If you have any questions, please contact us at {{ support_email }}.
+
+Best regards,
+Crypto Analytics Platform Team
+        """
+        return Template(template).render(**data)
+    
+    def _render_subscription_expired_template(self, data: Dict[str, Any]) -> str:
+        """Render subscription expired HTML template"""
+        template = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Subscription Expired</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #dc2626; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background: #f9fafb; }
+                .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+                .button { display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Subscription Expired</h1>
+                </div>
+                <div class="content">
+                    <h2>Hello {{ user_name }},</h2>
+                    <p>Your subscription has expired. You've been downgraded to the free plan.</p>
+                    
+                    <h3>Subscription Details:</h3>
+                    <ul>
+                        <li><strong>Plan:</strong> {{ subscription_plan }}</li>
+                        <li><strong>Expired Date:</strong> {{ expired_date }}</li>
+                    </ul>
+                    
+                    <p>To restore access to premium features, please renew your subscription.</p>
+                    
+                    <p>If you have any questions, please contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+                </div>
+                <div class="footer">
+                    <p>Crypto Analytics Platform</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return Template(template).render(**data)
+    
+    def _render_subscription_expired_text(self, data: Dict[str, Any]) -> str:
+        """Render subscription expired text template"""
+        template = """
+Subscription Expired - Crypto Analytics Platform
+
+Hello {{ user_name }},
+
+Your subscription has expired. You've been downgraded to the free plan.
+
+Subscription Details:
+- Plan: {{ subscription_plan }}
+- Expired Date: {{ expired_date }}
+
+To restore access to premium features, please renew your subscription.
+
+If you have any questions, please contact us at {{ support_email }}.
+
+Best regards,
+Crypto Analytics Platform Team
+        """
+        return Template(template).render(**data)
