@@ -341,10 +341,10 @@
 ### 📝 Детализированные задачи:
 
 #### **5.1. Инфраструктура и DevOps**
-- [ ] **5.1.1** Kubernetes deployment
-  - [x] Helm charts для всех сервисов
-  - [ ] Auto-scaling configurations
-  - [ ] Health checks и liveness probes
+- [x] **5.1.1** Kubernetes deployment ✅ **ВЫПОЛНЕНО** — созданы Helm charts, auto-scaling configurations, health checks и liveness probes
+  - [x] Helm charts для всех сервисов ✅ **ВЫПОЛНЕНО** — полный набор Helm charts с values.yaml
+  - [x] Auto-scaling configurations ✅ **ВЫПОЛНЕНО** — HPA и VPA конфигурации для всех сервисов
+  - [x] Health checks и liveness probes ✅ **ВЫПОЛНЕНО** — настроены для backend, ml-service, frontend
 - [ ] **5.1.2** CI/CD pipeline
   - [x] GitHub Actions для automated testing
   - [ ] Automated deployment to staging/production
