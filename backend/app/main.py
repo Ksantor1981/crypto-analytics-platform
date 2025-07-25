@@ -8,7 +8,7 @@ import logging
 
 from .core.config import get_settings
 from .core.database import engine, Base
-from .api.endpoints import channels, users, signals, subscriptions, payments, ml_integration, telegram_integration, trading
+from .api.endpoints import channels, users, signals, subscriptions, payments, ml_integration, telegram_integration, trading, ml_predictions
 from app.core.middleware import SubscriptionLimitMiddleware
 from app.core.scheduler import TradingScheduler
 
@@ -83,6 +83,7 @@ app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"]
 app.include_router(ml_integration.router, prefix="/api/v1/ml", tags=["ml"])
 app.include_router(telegram_integration.router, prefix="/api/v1/telegram", tags=["telegram"])
 app.include_router(trading.router, prefix="/api/v1/trading", tags=["trading"])
+app.include_router(ml_predictions.router, prefix="/api/v1/signal-predictions", tags=["Signal Predictions"])
 
 @app.get("/")
 async def root():
