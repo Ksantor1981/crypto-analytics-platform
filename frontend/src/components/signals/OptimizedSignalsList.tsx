@@ -2,12 +2,12 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Card, CardBody } from '@/components/ui/card';
-import { Badge } from '@/components/ui/Badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Signal } from '@/types';
 import { formatDate, formatPrice } from '@/lib/utils';
-import { VirtualList, useOptimizedSearch, withMemo } from '@/lib/performance';
+import { useDebounced } from '@/lib/performance';
 
 interface OptimizedSignalsListProps {
   signals: Signal[];
@@ -15,12 +15,12 @@ interface OptimizedSignalsListProps {
   onSignalSelect?: (signal: Signal) => void;
   showChannel?: boolean;
   searchTerm?: string;
-  height?: number;
+  // height удален - не используется
 }
 
-const ITEM_HEIGHT = 80; // Высота одного элемента списка
+// Константа удалена - не используется
 
-const SignalItem = withMemo<{
+const SignalItem = React.memo<{
   signal: Signal;
   onSignalSelect?: (signal: Signal) => void;
   showChannel: boolean;
@@ -29,19 +29,19 @@ const SignalItem = withMemo<{
     switch (status) {
       case 'active':
         return (
-          <Badge variant="warning" size="sm">
+          <Badge variant="outline" size="sm">
             Активен
           </Badge>
         );
       case 'completed':
         return (
-          <Badge variant="success" size="sm">
+          <Badge variant="default" size="sm">
             Выполнен
           </Badge>
         );
       case 'failed':
         return (
-          <Badge variant="danger" size="sm">
+          <Badge variant="destructive" size="sm">
             Не выполнен
           </Badge>
         );
@@ -62,7 +62,7 @@ const SignalItem = withMemo<{
 
   const getDirectionBadge = (direction: string) => {
     return (
-      <Badge variant={direction === 'long' ? 'success' : 'danger'} size="sm">
+      <Badge variant={direction === 'long' ? 'default' : 'destructive'} size="sm">
         {direction.toUpperCase()}
       </Badge>
     );
@@ -128,7 +128,7 @@ const SignalItem = withMemo<{
         </Link>
         {onSignalSelect && (
           <Button
-            variant="primary"
+            variant="default"
             size="sm"
             onClick={() => onSignalSelect(signal)}
           >
@@ -146,20 +146,22 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
   onSignalSelect,
   showChannel = true,
   searchTerm = '',
-  height = 600,
 }) => {
   const [sortBy, setSortBy] = useState<
     'created_at' | 'asset' | 'entry_price' | 'pnl' | 'status'
   >('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Оптимизированный поиск
-  const { filteredItems: searchedSignals, isSearching } = useOptimizedSearch(
-    signals,
-    searchTerm,
-    ['asset', 'status', 'direction'],
-    300
-  );
+  // Оптимизированный поиск с дебаунсом
+  const debouncedSearchTerm = useDebounced(searchTerm, 300);
+  const searchedSignals = React.useMemo(() => {
+    if (!debouncedSearchTerm) return signals;
+    return signals.filter(signal => 
+      signal.asset.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      signal.status.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      signal.direction.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    );
+  }, [signals, debouncedSearchTerm]);
 
   // Мемоизированная сортировка
   const sortedSignals = useMemo(() => {
@@ -173,25 +175,18 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
       }
 
       if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
+        return (aValue || 0) > (bValue || 0) ? 1 : -1;
       } else {
-        return aValue < bValue ? 1 : -1;
+        return (aValue || 0) < (bValue || 0) ? 1 : -1;
       }
     });
   }, [searchedSignals, sortBy, sortOrder]);
 
-  const handleSort = (field: typeof sortBy) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('desc');
-    }
-  };
+  // Функция сортировки удалена - не используется в интерфейсе
 
   // Мемоизированный рендер элемента
   const renderItem = useMemo(() => {
-    return (signal: Signal, index: number) => (
+    return (signal: Signal) => (
       <SignalItem
         key={signal.id}
         signal={signal}
@@ -204,7 +199,7 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
   if (isLoading) {
     return (
       <Card>
-        <CardBody>
+        <CardContent>
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="animate-pulse">
@@ -221,7 +216,7 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
               </div>
             ))}
           </div>
-        </CardBody>
+        </CardContent>
       </Card>
     );
   }
@@ -229,7 +224,7 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
   if (sortedSignals.length === 0) {
     return (
       <Card>
-        <CardBody className="text-center py-12">
+        <CardContent className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">⚡</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             {searchTerm ? 'Сигналы не найдены' : 'Нет сигналов'}
@@ -239,14 +234,14 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
               ? 'Попробуйте изменить поисковый запрос'
               : 'Сигналы появятся здесь после подключения каналов'}
           </p>
-        </CardBody>
+        </CardContent>
       </Card>
     );
   }
 
   return (
     <Card>
-      <CardBody className="p-0">
+      <CardContent className="p-0">
         {/* Header with sorting */}
         <div className="p-4 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
@@ -254,7 +249,7 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
               <span className="text-sm font-medium text-gray-700">
                 Найдено: {sortedSignals.length} сигналов
               </span>
-              {isSearching && (
+              {searchTerm && (
                 <span className="text-xs text-blue-600">Поиск...</span>
               )}
             </div>
@@ -280,14 +275,11 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
           </div>
         </div>
 
-        {/* Virtualized list */}
-        <VirtualList
-          items={sortedSignals}
-          itemHeight={ITEM_HEIGHT}
-          height={height}
-          renderItem={renderItem}
-        />
-      </CardBody>
+        {/* Signals list */}
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {sortedSignals.map(signal => renderItem(signal))}
+        </div>
+      </CardContent>
     </Card>
   );
 };

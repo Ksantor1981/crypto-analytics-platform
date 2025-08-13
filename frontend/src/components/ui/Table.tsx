@@ -1,81 +1,65 @@
 import React from 'react';
+import { 
+  ColumnDef, 
+  flexRender, 
+  getCoreRowModel, 
+  useReactTable,
+} from '@tanstack/react-table';
 
-interface Column<T> {
-  key: keyof T;
-  title: string;
-  width?: string;
-  sortable?: boolean;
-  render?: (value: any, record: T) => React.ReactNode;
+// Простой интерфейс для базового Table
+export interface TableProps<TData> {
+  data: TData[];
+  columns: ColumnDef<TData, unknown>[];
 }
 
-interface TableProps<T> {
-  data: T[];
-  columns: Column<T>[];
-  loading?: boolean;
-  className?: string;
-  onRowClick?: (record: T) => void;
-}
-
-function Table<T extends Record<string, any>>({
-  data,
-  columns,
-  loading = false,
-  className = '',
-  onRowClick,
-}: TableProps<T>) {
-  if (loading) {
-    return (
-      <div className="w-full">
-        <div className="animate-pulse">
-          <div className="h-10 bg-gray-200 rounded mb-2"></div>
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className="h-12 bg-gray-100 rounded mb-1"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+export function Table<TData>({ data, columns }: TableProps<TData>) {
+  const table = useReactTable<TData>({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
-    <div className={`overflow-x-auto ${className}`}>
-      <table className="table">
-        <thead className="table-header">
-          <tr>
-            {columns.map(column => (
-              <th
-                key={String(column.key)}
-                className="table-cell font-medium"
-                style={{ width: column.width }}
+    <table className="w-full border-collapse">
+      <thead className="bg-gray-50">
+        {table.getHeaderGroups().map(headerGroup => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map(header => (
+              <th 
+                key={header.id} 
+                className="text-left py-3 px-4"
               >
-                {column.title}
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
               </th>
             ))}
           </tr>
-        </thead>
-        <tbody>
-          {data.map((record, index) => (
-            <tr
-              key={index}
-              className={`table-row ${onRowClick ? 'cursor-pointer' : ''}`}
-              onClick={() => onRowClick?.(record)}
-            >
-              {columns.map(column => (
-                <td key={String(column.key)} className="table-cell">
-                  {column.render
-                    ? column.render(record[column.key], record)
-                    : record[column.key]}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {data.length === 0 && (
-        <div className="text-center py-8 text-gray-500">No data available</div>
-      )}
-    </div>
+        ))}
+      </thead>
+      <tbody>
+        {table.getRowModel().rows.map(row => (
+          <tr key={row.id} className="border-b">
+            {row.getVisibleCells().map(cell => (
+              <td 
+                key={cell.id} 
+                className="py-3 px-4"
+              >
+                {flexRender(
+                  cell.column.columnDef.cell,
+                  cell.getContext()
+                )}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
-export { Table };
-export type { TableProps, Column };
+// Экспорт типов для удобства
+export type { ColumnDef } from '@tanstack/react-table';

@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { SectionLoading, EmptyState } from '@/components/ui/Loading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSignals } from '@/hooks/useSignals';
@@ -146,7 +146,7 @@ export default function OptimizedSignalsPage({
 
           {/* Search and quick filters */}
           <Card>
-            <CardBody className="p-4">
+            <CardContent className="p-4">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <Input
@@ -175,7 +175,7 @@ export default function OptimizedSignalsPage({
                   )}
                 </div>
               </div>
-            </CardBody>
+            </CardContent>
           </Card>
 
           {/* Statistics - lazy loaded */}
@@ -218,7 +218,7 @@ export default function OptimizedSignalsPage({
           {/* Signals display */}
           {error ? (
             <Card>
-              <CardBody className="text-center py-12">
+              <CardContent className="text-center py-12">
                 <div className="text-red-400 text-6xl mb-4">⚠️</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Ошибка загрузки
@@ -226,10 +226,10 @@ export default function OptimizedSignalsPage({
                 <p className="text-gray-600 mb-4">
                   Не удалось загрузить сигналы. Попробуйте еще раз.
                 </p>
-                <Button variant="primary" onClick={handleRefresh}>
+                <Button variant="default" onClick={handleRefresh}>
                   Попробовать снова
                 </Button>
-              </CardBody>
+              </CardContent>
             </Card>
           ) : displaySignals.length === 0 && !isLoading ? (
             <EmptyState
@@ -250,7 +250,6 @@ export default function OptimizedSignalsPage({
                   onSignalSelect={handleAnalyzeSignal}
                   showChannel={true}
                   searchTerm={debouncedSearchTerm}
-                  height={600}
                 />
               ) : (
                 // Grid view - можно также оптимизировать
@@ -282,6 +281,8 @@ export const getServerSideProps: GetServerSideProps = async context => {
     const initialSignals: Signal[] = [
       {
         id: '1',
+        channel_id: '1',
+        pair: 'BTC/USDT',
         asset: 'BTC/USDT',
         direction: 'long',
         entry_price: 45000,
@@ -292,21 +293,9 @@ export const getServerSideProps: GetServerSideProps = async context => {
         confidence: 0.85,
         description: 'Пробой сопротивления, хорошая точка входа',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         channel: {
           id: '1',
           name: 'Crypto Signals Pro',
-          description: 'Профессиональные сигналы',
-          username: '@crypto_signals_pro',
-          subscribers_count: 15000,
-          accuracy: 78.5,
-          total_signals: 245,
-          successful_signals: 192,
-          avg_profit: 12.3,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          is_active: true,
-          subscription_price: 50,
         },
       },
     ];

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardBody, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/Badge';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Signal } from '@/types';
 import { formatDate, formatPrice } from '@/lib/utils';
@@ -22,11 +22,11 @@ export const SignalCard: React.FC<SignalCardProps> = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge variant="warning">Активен</Badge>;
+        return <Badge variant="outline">Активен</Badge>;
       case 'completed':
-        return <Badge variant="success">Выполнен</Badge>;
+        return <Badge variant="default">Выполнен</Badge>;
       case 'failed':
-        return <Badge variant="danger">Не выполнен</Badge>;
+        return <Badge variant="destructive">Не выполнен</Badge>;
       case 'cancelled':
         return <Badge variant="secondary">Отменен</Badge>;
       default:
@@ -36,7 +36,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({
 
   const getDirectionBadge = (direction: string) => {
     return (
-      <Badge variant={direction === 'long' ? 'success' : 'danger'} size="sm">
+      <Badge variant={direction === 'long' ? 'default' : 'destructive'} size="sm">
         {direction.toUpperCase()}
       </Badge>
     );
@@ -85,7 +85,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({
 
   return (
     <Card className="h-full">
-      <CardBody className="p-6">
+      <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -194,7 +194,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({
             </p>
           </div>
         )}
-      </CardBody>
+      </CardContent>
 
       <CardFooter className="p-6 pt-0">
         <div className="flex items-center space-x-2 w-full">
@@ -206,7 +206,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({
 
           {onAnalyze && (
             <Button
-              variant="primary"
+              variant="default"
               className="flex-1"
               onClick={() => onAnalyze(signal)}
             >

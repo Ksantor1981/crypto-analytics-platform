@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { SignalsList, SignalsFilter, SignalsStats } from '@/components/signals';
+import { SignalsList, SignalsFilter, SignalsStats, SignalCard } from '@/components/signals';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { signalsApi } from '@/lib/api';
+import { signalsApi } from '@/lib/api/signals';
 import { Signal, SignalFilters } from '@/types';
 
 interface SignalsPageProps {
@@ -24,7 +24,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
     setIsLoading(true);
     try {
       const response = await signalsApi.getSignals(filters);
-      setSignals(response.data);
+      setSignals(response);
     } catch (error) {
       console.error('Error fetching signals:', error);
     } finally {
@@ -95,7 +95,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
                   🔲 Сетка
                 </button>
               </div>
-              <Button variant="primary" onClick={fetchSignals}>
+              <Button variant="default" onClick={fetchSignals}>
                 🔄 Обновить
               </Button>
             </div>
@@ -141,7 +141,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
                 // Loading skeleton for grid
                 Array.from({ length: 6 }).map((_, i) => (
                   <Card key={i}>
-                    <CardBody className="p-6">
+                    <CardContent className="p-6">
                       <div className="animate-pulse">
                         <div className="flex items-center space-x-3 mb-4">
                           <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
@@ -156,13 +156,13 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
                           <div className="w-1/2 h-3 bg-gray-200 rounded"></div>
                         </div>
                       </div>
-                    </CardBody>
+                    </CardContent>
                   </Card>
                 ))
               ) : signals.length === 0 ? (
                 <div className="col-span-full">
                   <Card>
-                    <CardBody className="text-center py-12">
+                    <CardContent className="text-center py-12">
                       <div className="text-gray-400 text-6xl mb-4">⚡</div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">
                         Нет сигналов
@@ -170,7 +170,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
                       <p className="text-gray-600">
                         Попробуйте изменить фильтры или подключить новые каналы
                       </p>
-                    </CardBody>
+                    </CardContent>
                   </Card>
                 </div>
               ) : (
@@ -201,6 +201,8 @@ export const getServerSideProps: GetServerSideProps = async context => {
     const initialSignals: Signal[] = [
       {
         id: '1',
+        channel_id: '1',
+        pair: 'BTC/USDT',
         asset: 'BTC/USDT',
         direction: 'long',
         entry_price: 45000,
@@ -211,25 +213,15 @@ export const getServerSideProps: GetServerSideProps = async context => {
         confidence: 0.85,
         description: 'Пробой сопротивления, хорошая точка входа',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         channel: {
           id: '1',
           name: 'Crypto Signals Pro',
-          description: 'Профессиональные сигналы',
-          username: '@crypto_signals_pro',
-          subscribers_count: 15000,
-          accuracy: 78.5,
-          total_signals: 245,
-          successful_signals: 192,
-          avg_profit: 12.3,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          is_active: true,
-          subscription_price: 50,
         },
       },
       {
         id: '2',
+        channel_id: '2',
+        pair: 'ETH/USDT',
         asset: 'ETH/USDT',
         direction: 'short',
         entry_price: 3200,
@@ -239,22 +231,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
         pnl: 6.25,
         confidence: 0.92,
         description: 'Медвежий флаг, ожидаем снижения',
-        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 день назад
-        updated_at: new Date().toISOString(),
+        created_at: new Date(Date.now() - 86400000).toISOString(),
         channel: {
           id: '2',
           name: 'Technical Analysis Hub',
-          description: 'Технический анализ',
-          username: '@ta_hub',
-          subscribers_count: 8500,
-          accuracy: 82.1,
-          total_signals: 156,
-          successful_signals: 128,
-          avg_profit: 8.7,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          is_active: true,
-          subscription_price: 30,
         },
       },
     ];

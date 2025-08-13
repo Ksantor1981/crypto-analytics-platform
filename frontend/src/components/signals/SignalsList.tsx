@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Card, CardBody } from '@/components/ui/card';
-import { Badge } from '@/components/ui/Badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Table } from '@/components/ui/Table';
+// Table импорт удален - используется HTML table
 import { Signal } from '@/types';
 import { formatDate, formatPrice } from '@/lib/utils';
 
@@ -37,9 +37,9 @@ export const SignalsList: React.FC<SignalsListProps> = ({
     }
 
     if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1;
+      return (aValue || 0) > (bValue || 0) ? 1 : -1;
     } else {
-      return aValue < bValue ? 1 : -1;
+      return (aValue || 0) < (bValue || 0) ? 1 : -1;
     }
   });
 
@@ -55,11 +55,11 @@ export const SignalsList: React.FC<SignalsListProps> = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge variant="warning">Активен</Badge>;
+        return <Badge variant="outline">Активен</Badge>;
       case 'completed':
-        return <Badge variant="success">Выполнен</Badge>;
+        return <Badge variant="default">Выполнен</Badge>;
       case 'failed':
-        return <Badge variant="danger">Не выполнен</Badge>;
+        return <Badge variant="destructive">Не выполнен</Badge>;
       case 'cancelled':
         return <Badge variant="secondary">Отменен</Badge>;
       default:
@@ -69,7 +69,7 @@ export const SignalsList: React.FC<SignalsListProps> = ({
 
   const getDirectionBadge = (direction: string) => {
     return (
-      <Badge variant={direction === 'long' ? 'success' : 'danger'} size="sm">
+      <Badge variant={direction === 'long' ? 'default' : 'destructive'} size="sm">
         {direction.toUpperCase()}
       </Badge>
     );
@@ -83,7 +83,7 @@ export const SignalsList: React.FC<SignalsListProps> = ({
   if (isLoading) {
     return (
       <Card>
-        <CardBody>
+        <CardContent>
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="animate-pulse">
@@ -100,7 +100,7 @@ export const SignalsList: React.FC<SignalsListProps> = ({
               </div>
             ))}
           </div>
-        </CardBody>
+        </CardContent>
       </Card>
     );
   }
@@ -108,7 +108,7 @@ export const SignalsList: React.FC<SignalsListProps> = ({
   if (signals.length === 0) {
     return (
       <Card>
-        <CardBody className="text-center py-12">
+        <CardContent className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">⚡</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Нет сигналов
@@ -116,16 +116,16 @@ export const SignalsList: React.FC<SignalsListProps> = ({
           <p className="text-gray-600">
             Сигналы появятся здесь после подключения каналов
           </p>
-        </CardBody>
+        </CardContent>
       </Card>
     );
   }
 
   return (
     <Card>
-      <CardBody>
+      <CardContent>
         <div className="overflow-x-auto">
-          <Table>
+          <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4">
@@ -266,7 +266,7 @@ export const SignalsList: React.FC<SignalsListProps> = ({
                       </Link>
                       {onSignalSelect && (
                         <Button
-                          variant="primary"
+                          variant="default"
                           size="sm"
                           onClick={() => onSignalSelect(signal)}
                         >
@@ -278,9 +278,9 @@ export const SignalsList: React.FC<SignalsListProps> = ({
                 </tr>
               ))}
             </tbody>
-          </Table>
+          </table>
         </div>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

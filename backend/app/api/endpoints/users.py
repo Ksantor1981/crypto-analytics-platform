@@ -54,7 +54,7 @@ async def register_user(
             ip=client_ip
         )
         
-        return schemas.user.UserResponse.from_orm(user)
+        return schemas.user.UserResponse.model_validate(user)
         
     except Exception as e:
         logger.error(
@@ -187,15 +187,15 @@ async def refresh_token(
         )
 
 
-@router.get("/me", response_model=UserProfile)
+@router.get("/me", response_model=schemas.user.UserProfile)
 async def get_current_user_profile(
     current_user: User = Depends(get_current_active_user)
 ):
     """Get current user profile."""
-    return UserProfile.from_orm(current_user)
+    return schemas.user.UserProfile.model_validate(current_user)
 
 
-@router.put("/me", response_model=UserResponse)
+@router.put("/me", response_model=schemas.user.UserResponse)
 async def update_current_user(
     user_data: UserUpdate,
     current_user: User = Depends(get_current_active_user),
@@ -214,7 +214,7 @@ async def update_current_user(
             email=current_user.email
         )
         
-        return UserResponse.from_orm(updated_user)
+        return schemas.user.UserResponse.model_validate(updated_user)
         
     except Exception as e:
         logger.error(
@@ -337,7 +337,7 @@ async def deactivate_current_user(
 
 
 # Admin endpoints
-@router.get("/", response_model=UserListResponse, dependencies=[Depends(require_admin)])
+@router.get("/", response_model=schemas.user.UserListResponse, dependencies=[Depends(require_admin)])
 async def get_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -347,23 +347,33 @@ async def get_users(
     """Get list of users (admin only)."""
     user_service = UserService(db)
     
-    # Get users and total count
-    users, total = user_service.get_users(skip=skip, limit=limit, active_only=active_only)
-    
-    # Calculate pagination
-    total_pages = ceil(total / limit)
-    current_page = (skip // limit) + 1
-    
-    return UserListResponse(
-        users=[UserResponse.from_orm(user) for user in users],
-        total=total,
-        page=current_page,
-        pages=total_pages,
-        per_page=limit
-    )
+    try:
+        # Get users and total count
+        users, total = user_service.get_users(skip=skip, limit=limit, active_only=active_only)
+        
+        # Calculate pagination
+        total_pages = ceil(total / limit)
+        current_page = (skip // limit) + 1
+        
+        return {
+            "users": [schemas.user.UserResponse.model_validate(user) for user in users],
+            "total": total,
+            "page": current_page,
+            "pages": total_pages,
+            "per_page": limit
+        }
+    except Exception as e:
+        logger.error(
+            "Error getting users",
+            error=str(e)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error getting users"
+        )
 
 
-@router.get("/{user_id}", response_model=UserProfile, dependencies=[Depends(require_admin)])
+@router.get("/{user_id}", response_model=schemas.user.UserProfile, dependencies=[Depends(require_admin)])
 async def get_user_by_id(
     user_id: int,
     db: Session = Depends(get_db)
@@ -378,10 +388,10 @@ async def get_user_by_id(
             detail="User not found"
         )
     
-    return UserProfile.from_orm(user)
+    return schemas.user.UserProfile.model_validate(user)
 
 
-@router.put("/{user_id}", response_model=UserResponse, dependencies=[Depends(require_admin)])
+@router.put("/{user_id}", response_model=schemas.user.UserResponse, dependencies=[Depends(require_admin)])
 async def update_user_by_id(
     user_id: int,
     user_data: UserUpdate,
@@ -390,14 +400,24 @@ async def update_user_by_id(
     """Update user by ID (admin only)."""
     user_service = UserService(db)
     
-    updated_user = user_service.update_user(user_id, user_data)
-    if not updated_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+    try:
+        updated_user = user_service.update_user(user_id, user_data)
+        if not updated_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        return schemas.user.UserResponse.model_validate(updated_user)
+    except Exception as e:
+        logger.error(
+            "Error updating user",
+            user_id=user_id,
+            error=str(e)
         )
-    
-    return UserResponse.from_orm(updated_user)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error updating user"
+        )
 
 
 @router.post("/{user_id}/activate", dependencies=[Depends(require_admin)])
@@ -436,7 +456,7 @@ async def deactivate_user(
         )
 
 
-@router.post("/{user_id}/upgrade", response_model=UserResponse, dependencies=[Depends(require_admin)])
+@router.post("/{user_id}/upgrade", response_model=schemas.user.UserResponse, dependencies=[Depends(require_admin)])
 async def upgrade_user_subscription(
     user_id: int,
     role: UserRole,
@@ -445,14 +465,24 @@ async def upgrade_user_subscription(
     """Upgrade user subscription (admin only)."""
     user_service = UserService(db)
     
-    updated_user = user_service.upgrade_user_subscription(user_id, role)
-    if not updated_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+    try:
+        updated_user = user_service.upgrade_user_subscription(user_id, role)
+        if not updated_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        return schemas.user.UserResponse.model_validate(updated_user)
+    except Exception as e:
+        logger.error(
+            "Error upgrading subscription for user",
+            user_id=user_id,
+            error=str(e)
         )
-    
-    return UserResponse.from_orm(updated_user)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error upgrading subscription"
+        )
 
 
 @router.delete("/{user_id}", dependencies=[Depends(require_admin)])

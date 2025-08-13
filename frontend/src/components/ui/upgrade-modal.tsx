@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -24,7 +23,6 @@ import {
   TrendingUp,
   BarChart3,
   Shield,
-  Infinity,
 } from 'lucide-react';
 import { PLANS, UserPlan } from '@/hooks/useUserLimits';
 

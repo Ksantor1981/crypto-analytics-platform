@@ -111,7 +111,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
     return { labels, pnlData, countData, cumulativePnl };
   };
 
-  const { labels, pnlData, countData, cumulativePnl } = getTimeRangeData();
+  const { labels, pnlData, cumulativePnl } = getTimeRangeData();
 
   const chartData = {
     labels,

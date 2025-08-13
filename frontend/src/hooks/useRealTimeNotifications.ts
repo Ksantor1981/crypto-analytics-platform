@@ -36,7 +36,7 @@ type NotificationEvent = SignalEvent | PriceEvent | ChannelEvent;
 export function useRealTimeNotifications() {
   const { addNotification, state } = useNotifications();
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
 
@@ -102,6 +102,7 @@ export function useRealTimeNotifications() {
           title: `Новый сигнал: ${event.symbol}`,
           message: `${event.signal_type.toUpperCase()} сигнал от ${event.channel || 'канала'}`,
           urgent: (event.confidence || 0) > 0.85,
+          read: false,
           channel: event.channel,
           pair: event.symbol,
           action: event.signal_type === 'long' ? 'buy' : 'sell',
@@ -115,6 +116,7 @@ export function useRealTimeNotifications() {
           title: `🎯 Цель достигнута!`,
           message: `${event.symbol} достиг TP ${event.change_percent ? `(+${event.change_percent.toFixed(2)}%)` : ''}`,
           urgent: false,
+          read: false,
           pair: event.symbol,
           price: event.current_price,
         });
@@ -126,6 +128,7 @@ export function useRealTimeNotifications() {
           title: `⚠️ Стоп-лосс сработал`,
           message: `${event.symbol} достиг SL ${event.change_percent ? `(${event.change_percent.toFixed(2)}%)` : ''}`,
           urgent: true,
+          read: false,
           pair: event.symbol,
           price: event.current_price,
         });
@@ -138,6 +141,7 @@ export function useRealTimeNotifications() {
             title: `Изменение позиции`,
             message: `${event.symbol}: ${event.change_percent > 0 ? '+' : ''}${event.change_percent.toFixed(2)}%`,
             urgent: Math.abs(event.change_percent) > 10,
+            read: false,
             pair: event.symbol,
             price: event.current_price,
             autoHide: true,
@@ -155,6 +159,7 @@ export function useRealTimeNotifications() {
             urgent: Math.abs(event.change_24h) > 20,
             pair: event.symbol,
             price: event.price,
+            read: false,
             autoHide: true,
             duration: 3000,
           });
@@ -168,6 +173,7 @@ export function useRealTimeNotifications() {
             title: `Обновление канала`,
             message: `${event.channel_name}: точность ${event.new_accuracy.toFixed(1)}%`,
             channel: event.channel_name,
+            read: false,
             autoHide: true,
             duration: 4000,
           });
@@ -199,6 +205,7 @@ export function useRealTimeNotifications() {
               title: notif.title,
               message: notif.message,
               urgent: notif.urgent,
+              read: false,
               channel: notif.channel,
               pair: notif.pair,
               autoHide: true,
@@ -266,6 +273,7 @@ export function useRealTimeNotifications() {
       message: 'Система уведомлений работает корректно',
       autoHide: true,
       duration: 3000,
+      read: false,
     });
   };
 

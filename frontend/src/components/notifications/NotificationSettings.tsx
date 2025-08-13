@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import {
   Bell,
   Volume2,
-  VolumeX,
-  Smartphone,
   Monitor,
   AlertTriangle,
   Settings,
@@ -244,7 +242,9 @@ export function NotificationSettings({ onClose }: NotificationSettingsProps) {
                             setting.key as keyof typeof state.settings
                           ] as boolean
                         }
-                        disabled={setting.disabled}
+                        disabled={
+                          'disabled' in setting ? setting.disabled : false
+                        }
                         onChange={e => {
                           if (setting.key === 'browserNotifications') {
                             handleBrowserNotificationToggle(e.target.checked);

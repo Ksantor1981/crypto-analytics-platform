@@ -1,0 +1,138 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: 
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'frontend/**'
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run ESLint
+      run: npm run lint
+    
+    - name: Run Prettier Check
+      run: npm run format:check
+    
+    - name: Type Check
+      run: npm run type-check
+    
+    - name: Run Tests
+      run: npm test
+
+  build:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build Project
+      run: npm run build
+    
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: frontend/.next
+        retention-days: 5
+
+  deploy-staging:
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: frontend/.next
+    
+    - name: Deploy to Staging
+      run: |
+        # Здесь будет скрипт деплоя на staging
+        echo "Deploying to staging environment"
+        # Примеры:
+        # - Деплой на Vercel
+        # - Деплой на Netlify
+        # - Деплой на собственный сервер через SSH
+
+  deploy-production:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: frontend/.next
+    
+    - name: Deploy to Production
+      run: |
+        # Здесь будет скрипт деплоя в продакшен
+        echo "Deploying to production environment"
+        # Примеры:
+        # - Деплой на Vercel
+        # - Деплой на Netlify
+        # - Деплой на собственный сервер через SSH
+
+  notify:
+    needs: [lint-and-test, build]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Send Slack Notification
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: failure()

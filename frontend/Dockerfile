@@ -1,10 +1,10 @@
-FROM node:16-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
 # Установка зависимостей
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --only=production --legacy-peer-deps --ignore-scripts
 
 # Копирование кода приложения
 COPY . .

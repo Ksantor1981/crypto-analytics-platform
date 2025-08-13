@@ -1,0 +1,29 @@
+{
+  "name": "crypto-analytics-platform",
+  "version": "1.0.0",
+  "description": "**Платформа для анализа криптовалютных сигналов с машинным обучением**",
+  "main": "performance_test_k6.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ksantor1981/crypto-analytics-platform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ksantor1981/crypto-analytics-platform/issues"
+  },
+  "homepage": "https://github.com/Ksantor1981/crypto-analytics-platform#readme",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.5"
+  }
+}

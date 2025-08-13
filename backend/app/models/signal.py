@@ -31,6 +31,8 @@ class Signal(BaseModel):
     # Relationships
     channel_id = Column(Integer, ForeignKey("channels.id"), nullable=False, index=True)
     channel = relationship("Channel", back_populates="signals")
+    result = relationship("SignalResult", back_populates="signal", uselist=False, cascade="all, delete-orphan")
+    positions = relationship("TradingPosition", back_populates="signal", cascade="all, delete-orphan")
     
     # Signal details
     asset = Column(String(20), nullable=False, index=True)  # e.g., BTC/USDT

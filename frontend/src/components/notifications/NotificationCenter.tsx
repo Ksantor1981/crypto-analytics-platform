@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Bell,
   X,
@@ -6,9 +6,7 @@ import {
   AlertTriangle,
   Info,
   TrendingUp,
-  TrendingDown,
   Settings,
-  Filter,
   RefreshCw,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +15,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import NotificationSettings from './NotificationSettings';
 import useRealTimeNotifications from '@/hooks/useRealTimeNotifications';
 
-interface NotificationCenterProps {
+export interface NotificationCenterProps {
   isOpen: boolean;
   onClose: () => void;
 }

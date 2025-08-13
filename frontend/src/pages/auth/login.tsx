@@ -46,7 +46,7 @@ export default function LoginPage() {
 
       if (response.ok) {
         const data = await response.json();
-        await login(data.access_token, data.refresh_token, data.user);
+        await login(data.access_token);
         router.push('/dashboard');
       } else {
         const errorData = await response.json();

@@ -205,39 +205,33 @@ class TradingStrategy(BaseModel):
 
 class RiskManagement(BaseModel):
     """
-    Model representing risk management rules
+    Модель для управления рисками пользователя
     """
     __tablename__ = "risk_management"
     
-    # User relationship
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    user = relationship("User")
+    user = relationship("User", back_populates="risk_management")
     
-    # Risk rules
-    max_position_size_usd = Column(Numeric(10, 2), default=100.0)
-    max_daily_loss_usd = Column(Numeric(10, 2), default=50.0)
-    max_portfolio_risk = Column(Float, default=0.05)  # 5% max portfolio risk
-    max_correlation = Column(Float, default=0.7)  # Max correlation between positions
+    # Параметры управления рисками
+    max_position_size_usd = Column(Numeric(10, 2), default=100.0)  # Максимальный размер позиции в USD
+    max_daily_loss_usd = Column(Numeric(10, 2), default=50.0)  # Максимальный дневной убыток в USD
+    max_portfolio_risk = Column(Float, default=0.05)  # Максимальный риск портфеля (5%)
+    max_correlation = Column(Float, default=0.7)  # Максимальная корреляция между активами
+    default_stop_loss_percent = Column(Float, default=0.02)  # Стандартный стоп-лосс (2%)
+    trailing_stop_enabled = Column(Boolean, default=True)  # Включен ли трейлинг-стоп
+    trailing_stop_distance = Column(Float, default=0.01)  # Дистанция трейлинг-стопа (1%)
+    risk_per_trade = Column(Float, default=0.02)  # Риск на сделку (2%)
+    max_positions_per_symbol = Column(Integer, default=1)  # Макс. позиций на символ
+    max_total_positions = Column(Integer, default=5)  # Макс. общее количество позиций
+    trading_hours_start = Column(String(5), default="00:00")  # Начало торговой сессии
+    trading_hours_end = Column(String(5), default="23:59")  # Окончание торговой сессии
+    weekend_trading = Column(Boolean, default=False)  # Торговля по выходным
+    min_volume_usd = Column(Numeric(15, 2), default=1000000.0)  # Минимальный объем торгов
+    max_spread_percent = Column(Float, default=0.005)  # Максимальный спред (0.5%)
     
-    # Stop loss settings
-    default_stop_loss_percent = Column(Float, default=0.02)  # 2% default SL
-    trailing_stop_enabled = Column(Boolean, default=True)
-    trailing_stop_distance = Column(Float, default=0.01)  # 1% trailing stop
+    # Временные метки
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    # Position sizing
-    risk_per_trade = Column(Float, default=0.02)  # 2% risk per trade
-    max_positions_per_symbol = Column(Integer, default=1)
-    max_total_positions = Column(Integer, default=5)
-    
-    # Time-based rules
-    trading_hours_start = Column(String(5), default="00:00")  # 24h format
-    trading_hours_end = Column(String(5), default="23:59")
-    weekend_trading = Column(Boolean, default=False)
-    
-    # Market conditions
-    min_volume_usd = Column(Numeric(15, 2), default=1000000.0)  # Min 24h volume
-    max_spread_percent = Column(Float, default=0.005)  # Max 0.5% spread
-    
-    # Timestamps
-    created_at = Column(DateTime(timezone=True), default=func.now())
-    updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now()) 
+    def __repr__(self):
+        return f"<RiskManagement(user_id={self.user_id})>"

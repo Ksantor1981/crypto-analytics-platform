@@ -3,6 +3,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from contextlib import asynccontextmanager
 import uvicorn
 import logging
 
@@ -18,13 +19,46 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-# Создание FastAPI приложения
+trading_scheduler = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Запуск приложения
+    global trading_scheduler
+    
+    try:
+        # Создаем все таблицы
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
+        
+        # Start trading scheduler
+        trading_scheduler = TradingScheduler()
+        trading_scheduler.start()
+        logger.info("Trading scheduler started")
+        
+        yield
+        
+    except Exception as e:
+        logger.error(f"Error during application startup: {e}")
+        raise
+        
+    finally:
+        # Остановка приложения
+        try:
+            if trading_scheduler is not None:
+                trading_scheduler.stop()
+                logger.info("Trading scheduler stopped")
+        except Exception as e:
+            logger.error(f"Error stopping trading scheduler: {e}")
+
+# Создание FastAPI приложения с lifespan
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="Crypto Analytics Platform API",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # Настройка CORS
@@ -45,34 +79,6 @@ if settings.ENVIRONMENT == "production":
 
 # Добавляем middleware для ограничения подписок
 app.add_middleware(SubscriptionLimitMiddleware)
-
-# Создание таблиц при запуске
-@app.on_event("startup")
-async def startup_event():
-    """Создание таблиц базы данных при запуске приложения"""
-    try:
-        # Создаем все таблицы
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables created successfully")
-        
-        # Start trading scheduler
-        trading_scheduler = TradingScheduler()
-        trading_scheduler.start()
-        logger.info("Trading scheduler started")
-        
-    except Exception as e:
-        logger.error(f"Error creating database tables: {e}")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on application shutdown"""
-    try:
-        # Stop trading scheduler
-        if 'trading_scheduler' in locals():
-            trading_scheduler.stop()
-            logger.info("Trading scheduler stopped")
-    except Exception as e:
-        logger.error(f"Error stopping trading scheduler: {e}")
 
 # Подключение роутеров
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])

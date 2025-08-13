@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardBody } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import { SignalFilters } from '@/types';
 
 interface SignalsFilterProps {
@@ -58,12 +58,12 @@ export const SignalsFilter: React.FC<SignalsFilterProps> = ({
 
   return (
     <Card>
-      <CardBody className="p-4">
+      <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <h3 className="font-medium text-gray-900">Фильтры</h3>
             {activeFiltersCount > 0 && (
-              <Badge variant="primary" size="sm">
+              <Badge variant="default" size="sm">
                 {activeFiltersCount}
               </Badge>
             )}
@@ -294,7 +294,7 @@ export const SignalsFilter: React.FC<SignalsFilterProps> = ({
             </div>
           </div>
         )}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

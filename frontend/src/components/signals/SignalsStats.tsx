@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Card, CardBody } from '@/components/ui/card';
-import { Badge } from '@/components/ui/Badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Signal } from '@/types';
 
 interface SignalsStatsProps {
@@ -82,107 +82,107 @@ export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total signals */}
       <Card>
-        <CardBody className="p-4">
+        <CardContent className="p-4">
           {getStatCard('Всего сигналов', stats.total)}
-        </CardBody>
+        </CardContent>
       </Card>
 
       {/* Active signals */}
       <Card>
-        <CardBody className="p-4">
+        <CardContent className="p-4">
           {getStatCard(
             'Активные',
             stats.active,
             'в процессе',
             'text-yellow-600'
           )}
-        </CardBody>
+        </CardContent>
       </Card>
 
       {/* Win rate */}
       <Card>
-        <CardBody className="p-4">
+        <CardContent className="p-4">
           {getStatCard(
             'Процент успеха',
             `${stats.winRate.toFixed(1)}%`,
             `${stats.profitable}/${stats.profitable + stats.unprofitable}`,
             stats.winRate >= 50 ? 'text-green-600' : 'text-red-600'
           )}
-        </CardBody>
+        </CardContent>
       </Card>
 
       {/* Average P&L */}
       <Card>
-        <CardBody className="p-4">
+        <CardContent className="p-4">
           {getStatCard(
             'Средний P&L',
             `${stats.avgPnl > 0 ? '+' : ''}${stats.avgPnl.toFixed(2)}%`,
             undefined,
             stats.avgPnl >= 0 ? 'text-green-600' : 'text-red-600'
           )}
-        </CardBody>
+        </CardContent>
       </Card>
 
       {/* Status breakdown */}
       <Card>
-        <CardBody className="p-4">
+        <CardContent className="p-4">
           <div className="text-center">
             <div className="text-lg font-semibold text-gray-900 mb-2">
               Статусы
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Badge variant="success" size="sm">
+                <Badge variant="default" size="sm">
                   Выполнено
                 </Badge>
                 <span className="text-sm">{stats.completed}</span>
               </div>
               <div className="flex justify-between items-center">
-                <Badge variant="warning" size="sm">
+                <Badge variant="outline" size="sm">
                   Активно
                 </Badge>
                 <span className="text-sm">{stats.active}</span>
               </div>
               <div className="flex justify-between items-center">
-                <Badge variant="danger" size="sm">
+                <Badge variant="destructive" size="sm">
                   Не выполнено
                 </Badge>
                 <span className="text-sm">{stats.failed}</span>
               </div>
             </div>
           </div>
-        </CardBody>
+        </CardContent>
       </Card>
 
       {/* Direction breakdown */}
       <Card>
-        <CardBody className="p-4">
+        <CardContent className="p-4">
           <div className="text-center">
             <div className="text-lg font-semibold text-gray-900 mb-2">
               Направления
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Badge variant="success" size="sm">
+                <Badge variant="default" size="sm">
                   Long
                 </Badge>
                 <span className="text-sm">{stats.longSignals}</span>
               </div>
               <div className="flex justify-between items-center">
-                <Badge variant="danger" size="sm">
+                <Badge variant="destructive" size="sm">
                   Short
                 </Badge>
                 <span className="text-sm">{stats.shortSignals}</span>
               </div>
             </div>
           </div>
-        </CardBody>
+        </CardContent>
       </Card>
 
       {/* Best signal */}
       {stats.bestSignal && (
         <Card>
-          <CardBody className="p-4">
+          <CardContent className="p-4">
             <div className="text-center">
               <div className="text-lg font-semibold text-gray-900 mb-2">
                 Лучший сигнал
@@ -197,14 +197,14 @@ export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
                 {stats.bestSignal.direction.toUpperCase()}
               </div>
             </div>
-          </CardBody>
+          </CardContent>
         </Card>
       )}
 
       {/* Worst signal */}
       {stats.worstSignal && (
         <Card>
-          <CardBody className="p-4">
+          <CardContent className="p-4">
             <div className="text-center">
               <div className="text-lg font-semibold text-gray-900 mb-2">
                 Худший сигнал
@@ -219,7 +219,7 @@ export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
                 {stats.worstSignal.direction.toUpperCase()}
               </div>
             </div>
-          </CardBody>
+          </CardContent>
         </Card>
       )}
     </div>

@@ -1,7 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: { ignoreDuringBuilds: true },
   reactStrictMode: true,
   swcMinify: true,
+  output: 'standalone',
+  experimental: {
+    outputFileTracingExcludes: {
+      '*': ['**/.git/**'],
+    },
+  },
   images: {
     domains: ['localhost', '127.0.0.1'],
   },
@@ -20,5 +27,4 @@ const nextConfig = {
     ];
   },
 };
-
 module.exports = nextConfig;

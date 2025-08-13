@@ -10,6 +10,10 @@ interface ToastProps {
   onClose: () => void;
 }
 
+export interface ToastMessage extends Omit<ToastProps, 'onClose'> {
+  id: string;
+}
+
 const toastStyles = {
   success: 'bg-green-100 border-green-500 text-green-900',
   error: 'bg-red-100 border-red-500 text-red-900',
@@ -55,7 +59,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
   return (
     <div className="fixed top-4 right-4 z-50 space-y-4">
       {toasts.map(toast => (
-        <Toast key={toast.id} {...toast} onClose={onRemove} />
+        <Toast key={toast.id} {...toast} onClose={() => onRemove(toast.id)} />
       ))}
     </div>
   );

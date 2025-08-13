@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   Info,
   TrendingUp,
-  TrendingDown,
   DollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,6 +33,7 @@ export function NotificationToast({ notification, onClose }: ToastProps) {
       }, notification.duration || 5000);
       return () => clearTimeout(timer);
     }
+    return; // Возвращаем undefined явно
   }, [notification]);
 
   const handleClose = () => {

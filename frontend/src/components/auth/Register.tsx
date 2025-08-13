@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { RegisterRequest } from '@/types';
 
@@ -79,7 +79,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
         </p>
       </CardHeader>
 
-      <CardBody>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -147,7 +147,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
 
           <Button
             type="submit"
-            variant="primary"
+            variant="default"
             size="lg"
             className="w-full"
             disabled={isLoading}
@@ -155,7 +155,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
             {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
           </Button>
         </form>
-      </CardBody>
+      </CardContent>
 
       <CardFooter className="text-center">
         <p className="text-sm text-gray-600">
@@ -171,6 +171,3 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
     </Card>
   );
 };
-
-
-

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { User as UserType } from '@/types';
 import {
   Card,
   CardContent,
@@ -37,23 +38,32 @@ import {
 } from 'lucide-react';
 
 // Mock user data
-const mockUser = {
-  id: 1,
+const mockUser: UserType = {
+  id: '1', // Изменил на string
   name: 'Алексей Иванов',
-  email: 'aleksey.ivanov@email.com',
   username: '@crypto_trader_alex',
+  email: 'aleksey.ivanov@email.com',
   avatar: '👨‍💼',
-  joinDate: '2023-03-15',
-  plan: 'Premium',
-  status: 'verified',
-  stats: {
-    totalSignals: 1247,
-    successRate: 87.5,
-    totalProfit: 24.3,
-    channelsFollowed: 12,
-    alertsReceived: 356,
-    daysActive: 298,
+  joinDate: '2023-01-15',
+  role: 'user', // Добавил роль
+  
+  subscription: {
+    plan: 'Premium',
+    status: 'active',
+    price: 999
   },
+  
+  stats: {
+    channelsFollowed: 23,
+    successRate: 87.5,
+    profit: 15420,
+    totalProfit: 42.3,
+    totalSignals: 1247,
+    winRate: 73.2,
+    totalReturn: 156.8,
+    daysActive: 247
+  },
+  
   settings: {
     emailNotifications: true,
     pushNotifications: true,
@@ -61,14 +71,8 @@ const mockUser = {
     weeklyReports: true,
     darkMode: false,
     language: 'ru',
-    timezone: 'Europe/Moscow',
-  },
-  subscription: {
-    plan: 'Premium',
-    price: 990,
-    nextBilling: '2024-02-15',
-    status: 'active',
-  },
+    timezone: 'Europe/Moscow'
+  }
 };
 
 const planFeatures = {
@@ -204,9 +208,9 @@ export default function ProfilePage() {
                     <p className="text-gray-600">{user.username}</p>
                     <div className="flex items-center space-x-3 mt-1">
                       <span
-                        className={`text-xs px-2 py-1 rounded ${getPlanColor(user.plan)}`}
+                        className={`text-xs px-2 py-1 rounded ${getPlanColor(user.subscription.plan)}`}
                       >
-                        {user.plan}
+                        {user.subscription.plan}
                       </span>
                       <span className="flex items-center text-xs text-green-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
@@ -223,19 +227,19 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <div className="text-lg font-bold text-blue-600">
-                      {user.stats.channelsFollowed}
+                      {user.stats?.channelsFollowed || 0}
                     </div>
                     <div className="text-xs text-gray-600">Каналов</div>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-green-600">
-                      {user.stats.successRate}%
+                      {user.stats?.successRate || 0}%
                     </div>
                     <div className="text-xs text-gray-600">Успешность</div>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-purple-600">
-                      +{user.stats.totalProfit}%
+                      +{user.stats?.totalProfit || 0}%
                     </div>
                     <div className="text-xs text-gray-600">Прибыль</div>
                   </div>
@@ -362,7 +366,7 @@ export default function ProfilePage() {
                     <div className="text-center p-3 bg-blue-50 rounded-md">
                       <BarChart3 className="h-6 w-6 text-blue-600 mx-auto mb-1" />
                       <div className="text-lg font-bold text-blue-600">
-                        {user.stats.totalSignals}
+                        {user.stats?.totalSignals || 0}
                       </div>
                       <div className="text-xs text-gray-600">
                         Сигналов получено
@@ -371,21 +375,21 @@ export default function ProfilePage() {
                     <div className="text-center p-3 bg-green-50 rounded-md">
                       <Target className="h-6 w-6 text-green-600 mx-auto mb-1" />
                       <div className="text-lg font-bold text-green-600">
-                        {user.stats.successRate}%
+                        {user.stats?.successRate || 0}%
                       </div>
                       <div className="text-xs text-gray-600">Успешность</div>
                     </div>
                     <div className="text-center p-3 bg-purple-50 rounded-md">
                       <DollarSign className="h-6 w-6 text-purple-600 mx-auto mb-1" />
                       <div className="text-lg font-bold text-purple-600">
-                        +{user.stats.totalProfit}%
+                        +{user.stats?.totalProfit || 0}%
                       </div>
                       <div className="text-xs text-gray-600">Общая прибыль</div>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded-md">
                       <Clock className="h-6 w-6 text-orange-600 mx-auto mb-1" />
                       <div className="text-lg font-bold text-orange-600">
-                        {user.stats.daysActive}
+                        {user.stats?.daysActive || 0}
                       </div>
                       <div className="text-xs text-gray-600">
                         Дней активности
@@ -530,7 +534,7 @@ export default function ProfilePage() {
                     </div>
                     <button
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        user.settings[setting.key]
+                        user.settings[setting.key as keyof typeof user.settings]
                           ? 'bg-blue-600'
                           : 'bg-gray-200'
                       }`}
@@ -539,14 +543,14 @@ export default function ProfilePage() {
                           ...user,
                           settings: {
                             ...user.settings,
-                            [setting.key]: !user.settings[setting.key],
+                            [setting.key]: !user.settings[setting.key as keyof typeof user.settings],
                           },
                         })
                       }
                     >
                       <span
                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          user.settings[setting.key]
+                          user.settings[setting.key as keyof typeof user.settings]
                             ? 'translate-x-6'
                             : 'translate-x-1'
                         }`}
