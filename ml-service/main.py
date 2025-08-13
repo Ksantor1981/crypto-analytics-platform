@@ -101,6 +101,17 @@ async def root():
         }
     }
 
+@app.get("/health")
+async def health():
+    """
+    Simple health check for Docker healthcheck
+    """
+    return {
+        "status": "healthy",
+        "service": "ml-service",
+        "timestamp": datetime.now().isoformat()
+    }
+
 @app.get("/api/v1/info")
 async def service_info():
     """
