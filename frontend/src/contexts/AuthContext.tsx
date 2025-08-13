@@ -1,270 +1,106 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { User, LoginRequest, RegisterRequest } from '@/types';
-import axios from 'axios';
+'use client';
+
+import { createContext, useContext, useEffect, useState } from 'react';
+import apiClient, { User } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  refreshToken: string | null;
-  isLoading: boolean;
-  login: (credentials: LoginRequest) => Promise<void>;
-  register: (credentials: RegisterRequest) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  refreshAccessToken: () => Promise<boolean>;
+  isLoading: boolean;
   isAuthenticated: boolean;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Axios interceptor для автоматического обновления токенов
-let isRefreshing = false;
-let failedQueue: Array<{ resolve: Function; reject: Function }> = [];
-
-const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach(({ resolve, reject }) => {
-    if (error) {
-      reject(error);
-    } else {
-      resolve(token);
-    }
-  });
-  
-  failedQueue = [];
-};
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const refreshAccessToken = useCallback(async (): Promise<boolean> => {
-    const currentRefreshToken = localStorage.getItem('refreshToken');
-    
-    if (!currentRefreshToken) {
-      return false;
-    }
-
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/refresh-token`,
-        { refresh_token: currentRefreshToken }
-      );
-
-      const { access_token, refresh_token: newRefreshToken, user: userData } = response.data;
-      
-      setToken(access_token);
-      setRefreshToken(newRefreshToken);
-      setUser(userData);
-      
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('refreshToken', newRefreshToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      return true;
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      await logout();
-      return false;
-    }
+  useEffect(() => {
+    // Проверяем авторизацию при загрузке
+    checkAuth();
   }, []);
 
-  useEffect(() => {
-    // Проверяем наличие токенов при загрузке
-    const initializeAuth = async () => {
-      const savedToken = localStorage.getItem('token');
-      const savedRefreshToken = localStorage.getItem('refreshToken');
-      const savedUser = localStorage.getItem('user');
+  const checkAuth = async () => {
+    if (apiClient.isAuthenticated()) {
+      try {
+        const response = await apiClient.getCurrentUser();
+        if (response.data) {
+          setUser(response.data);
+        } else {
+          // Токен невалиден, очищаем
+          apiClient.clearTokens();
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        apiClient.clearTokens();
+      }
+    }
+    setIsLoading(false);
+  };
 
-      if (savedToken && savedRefreshToken && savedUser) {
-        setToken(savedToken);
-        setRefreshToken(savedRefreshToken);
-        setUser(JSON.parse(savedUser));
-        
-        // Проверяем валидность токена
-        try {
-          await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`, {
-            headers: { Authorization: `Bearer ${savedToken}` }
-          });
-        } catch (error) {
-          // Токен истек, пытаемся обновить
-          const refreshed = await refreshAccessToken();
-          if (!refreshed) {
-            await logout();
-          }
+  const login = async (email: string, password: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await apiClient.login(email, password);
+      
+      if (response.data) {
+        // Получаем данные пользователя после успешного логина
+        const userResponse = await apiClient.getCurrentUser();
+        if (userResponse.data) {
+          setUser(userResponse.data);
+          setIsLoading(false);
+          return true;
         }
       }
       
-      setIsLoading(false);
-    };
-
-    initializeAuth();
-  }, [refreshAccessToken]);
-
-  // Настройка axios interceptors
-  useEffect(() => {
-    const requestInterceptor = axios.interceptors.request.use(
-      (config) => {
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    const responseInterceptor = axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          if (isRefreshing) {
-            return new Promise((resolve, reject) => {
-              failedQueue.push({ resolve, reject });
-            }).then(token => {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              return axios(originalRequest);
-            }).catch(err => {
-              return Promise.reject(err);
-            });
-          }
-
-          originalRequest._retry = true;
-          isRefreshing = true;
-
-          try {
-            const refreshed = await refreshAccessToken();
-            if (refreshed) {
-              processQueue(null, token);
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              return axios(originalRequest);
-            } else {
-              processQueue(error, null);
-              return Promise.reject(error);
-            }
-          } catch (refreshError) {
-            processQueue(refreshError, null);
-            return Promise.reject(refreshError);
-          } finally {
-            isRefreshing = false;
-          }
-        }
-
-        return Promise.reject(error);
+      if (response.error) {
+        setError(response.error);
       }
-    );
-
-    return () => {
-      axios.interceptors.request.eject(requestInterceptor);
-      axios.interceptors.response.eject(responseInterceptor);
-    };
-  }, [token, refreshAccessToken]);
-
-  const login = async (credentials: LoginRequest) => {
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/login`,
-        credentials
-      );
-
-      // Поддержка разных форматов ответа: { data: { access_token, refresh_token, user } } или плоский
-      const data = response?.data?.data ?? response?.data ?? {};
-      const accessToken: string | undefined = data.access_token ?? data.token;
-      const newRefreshToken: string | undefined = data.refresh_token ?? data.refreshToken;
-      const userData: User | undefined = data.user;
-
-      if (!accessToken || !userData) {
-        throw new Error('Invalid login response');
-      }
-
-      setToken(accessToken);
-      setUser(userData);
-      if (newRefreshToken) setRefreshToken(newRefreshToken);
-
-      localStorage.setItem('token', accessToken);
-      if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-    } catch (error) {
-      // Пробрасываем ошибку наверх для отображения сообщения в UI
-      throw error;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
     }
-  };
-
-  const register = async (credentials: RegisterRequest) => {
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/register`,
-        credentials
-      );
-
-      const data = response?.data?.data ?? response?.data ?? {};
-      const accessToken: string | undefined = data.access_token ?? data.token;
-      const newRefreshToken: string | undefined = data.refresh_token ?? data.refreshToken;
-      const userData: User | undefined = data.user;
-
-      if (!accessToken || !userData) {
-        throw new Error('Invalid register response');
-      }
-
-      setToken(accessToken);
-      setUser(userData);
-      if (newRefreshToken) setRefreshToken(newRefreshToken);
-
-      localStorage.setItem('token', accessToken);
-      if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-    } catch (error) {
-      throw error;
-    }
+    
+    setIsLoading(false);
+    return false;
   };
 
   const logout = async () => {
+    setIsLoading(true);
     try {
-      // Уведомляем backend о выходе
-      if (refreshToken) {
-        await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/logout`,
-          { refresh_token: refreshToken }
-        );
-      }
+      await apiClient.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      setToken(null);
-      setRefreshToken(null);
       setUser(null);
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      setError(null);
+      setIsLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        refreshToken,
-        isLoading,
-        login,
-        register,
-        logout,
-        refreshAccessToken,
-        isAuthenticated: !!token && !!user,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      isLoading,
+      isAuthenticated: !!user,
+      error
+    }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 };
