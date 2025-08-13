@@ -18,7 +18,10 @@ sys.path.insert(0, str(backend_path))
 
 from app.core.production_logging import get_logger, set_trace_id
 from app.services.message_queue import RedisMessageQueue, QueueMessage, MessagePriority
-from app.core.config import settings
+from app.core.config import get_settings
+
+# Initialize settings
+settings = get_settings()
 
 class TestProductionIntegration:
     """Integration tests for production-ready systems"""

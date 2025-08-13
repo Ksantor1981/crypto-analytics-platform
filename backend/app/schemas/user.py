@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, validator, EmailStr
-from typing import Optional, List, Any
+from pydantic import BaseModel, Field, field_validator, EmailStr, model_validator
+from typing import Optional, List, Any, Dict
 from datetime import datetime
 from enum import Enum
 
@@ -21,14 +21,16 @@ class UserCreate(UserBase):
     password: str
     confirm_password: str
     
-    @validator('confirm_password')
-    def passwords_match(cls, v, values, **kwargs):
-        if 'password' in values and v != values['password']:
+    @field_validator('confirm_password')
+    @classmethod
+    def passwords_match(cls, v: str, info: Any) -> str:
+        if 'password' in info.data and v != info.data['password']:
             raise ValueError('Passwords do not match')
         return v
     
-    @validator('password')
-    def validate_password(cls, v):
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
         if len(v) < 6:
             raise ValueError('Password must be at least 6 characters long')
         return v
@@ -45,14 +47,16 @@ class UserChangePassword(BaseModel):
     new_password: str
     confirm_new_password: str
     
-    @validator('confirm_new_password')
-    def passwords_match(cls, v, values, **kwargs):
-        if 'new_password' in values and v != values['new_password']:
+    @field_validator('confirm_new_password')
+    @classmethod
+    def passwords_match(cls, v: str, info: Any) -> str:
+        if 'new_password' in info.data and v != info.data['new_password']:
             raise ValueError('New passwords do not match')
         return v
     
-    @validator('new_password')
-    def validate_password(cls, v):
+    @field_validator('new_password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
         if len(v) < 6:
             raise ValueError('Password must be at least 6 characters long')
         return v
@@ -141,14 +145,16 @@ class PasswordResetConfirm(BaseModel):
     new_password: str
     confirm_new_password: str
     
-    @validator('confirm_new_password')
-    def passwords_match(cls, v, values, **kwargs):
-        if 'new_password' in values and v != values['new_password']:
+    @field_validator('confirm_new_password')
+    @classmethod
+    def passwords_match(cls, v: str, info: Any) -> str:
+        if 'new_password' in info.data and v != info.data['new_password']:
             raise ValueError('Passwords do not match')
         return v
     
-    @validator('new_password')
-    def validate_password(cls, v):
+    @field_validator('new_password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
         if len(v) < 6:
             raise ValueError('Password must be at least 6 characters long')
-        return v 
+        return v

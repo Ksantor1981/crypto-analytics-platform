@@ -5,8 +5,7 @@ import {
   XCircle, 
   AlertTriangle, 
   Loader2,
-  Pause,
-  Play
+  Pause
 } from 'lucide-react';
 
 export type ChannelStatus = 

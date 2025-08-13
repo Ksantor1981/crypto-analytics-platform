@@ -13,62 +13,169 @@ export interface PaginatedResponse<T> {
   pages: number;
 }
 
-// User Types
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-  role: 'user' | 'admin';
-  status: 'active' | 'inactive';
-  createdAt: string;
-  updatedAt: string;
-}
+// Базовые типы данных
+export type ChannelStatus = 'active' | 'inactive' | 'error' | 'pending';
+export type ChannelType = 'telegram' | 'reddit' | 'twitter' | 'custom' | 'rss' | 'tradingview';
+export type SignalStatus = 'active' | 'completed' | 'cancelled' | 'failed';
+export type SignalDirection = 'long' | 'short';
+export type SortOrder = 'asc' | 'desc';
 
-export interface UserProfile extends User {
-  first_name?: string;
-  last_name?: string;
-  phone?: string;
-  telegram_username?: string;
-  preferred_language: string;
-  timezone: string;
-}
+// Типы для сортировки
+export type ChannelSortField = 
+  | 'id' 
+  | 'name' 
+  | 'accuracy' 
+  | 'signals_count' 
+  | 'created_at';
 
-// Authentication Types
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
+export type SignalSortField = 
+  | 'id' 
+  | 'pair' 
+  | 'status' 
+  | 'created_at' 
+  | 'pnl';
 
-export interface RegisterRequest {
-  email: string;
-  username: string;
-  password: string;
-  confirm_password: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-}
-
-// Channel Types
-export type ChannelType = 'telegram' | 'reddit' | 'rss' | 'twitter' | 'tradingview';
-
+// Интерфейс канала
 export interface Channel {
+  // Идентификация
   id: string;
   name: string;
+  username?: string;
+  type?: ChannelType;
+  
+  // Статус и метаданные
+  status: ChannelStatus;
+  created_at: string;
+  updated_at?: string;
+  
+  // Статистические показатели
+  accuracy?: number;
+  signals_count?: number;
+  subscribers_count?: number;
+  
+  // Финансовые метрики
+  avg_profit?: number;
+  avg_roi?: number;
+  
+  // Дополнительные метаданные
   description?: string;
-  url: string;
-  type: ChannelType;
-  status: 'active' | 'inactive' | 'pending';
-  createdAt: string;
-  updatedAt: string;
-  // Parser-specific configuration
-  parser_config?: Record<string, any>;
-  // Channel metadata
+  url?: string;
   category?: string;
-  allowed_symbols?: string[];
-  min_confidence?: number;
+}
+
+// Интерфейс сигнала
+export interface Signal {
+  id: string;
+  channel_id: string;
+  pair: string;
+  asset: string; // Добавляем asset для отображения
+  entry_price: number;
+  target_price?: number;
+  stop_loss?: number;
+  
+  status: SignalStatus;
+  direction: SignalDirection;
+  
+  created_at: string;
+  closed_at?: string;
+  
+  pnl?: number;
+  roi?: number;
+  confidence?: number; // Уверенность в сигнале (0-1)
+  description?: string; // Описание сигнала
+  
+  // Связанный канал (опционально)
+  channel?: {
+    id: string;
+    name: string;
+  };
+}
+
+// Интерфейс подписки
+export interface SubscriptionPlan {
+  id: string;
+  name: 'Free' | 'Premium' | 'Pro';
+  price: number;
+  features: string[];
+}
+
+// Существующий тип User
+export interface User {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  joinDate: string;
+  
+  // Добавляем роль
+  role: 'user' | 'admin' | 'moderator';
+  
+  subscription: {
+    plan: SubscriptionPlan['name'];
+    status: 'active' | 'cancelled' | 'expired';
+    price: number;
+  };
+  
+  stats?: {
+    channelsFollowed: number;
+    successRate: number;
+    profit: number;
+    totalProfit: number;
+    totalSignals: number;
+    winRate: number;
+    totalReturn: number;
+    daysActive: number;
+  };
+  
+  settings: {
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    telegramAlerts: boolean;
+    weeklyReports: boolean;
+    darkMode: boolean;
+    language: string;
+    timezone: string;
+  };
+}
+
+// Интерфейс уведомления
+export interface Notification {
+  id: string;
+  type: 'signal' | 'target_reached' | 'stop_loss' | 'info' | 'success' | 'warning';
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  urgent?: boolean;
+  channel?: string;
+  pair?: string;
+  price?: number;
+}
+
+// Утилитарные типы
+export type Nullable<T> = T | null;
+export type Optional<T> = T | undefined;
+
+// Реэкспорт типов таблицы
+export * from './table';
+
+// Типы для фильтрации и сортировки
+export interface ChannelFilters {
+  type?: ChannelType;
+  status?: ChannelStatus;
+  search?: string;
+  accuracy_range?: string | [number, number];
+  signals_range?: string;
+  created_from?: string;
+  created_to?: string;
+}
+
+// Дублированные типы удалены - используются определения выше
+
+// Утилитарные функции типизации
+export function isValidChannel(channel: Partial<Channel>): channel is Channel {
+  return !!channel.id && !!channel.name;
 }
 
 export interface ChannelStats {
@@ -81,25 +188,10 @@ export interface ChannelStats {
   performance_trend: 'up' | 'down' | 'stable';
 }
 
-// Signal Types
+// Signal Types (дублированные удалены - используются определения выше)
 export type SignalType = 'LONG' | 'SHORT';
-export type SignalStatus =
-  | 'PENDING'
-  | 'ACTIVE'
-  | 'PARTIAL'
-  | 'COMPLETED'
-  | 'FAILED'
-  | 'CANCELLED';
 
-export interface Signal {
-  id: string;
-  channelId: string;
-  content: string;
-  type: 'buy' | 'sell';
-  status: 'active' | 'completed' | 'cancelled';
-  createdAt: string;
-  updatedAt: string;
-}
+// Удален дублирующий интерфейс Signal
 
 export interface SignalStats {
   total_signals: number;
@@ -112,18 +204,7 @@ export interface SignalStats {
   accuracy_rate: number;
 }
 
-// Subscription Types
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: string;
-  interval: 'month' | 'year';
-  features: string[];
-  is_popular: boolean;
-  stripe_price_id: string;
-}
+// Дублированный интерфейс SubscriptionPlan удален - используется определение выше
 
 export interface UserSubscription {
   id: string;
@@ -185,18 +266,22 @@ export interface ChartData {
 }
 
 // Filter Types
-export interface ChannelFilters {
-  type?: Channel['type'];
-  status?: Channel['status'];
-  search?: string;
-}
-
 export interface SignalFilters {
   channelId?: string;
-  type?: Signal['type'];
-  status?: Signal['status'];
+  channel_id?: string; // Дублируем для совместимости
+  type?: SignalDirection;
+  direction?: SignalDirection; // Дублируем для совместимости
+  status?: SignalStatus;
   dateFrom?: string;
   dateTo?: string;
+  date_from?: string; // Дублируем для совместимости
+  date_to?: string; // Дублируем для совместимости
+  search?: string; // Поиск по тексту
+  pnl_range?: string; // Диапазон прибыли/убытка
+  time_range?: string; // Временной диапазон
+  price_from?: string; // Цена от
+  price_to?: string; // Цена до
+  pair?: string; // Торговая пара
 }
 
 // Error Types
@@ -227,3 +312,68 @@ export interface ThemeConfig {
   theme: Theme;
   toggleTheme: () => void;
 }
+
+// Типы для аутентификации
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  username?: string;
+  password: string;
+  confirm_password?: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  access_token: string;
+  refresh_token: string;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetConfirmRequest {
+  token: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+// Типы для WebSocket событий
+export interface BaseEvent {
+  type: string;
+  timestamp: string;
+}
+
+export interface SignalEvent extends BaseEvent {
+  type: 'signal';
+  signal_id: string;
+  pair: string;
+  direction: 'long' | 'short';
+  entry_price: number;
+  target_price?: number;
+  stop_loss?: number;
+}
+
+export interface PriceEvent extends BaseEvent {
+  type: 'price';
+  pair: string;
+  current_price: number;
+  change_percent: number;
+  change_24h: number;
+}
+
+export interface ChannelEvent extends BaseEvent {
+  type: 'channel';
+  channel_id: string;
+  name: string;
+  status: 'active' | 'inactive';
+  accuracy_change: number;
+}
+
+export type NotificationEvent = SignalEvent | PriceEvent | ChannelEvent;

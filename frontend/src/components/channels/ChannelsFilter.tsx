@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardBody } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import { ChannelFilters } from '@/types';
 
 interface ChannelsFilterProps {
@@ -13,7 +13,7 @@ interface ChannelsFilterProps {
   onReset: () => void;
 }
 
-export const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
+const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
   filters,
   onFiltersChange,
   onReset,
@@ -53,12 +53,12 @@ export const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
 
   return (
     <Card>
-      <CardBody className="p-4">
+      <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <h3 className="font-medium text-gray-900">Фильтры</h3>
             {activeFiltersCount > 0 && (
-              <Badge variant="primary" size="sm">
+              <Badge variant="secondary" size="sm">
                 {activeFiltersCount}
               </Badge>
             )}
@@ -137,7 +137,7 @@ export const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
                         'accuracy_range',
                         filters.accuracy_range === range.value
                           ? undefined
-                          : range.value
+                          : range.value as string
                       )
                     }
                     className={`px-3 py-1 rounded-full text-sm border ${
@@ -210,10 +210,9 @@ export const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
             </div>
           </div>
         )}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };
 
-
-
+export { ChannelsFilter };

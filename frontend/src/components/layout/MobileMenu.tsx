@@ -2,12 +2,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
-  Menu,
   X,
   Home,
   BarChart3,
   Users,
-  Star,
   User,
   Settings,
   Bell,

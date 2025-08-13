@@ -25,7 +25,7 @@ export function ResponsiveCard({
   header,
   footer,
 }: ResponsiveCardProps) {
-  const { isMobile, isTablet } = useResponsive();
+  const { isMobile } = useResponsive();
 
   const cardClasses = `
     ${className}
@@ -82,7 +82,7 @@ export function ResponsiveGrid({
   gap = 4,
   className = '',
 }: ResponsiveGridProps) {
-  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const { isMobile, isTablet } = useResponsive();
 
   const getGridCols = () => {
     if (isMobile) return cols.mobile || 1;

@@ -23,85 +23,74 @@ const channelTypeConfigs = {
   telegram: {
     name: 'Telegram',
     icon: MessageSquare,
-    urlPattern: /^https:\/\/(t\.me|telegram\.me)\/[a-zA-Z0-9_]+\/?$/,
-    urlExample: 'https://t.me/channel_name',
-    description: 'Telegram каналы и группы с криптосигналами'
+    urlPattern: /^https?:\/\/t\.me\/[a-zA-Z0-9_]+$/,
+    urlExample: 'https://t.me/channelname',
+    description: 'Канал в Telegram'
   },
   reddit: {
     name: 'Reddit',
     icon: Globe,
-    urlPattern: /^(https:\/\/(www\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/?|r\/[a-zA-Z0-9_]+|[a-zA-Z0-9_]+)$/,
-    urlExample: 'https://reddit.com/r/cryptocurrency или cryptocurrency',
-    description: 'Reddit сабреддиты с обсуждениями криптовалют'
-  },
-  rss: {
-    name: 'RSS Feed',
-    icon: Hash,
-    urlPattern: /^https?:\/\/.+\.(xml|rss|feed)$|^https?:\/\/.+\/(rss|feed)\/?$/,
-    urlExample: 'https://cointelegraph.com/rss',
-    description: 'RSS ленты новостных сайтов о криптовалютах'
+    urlPattern: /^https?:\/\/www\.reddit\.com\/r\/[a-zA-Z0-9_]+$/,
+    urlExample: 'https://www.reddit.com/r/subredditname',
+    description: 'Сабреддит'
   },
   twitter: {
-    name: 'Twitter/X',
+    name: 'Twitter',
     icon: Twitter,
-    urlPattern: /^(https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/?|@[a-zA-Z0-9_]+|[a-zA-Z0-9_]+)$/,
-    urlExample: 'https://twitter.com/username или @username',
-    description: 'Twitter/X аккаунты криптоинфлюенсеров и трейдеров'
+    urlPattern: /^https?:\/\/twitter\.com\/[a-zA-Z0-9_]+$/,
+    urlExample: 'https://twitter.com/username',
+    description: 'Аккаунт в Twitter'
+  },
+  rss: {
+    name: 'RSS',
+    icon: Hash,
+    urlPattern: /.*/,
+    urlExample: 'https://example.com/rss-feed',
+    description: 'RSS-лента'
   },
   tradingview: {
     name: 'TradingView',
     icon: TrendingUp,
-    urlPattern: /^(https:\/\/www\.tradingview\.com\/(u\/[a-zA-Z0-9_]+|symbols\/[A-Z]+|ideas\/(crypto|forex)?)\/?|[a-zA-Z0-9_]+)$/,
+    urlPattern: /^https?:\/\/(www\.)?tradingview\.com\/.+$/,
     urlExample: 'https://tradingview.com/u/username или BTCUSD',
     description: 'TradingView идеи и анализ от трейдеров'
+  },
+  custom: {
+    name: 'Другой',
+    icon: Globe,
+    urlPattern: /.*/,
+    urlExample: 'https://example.com/channel',
+    description: 'Пользовательский канал'
   }
 };
 
-// Dynamic schema based on channel type
+// Обновляем схему создания канала с учетом всех типов
 const createChannelSchema = (channelType: ChannelType) => {
-  const config = channelTypeConfigs[channelType];
-  
-  return z.object({
+  const baseSchema = z.object({
     name: z.string().min(3, { message: 'Название должно содержать минимум 3 символа' }),
-    type: z.enum(['telegram', 'reddit', 'rss', 'twitter', 'tradingview'] as const),
+    type: z.enum(['telegram', 'reddit', 'twitter', 'rss', 'tradingview', 'custom']),
     url: z.string().min(1, { message: 'URL обязателен' }).refine(url => {
-      if (channelType === 'rss') {
-        // For RSS, allow any valid URL
-        try {
-          new URL(url);
-          return true;
-        } catch {
-          return false;
-        }
-      }
+      const config = channelTypeConfigs[channelType];
       return config.urlPattern.test(url);
-    }, {
-      message: `Введите корректный URL для ${config.name}. Пример: ${config.urlExample}`
-    }),
-    description: z.string().max(500, { message: 'Описание не должно превышать 500 символов' }).optional(),
-    category: z.string().optional(),
-    // Parser-specific configs
-    bearer_token: z.string().optional(), // For Twitter
-    client_id: z.string().optional(), // For Reddit
-    client_secret: z.string().optional(), // For Reddit
-    allowed_symbols: z.string().optional(), // Comma-separated symbols
-    min_confidence: z.number().min(0).max(1).optional(),
+    }, { message: 'Некорректный формат URL' }),
+    description: z.string().optional(),
+    category: z.string().optional()
   });
+
+  // Специфические поля для разных типов каналов
+  const specificSchema = z.object({
+    bearer_token: z.string().optional(),
+    client_id: z.string().optional(),
+    client_secret: z.string().optional(),
+    allowed_symbols: z.string().optional(),
+    min_confidence: z.number().optional()
+  });
+
+  return baseSchema.merge(specificSchema);
 };
 
-// Type for form data, exported for use in other components
-export type ChannelFormData = {
-  name: string;
-  type: ChannelType;
-  url: string;
-  description?: string;
-  category?: string;
-  bearer_token?: string;
-  client_id?: string;
-  client_secret?: string;
-  allowed_symbols?: string;
-  min_confidence?: number;
-};
+// Обновляем тип данных формы
+export type ChannelFormData = z.infer<ReturnType<typeof createChannelSchema>>;
 
 interface AddChannelModalProps {
   isOpen: boolean;

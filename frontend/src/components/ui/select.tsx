@@ -53,7 +53,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({ children }) => {
   );
 };
 
-export const SelectItem: React.FC<SelectItemProps> = ({ value, children }) => {
+export const SelectItem: React.FC<SelectItemProps> = ({ children }) => {
   return (
     <div 
       className="px-3 py-2 hover:bg-gray-100 cursor-pointer"

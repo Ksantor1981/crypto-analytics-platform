@@ -2,8 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardHeader, CardBody } from '@/components/ui/card';
-import { Badge } from '@/components/ui/Badge';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Signal } from '@/types';
 import { formatDate, formatPrice } from '@/lib/utils';
@@ -23,7 +23,7 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
         <CardHeader>
           <h3 className="text-lg font-semibold">Последние сигналы</h3>
         </CardHeader>
-        <CardBody>
+        <CardContent>
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="animate-pulse">
@@ -40,7 +40,7 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
               </div>
             ))}
           </div>
-        </CardBody>
+        </CardContent>
       </Card>
     );
   }
@@ -57,7 +57,7 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
           </Link>
         </div>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         {signals.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500">Нет доступных сигналов</p>
@@ -82,7 +82,7 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
                       </span>
                       <Badge
                         variant={
-                          signal.direction === 'long' ? 'success' : 'danger'
+                          signal.direction === 'long' ? 'default' : 'destructive'
                         }
                         size="sm"
                       >
@@ -102,11 +102,11 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
                   <Badge
                     variant={
                       signal.status === 'active'
-                        ? 'warning'
+                        ? 'outline'
                         : signal.status === 'completed'
-                          ? 'success'
+                          ? 'default'
                           : signal.status === 'failed'
-                            ? 'danger'
+                            ? 'destructive'
                             : 'secondary'
                     }
                   >
@@ -133,7 +133,7 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
             ))}
           </div>
         )}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

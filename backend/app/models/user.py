@@ -92,11 +92,13 @@ class User(BaseModel):
     # Subscription relationships
     
     # Relationships
-    subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
-    channels = relationship("Channel", back_populates="owner", cascade="all, delete-orphan")
-    api_keys = relationship("APIKey", back_populates="user", cascade="all, delete-orphan")
-    custom_alerts = relationship("CustomAlert", back_populates="user", cascade="all, delete-orphan")
-    payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")
+    subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    channels = relationship("Channel", back_populates="owner", cascade="all, delete-orphan", lazy="selectin")
+    api_keys = relationship("APIKey", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    custom_alerts = relationship("CustomAlert", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    trading_accounts = relationship("TradingAccount", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    risk_management = relationship("RiskManagement", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="selectin")
     
     @property
     def is_premium(self) -> bool:

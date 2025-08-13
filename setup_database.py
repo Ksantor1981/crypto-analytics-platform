@@ -40,7 +40,8 @@ def create_database_tables():
         sys.path.insert(0, str(Path.cwd()))
         
         from app.core.database import engine, Base
-        from app.models import user, channel, signal, subscription, payment, api_key, performance_metric
+        # Импортируем __init__.py из models, который подтянет все модели
+        from app import models
         
         # Создаем все таблицы
         Base.metadata.create_all(bind=engine)

@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, ReactNode, useEffect } from 'react';
+import { useState, ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
   Home,
   BarChart3,
   Users,
-  Star,
   User,
   Settings,
   Menu,

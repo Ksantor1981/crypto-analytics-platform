@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardBody } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface StatsCardProps {
   title: string;
@@ -23,7 +23,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
 }) => {
   return (
     <Card className={`${className}`}>
-      <CardBody className="p-6">
+      <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-600">{title}</p>
@@ -46,7 +46,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
           </div>
           {icon && <div className="text-3xl opacity-60">{icon}</div>}
         </div>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

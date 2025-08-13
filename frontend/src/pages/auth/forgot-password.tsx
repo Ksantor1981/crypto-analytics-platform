@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp, ArrowLeft, CheckCircle } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
+  // const router = useRouter(); // не используется
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');

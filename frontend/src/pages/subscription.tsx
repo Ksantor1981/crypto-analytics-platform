@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { subscriptionsApi } from '@/lib/api';
+import { subscriptionsApi } from '@/lib/api/subscriptions';
 import { formatDate } from '@/lib/utils';
 
 interface Subscription {
@@ -182,11 +182,11 @@ export default function SubscriptionPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge variant="success">Активна</Badge>;
+        return <Badge variant="default">Активна</Badge>;
       case 'cancelled':
-        return <Badge variant="warning">Отменена</Badge>;
+        return <Badge variant="secondary">Отменена</Badge>;
       case 'expired':
-        return <Badge variant="danger">Истекла</Badge>;
+        return <Badge variant="destructive">Истекла</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -242,7 +242,7 @@ export default function SubscriptionPage() {
                         {getStatusBadge(subscription.status)}
                       </div>
                     </CardHeader>
-                    <CardBody className="space-y-4">
+                    <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Стоимость</span>
                         <span className="font-semibold">
@@ -270,7 +270,7 @@ export default function SubscriptionPage() {
                           {subscription.auto_renew ? 'Включено' : 'Выключено'}
                         </span>
                       </div>
-                    </CardBody>
+                    </CardContent>
                     <CardFooter>
                       {subscription.status === 'active' ? (
                         <Button
@@ -284,7 +284,7 @@ export default function SubscriptionPage() {
                         </Button>
                       ) : subscription.status === 'cancelled' ? (
                         <Button
-                          variant="primary"
+                          variant="default"
                           className="w-full"
                           onClick={() =>
                             handleReactivateSubscription(subscription.id)
@@ -323,7 +323,7 @@ export default function SubscriptionPage() {
                 >
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <Badge variant="primary">Популярный</Badge>
+                      <Badge variant="default">Популярный</Badge>
                     </div>
                   )}
 
@@ -342,7 +342,7 @@ export default function SubscriptionPage() {
                     </div>
                   </CardHeader>
 
-                  <CardBody>
+                  <CardContent>
                     <ul className="space-y-3">
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-start">
@@ -351,11 +351,11 @@ export default function SubscriptionPage() {
                         </li>
                       ))}
                     </ul>
-                  </CardBody>
+                  </CardContent>
 
                   <CardFooter>
                     <Button
-                      variant={plan.popular ? 'primary' : 'outline'}
+                      variant={plan.popular ? 'default' : 'outline'}
                       className="w-full"
                       onClick={() => handleSubscribe(plan.id)}
                       disabled={selectedPlan === plan.id}
@@ -377,7 +377,7 @@ export default function SubscriptionPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
-                <CardBody>
+                <CardContent>
                   <h3 className="font-semibold text-gray-900 mb-2">
                     Как отменить подписку?
                   </h3>
@@ -386,11 +386,11 @@ export default function SubscriptionPage() {
                     страницу. Доступ к каналам сохранится до окончания
                     оплаченного периода.
                   </p>
-                </CardBody>
+                </CardContent>
               </Card>
 
               <Card>
-                <CardBody>
+                <CardContent>
                   <h3 className="font-semibold text-gray-900 mb-2">
                     Можно ли изменить план?
                   </h3>
@@ -399,11 +399,11 @@ export default function SubscriptionPage() {
                     время. Изменения вступят в силу в следующем биллинговом
                     периоде.
                   </p>
-                </CardBody>
+                </CardContent>
               </Card>
 
               <Card>
-                <CardBody>
+                <CardContent>
                   <h3 className="font-semibold text-gray-900 mb-2">
                     Безопасны ли платежи?
                   </h3>
@@ -411,11 +411,11 @@ export default function SubscriptionPage() {
                     Все платежи обрабатываются через Stripe - надежную платежную
                     систему. Мы не храним данные ваших карт.
                   </p>
-                </CardBody>
+                </CardContent>
               </Card>
 
               <Card>
-                <CardBody>
+                <CardContent>
                   <h3 className="font-semibold text-gray-900 mb-2">
                     Есть ли возврат средств?
                   </h3>
@@ -423,7 +423,7 @@ export default function SubscriptionPage() {
                     Мы предлагаем полный возврат средств в течение 7 дней после
                     покупки, если вы не удовлетворены сервисом.
                   </p>
-                </CardBody>
+                </CardContent>
               </Card>
             </div>
           </div>

@@ -93,6 +93,7 @@ export function AlertSystem() {
             title: `Price Alert: ${alert.pair}`,
             message: `${alert.pair} достиг цели ${alert.targetPrice}`,
             urgent: true,
+            read: false,
             pair: alert.pair,
             price: alert.currentPrice,
           });
@@ -118,24 +119,28 @@ export function AlertSystem() {
           title: 'Новый высокоточный сигнал',
           message: 'ETH/USDT LONG с confidence 94%',
           urgent: true,
+          read: false,
         },
         {
           type: 'target_reached' as const,
           title: 'Цель достигнута',
           message: 'BTC/USDT достиг TP1 (+3.5%)',
           urgent: false,
+          read: false,
         },
         {
           type: 'warning' as const,
           title: 'Приближение к стоп-лоссу',
           message: 'ADA/USDT близко к SL (-1.8%)',
           urgent: true,
+          read: false,
         },
         {
           type: 'info' as const,
           title: 'Высокая волатильность',
           message: 'DOGE показывает необычную активность',
           urgent: false,
+          read: false,
         },
       ];
 
@@ -201,6 +206,7 @@ export function AlertSystem() {
       title: 'Алерт создан',
       message: `Price alert для ${alert.pair} настроен`,
       autoHide: true,
+      read: false,
     });
   };
 

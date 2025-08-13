@@ -34,8 +34,8 @@ const fallbackChannels: ChannelView[] = [
     description: 'Профессиональные сигналы с высокой точностью',
     type: 'telegram',
     status: 'active',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     accuracy: 87.5,
     signals: 156,
     roi: 24.3,
@@ -51,8 +51,8 @@ const fallbackChannels: ChannelView[] = [
     description: 'Ежедневные торговые возможности',
     type: 'telegram',
     status: 'active',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     accuracy: 82.1,
     signals: 89,
     roi: 18.7,
@@ -68,8 +68,8 @@ const fallbackChannels: ChannelView[] = [
     description: 'Поиск перспективных альткоинов',
     type: 'telegram',
     status: 'pending',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     accuracy: 91.2,
     signals: 203,
     roi: 31.5,
@@ -134,8 +134,14 @@ const ChannelsPage: React.FC = () => {
   }, [channels, activeCategory, searchTerm, sortOption]);
 
   const handleAddChannel = async (data: ChannelFormData) => {
-    const newChannelData = { ...data, type: 'telegram' as const };
-    await createChannel(newChannelData as Omit<Channel, 'id' | 'status' | 'createdAt' | 'updatedAt'>);
+    const newChannelData = { 
+      ...data, 
+      type: 'telegram' as const,
+      status: 'pending' as const,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    await createChannel(newChannelData);
     setIsModalOpen(false);
   };
 
@@ -216,8 +222,8 @@ const ChannelsPage: React.FC = () => {
                     <ChannelActions
                       channel={channel as Channel & { url: string }}
                       onDelete={() => deleteChannel(channel.id)}
-                      onActivate={() => updateChannel({ id: channel.id, data: { status: 'active' } })}
-                      onDeactivate={() => updateChannel({ id: channel.id, data: { status: 'inactive' } })}
+                      onActivate={() => updateChannel(channel.id, { status: 'active' }).then(() => {})}
+                      onDeactivate={() => updateChannel(channel.id, { status: 'inactive' }).then(() => {})}
                     />
                   </div>
                 </CardHeader>

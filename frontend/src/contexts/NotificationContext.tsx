@@ -258,10 +258,10 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     notification: Omit<Notification, 'id' | 'timestamp'>
   ) => {
     const fullNotification: Notification = {
+      ...notification,
       id: Date.now().toString() + Math.random(),
       timestamp: new Date(),
-      read: false,
-      ...notification,
+      read: notification.read ?? false,
     };
 
     // Фильтрация по настройкам
@@ -348,7 +348,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         body: message,
         icon: icon || '/favicon.ico',
         badge: '/favicon.ico',
-        vibrate: [200, 100, 200],
+        // vibrate удален - не поддерживается в браузере
         requireInteraction: false,
         silent: !state.settings.soundEnabled,
       });

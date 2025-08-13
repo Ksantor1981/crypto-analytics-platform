@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { User } from '@/types';
+import { User, LoginRequest, RegisterRequest } from '@/types';
 import axios from 'axios';
 
 interface AuthContextType {
@@ -7,7 +7,8 @@ interface AuthContextType {
   token: string | null;
   refreshToken: string | null;
   isLoading: boolean;
-  login: (token: string, refreshToken: string, user: User) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<void>;
+  register: (credentials: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   refreshAccessToken: () => Promise<boolean>;
   isAuthenticated: boolean;
@@ -162,13 +163,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [token, refreshAccessToken]);
 
-  const login = async (newToken: string, newRefreshToken: string, newUser: User) => {
-    setToken(newToken);
-    setRefreshToken(newRefreshToken);
-    setUser(newUser);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('refreshToken', newRefreshToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+  const login = async (credentials: LoginRequest) => {
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/login`,
+        credentials
+      );
+
+      // Поддержка разных форматов ответа: { data: { access_token, refresh_token, user } } или плоский
+      const data = response?.data?.data ?? response?.data ?? {};
+      const accessToken: string | undefined = data.access_token ?? data.token;
+      const newRefreshToken: string | undefined = data.refresh_token ?? data.refreshToken;
+      const userData: User | undefined = data.user;
+
+      if (!accessToken || !userData) {
+        throw new Error('Invalid login response');
+      }
+
+      setToken(accessToken);
+      setUser(userData);
+      if (newRefreshToken) setRefreshToken(newRefreshToken);
+
+      localStorage.setItem('token', accessToken);
+      if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (error) {
+      // Пробрасываем ошибку наверх для отображения сообщения в UI
+      throw error;
+    }
+  };
+
+  const register = async (credentials: RegisterRequest) => {
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/register`,
+        credentials
+      );
+
+      const data = response?.data?.data ?? response?.data ?? {};
+      const accessToken: string | undefined = data.access_token ?? data.token;
+      const newRefreshToken: string | undefined = data.refresh_token ?? data.refreshToken;
+      const userData: User | undefined = data.user;
+
+      if (!accessToken || !userData) {
+        throw new Error('Invalid register response');
+      }
+
+      setToken(accessToken);
+      setUser(userData);
+      if (newRefreshToken) setRefreshToken(newRefreshToken);
+
+      localStorage.setItem('token', accessToken);
+      if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = async () => {
@@ -200,6 +250,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         refreshToken,
         isLoading,
         login,
+        register,
         logout,
         refreshAccessToken,
         isAuthenticated: !!token && !!user,

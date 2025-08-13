@@ -1,18 +1,27 @@
 import { useEffect, useState } from 'react';
 
+const breakpoints = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+};
+
 export const useResponsive = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [isLarge, setIsLarge] = useState(false);
+  const [width, setWidth] = useState(0);
 
   useEffect(() => {
     const handleResize = () => {
-      const width = window.innerWidth;
-      setIsMobile(width < 640);
-      setIsTablet(width >= 640 && width < 1024);
-      setIsDesktop(width >= 1024 && width < 1280);
-      setIsLarge(width >= 1280);
+      const currentWidth = window.innerWidth;
+      setWidth(currentWidth);
+      setIsMobile(currentWidth < 640);
+      setIsTablet(currentWidth >= 640 && currentWidth < 1024);
+      setIsDesktop(currentWidth >= 1024 && currentWidth < 1280);
+      setIsLarge(currentWidth >= 1280);
     };
 
     handleResize();
@@ -20,7 +29,7 @@ export const useResponsive = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  return { isMobile, isTablet, isDesktop, isLarge };
+  return { isMobile, isTablet, isDesktop, isLarge, width };
 };
 
 interface ResponsiveProps {
@@ -108,6 +117,7 @@ export function useMobileModal() {
         document.body.style.overflow = originalStyle;
       };
     }
+    return; // Явный возврат undefined
   }, [isMobile]);
 
   return { isMobile };
