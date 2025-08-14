@@ -132,6 +132,7 @@ jobs:
     - name: Check Slack Webhook
       id: check_webhook
       run: |
+        # Проверяем наличие Slack webhook секрета
         if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
           echo "webhook_exists=true" >> $GITHUB_OUTPUT
         else

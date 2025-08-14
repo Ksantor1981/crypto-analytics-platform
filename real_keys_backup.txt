@@ -1,0 +1,87 @@
+# ========================================
+# CRYPTO ANALYTICS PLATFORM - REAL API KEYS BACKUP
+# ========================================
+# ВНИМАНИЕ: Этот файл содержит РЕАЛЬНЫЕ API ключи!
+# НЕ коммитить в Git! Использовать только локально!
+
+# ========================================
+# TELEGRAM API CONFIGURATION (REAL KEYS)
+# ========================================
+TELEGRAM_API_ID=21073808
+TELEGRAM_API_HASH=2e3adb8940912dd295fe20c1d2ce5368
+TELEGRAM_BOT_TOKEN=7926974097:AAEsGt_YQxp_o7TdbkyYUjQo2hCHw3DPSAw
+
+# ========================================
+# REDDIT API CONFIGURATION (REAL KEYS)
+# ========================================
+REDDIT_CLIENT_ID=unyb6-1Dn5-Z_ZPZasRtaw
+REDDIT_CLIENT_SECRET=kJz3lMVPlnpzRzsxBvcoq2zzOF03w
+REDDIT_REDIRECT_URI=http://localhost:8000
+REDDIT_USER_AGENT=crypto app by /u/Ksantor1981
+
+# ========================================
+# BYBIT API CONFIGURATION (REAL KEYS)
+# ========================================
+BYBIT_API_KEY=PfKXE4pNT9CGTAFqoa
+BYBIT_API_SECRET=WqBEwhiRWT1rL1URKxfRc60EWr9c88vPxNkP
+
+# ========================================
+# DATABASE CONFIGURATION (DEVELOPMENT)
+# ========================================
+POSTGRES_DB=crypto_analytics
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres123
+POSTGRES_PORT=5432
+DATABASE_URL=postgresql://postgres:postgres123@localhost:5432/crypto_analytics
+
+# ========================================
+# SECURITY CONFIGURATION (DEVELOPMENT)
+# ========================================
+SECRET_KEY=crypto-analytics-secret-key-2024-development-very-long-and-secure-key-for-production
+ENVIRONMENT=development
+DEBUG=true
+
+# ========================================
+# REDIS CONFIGURATION (DEVELOPMENT)
+# ========================================
+REDIS_PASSWORD=CHANGE_THIS_REDIS_PASSWORD_IN_PRODUCTION
+REDIS_PORT=6379
+REDIS_URL=redis://localhost:6379/0
+
+# ========================================
+# STRIPE CONFIGURATION (TEST KEYS)
+# ========================================
+STRIPE_SECRET_KEY=sk_test_dummy_key_for_development
+STRIPE_PUBLISHABLE_KEY=pk_test_dummy_key_for_development
+STRIPE_WEBHOOK_SECRET=whsec_CHANGE_THIS_TO_REAL_WEBHOOK_SECRET
+
+# ========================================
+# APPLICATION CONFIGURATION
+# ========================================
+BACKEND_URL=http://localhost:8000
+ML_SERVICE_URL=http://localhost:8001
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_ML_API_URL=http://localhost:8001
+NEXT_PUBLIC_ENV=development
+
+# ========================================
+# DOCKER PORTS
+# ========================================
+BACKEND_PORT=8000
+FRONTEND_PORT=3000
+ML_SERVICE_PORT=8001
+NGINX_PORT=80
+NGINX_SSL_PORT=443
+
+# ========================================
+# MONITORING & NOTIFICATIONS
+# ========================================
+SLACK_WEBHOOK_URL=CHANGE_THIS_TO_REAL_SLACK_WEBHOOK_URL
+
+# ========================================
+# INSTRUCTIONS
+# ========================================
+# 1. Скопируйте этот файл как .env
+# 2. Для production замените все ключи на реальные
+# 3. Никогда не коммитьте .env файл в Git
+# 4. Используйте .env.example для документации

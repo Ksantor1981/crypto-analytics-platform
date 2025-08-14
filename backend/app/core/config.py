@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import List, Optional
 import os
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class RedisConfig(BaseModel):
     """Redis configuration"""
@@ -66,7 +66,10 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     
     # Database - Поддержка PostgreSQL и SQLite
-    DATABASE_URL: str = "postgresql://postgres:postgres123@localhost:5432/crypto_analytics"
+    DATABASE_URL: str = Field(
+        default="postgresql://postgres:CHANGE_THIS_PASSWORD_IN_PRODUCTION@localhost:5432/crypto_analytics",
+        description="Database connection URL"
+    )
     USE_SQLITE: bool = True  # Переключаемся на SQLite для стабильной локальной разработки
     
     @property
@@ -77,7 +80,10 @@ class Settings(BaseSettings):
         return self.DATABASE_URL
     
     # JWT
-    SECRET_KEY: str = "crypto-analytics-secret-key-2024-development-very-long-and-secure-key-for-production"
+    SECRET_KEY: str = Field(
+        default="CHANGE_THIS_SECRET_KEY_IN_PRODUCTION_USE_OPENSSL_RAND_HEX_32",
+        description="Secret key for JWT tokens. Generate with: openssl rand -hex 32"
+    )
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     

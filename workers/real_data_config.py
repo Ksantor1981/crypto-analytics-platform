@@ -1,20 +1,24 @@
 # Enhanced configuration for real data integration
 # API keys and channel configurations from analyst_crypto project
+import os
 
 # Telegram API Configuration
-TELEGRAM_API_ID = 21073808
-TELEGRAM_API_HASH = "2e3adb8940912dd295fe20c1d2ce5368"
-TELEGRAM_BOT_TOKEN = "7926974097:AAEsGt_YQxp_o7TdbkyYUjQo2hCHw3DPSAw"
+# Приоритет: переменные окружения -> hardcoded значения (для разработки)
+TELEGRAM_API_ID = int(os.getenv('TELEGRAM_API_ID', '21073808'))
+TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '2e3adb8940912dd295fe20c1d2ce5368')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7926974097:AAEsGt_YQxp_o7TdbkyYUjQo2hCHw3DPSAw')
 
 # Reddit API Configuration  
-REDDIT_CLIENT_ID = "unyb6-1Dn5-Z_ZPZasRtaw"
-REDDIT_CLIENT_SECRET = "kJz3lMVPlnpzRzsxBvcoq2zzOF03w"
-REDDIT_REDIRECT_URI = "http://localhost:8000"
-REDDIT_USER_AGENT = "crypto app by /u/Ksantor1981"
+# Приоритет: переменные окружения -> hardcoded значения (для разработки)
+REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID', 'unyb6-1Dn5-Z_ZPZasRtaw')
+REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET', 'kJz3lMVPlnpzRzsxBvcoq2zzOF03w')
+REDDIT_REDIRECT_URI = os.getenv('REDDIT_REDIRECT_URI', 'http://localhost:8000')
+REDDIT_USER_AGENT = os.getenv('REDDIT_USER_AGENT', 'crypto app by /u/Ksantor1981')
 
 # Bybit API Configuration
-BYBIT_API_KEY = "PfKXE4pNT9CGTAFqoa"
-BYBIT_API_SECRET = "WqBEwhiRWT1rL1URKxfRc60EWr9c88vPxNkP"
+# Приоритет: переменные окружения -> hardcoded значения (для разработки)
+BYBIT_API_KEY = os.getenv('BYBIT_API_KEY', 'PfKXE4pNT9CGTAFqoa')
+BYBIT_API_SECRET = os.getenv('BYBIT_API_SECRET', 'WqBEwhiRWT1rL1URKxfRc60EWr9c88vPxNkP')
 
 # Database Configuration
 DATABASE_URL = "sqlite+aiosqlite:///crypto_forecasts.db"
