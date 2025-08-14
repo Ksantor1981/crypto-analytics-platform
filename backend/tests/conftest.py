@@ -1,94 +1,110 @@
-import sys
-import os
-from typing import AsyncGenerator, Generator
-
-# Добавляем корневую директорию проекта в PYTHONPATH
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-import asyncio
+"""
+Pytest configuration and fixtures for integration tests
+"""
 import pytest
-from httpx import AsyncClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+import asyncio
+import os
+import sys
+from unittest.mock import AsyncMock, MagicMock, patch
+from pathlib import Path
 
-from app.models import Base
-from app.main import app
-from app.core.database import get_db
+# Add backend to path
+backend_path = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_path))
 
-# Используем базу данных в памяти для тестов
-TEST_DATABASE_URL = "sqlite:///:memory:"
-
-# Создаем движок для тестов
-engine = create_engine(
-    TEST_DATABASE_URL, 
-    connect_args={"check_same_thread": False},
-    echo=True  # Включаем логирование SQL-запросов
-)
-
-# Создаем фабрику сессий для тестов
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Фикстура для создания и удаления таблиц
-@pytest.fixture(scope="session", autouse=True)
-def setup_database():
-    # Создаем все таблицы
-    Base.metadata.create_all(bind=engine)
-    yield
-    # Удаляем все таблицы
-    Base.metadata.drop_all(bind=engine)
-
-# Фикстура для получения сессии БД
-@pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
-    
-    yield session
-    
-    session.close()
-    transaction.rollback()
-    connection.close()
-
-# Переопределяем зависимость get_db
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
-
-# Фикстура для event_loop
 @pytest.fixture(scope="session")
 def event_loop():
-    loop = asyncio.get_event_loop()
+    """Create an instance of the default event loop for the test session."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
-# Фикстура для асинхронного HTTP-клиента
 @pytest.fixture
-async def async_client() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        yield client
+def mock_redis_client():
+    """Mock Redis client for testing"""
+    mock_client = AsyncMock()
+    mock_client.ping = AsyncMock(return_value=True)
+    mock_client.publish = AsyncMock(return_value=1)
+    mock_client.close = AsyncMock()
+    mock_client.zcard = AsyncMock(return_value=0)
+    mock_client.llen = AsyncMock(return_value=0)
+    mock_client.scard = AsyncMock(return_value=0)
+    mock_client.zadd = AsyncMock(return_value=1)
+    mock_client.get = AsyncMock(return_value=None)
+    mock_client.set = AsyncMock(return_value=True)
+    mock_client.delete = AsyncMock(return_value=1)
+    
+    # Mock pubsub
+    mock_pubsub = AsyncMock()
+    mock_pubsub.subscribe = AsyncMock()
+    mock_pubsub.unsubscribe = AsyncMock()
+    mock_pubsub.close = AsyncMock()
+    mock_pubsub.listen = AsyncMock()
+    
+    mock_client.pubsub = MagicMock(return_value=mock_pubsub)
+    
+    return mock_client, mock_pubsub
 
-# Добавляем автоматическую маркировку для интеграционных тестов
+@pytest.fixture(autouse=True)
+def mock_redis_for_all_tests():
+    """Automatically mock Redis for all tests"""
+    with patch('redis.Redis') as mock_redis_class:
+        mock_client = AsyncMock()
+        mock_client.ping = AsyncMock(return_value=True)
+        mock_client.publish = AsyncMock(return_value=1)
+        mock_client.close = AsyncMock()
+        mock_client.zcard = AsyncMock(return_value=0)
+        mock_client.llen = AsyncMock(return_value=0)
+        mock_client.scard = AsyncMock(return_value=0)
+        mock_client.zadd = AsyncMock(return_value=1)
+        
+        mock_pubsub = AsyncMock()
+        mock_pubsub.subscribe = AsyncMock()
+        mock_pubsub.unsubscribe = AsyncMock()
+        mock_pubsub.close = AsyncMock()
+        mock_client.pubsub = MagicMock(return_value=mock_pubsub)
+        
+        mock_redis_class.return_value = mock_client
+        yield mock_client
+
+@pytest.fixture
+def mock_logger():
+    """Mock logger for testing"""
+    logger = MagicMock()
+    logger.info = MagicMock()
+    logger.error = MagicMock()
+    logger.warning = MagicMock()
+    logger.debug = MagicMock()
+    return logger
+
+@pytest.fixture
+def test_settings():
+    """Test settings with safe defaults"""
+    from app.core.config import Settings
+    
+    # Override some settings for testing
+    os.environ.update({
+        'DATABASE_URL': 'sqlite:///./test_crypto_analytics.db',
+        'USE_SQLITE': 'true',
+        'REDIS_URL': 'redis://localhost:6379/15',  # Use different DB for tests
+        'SECRET_KEY': 'test-secret-key-for-testing-very-long-and-secure',
+        'ENVIRONMENT': 'testing',
+        'DEBUG': 'true'
+    })
+    
+    return Settings()
+
+# Add pytest markers
+pytest_plugins = []
+
 def pytest_configure(config):
+    """Configure pytest markers"""
     config.addinivalue_line(
-        "markers",
-        'integration: mark test as integration test (deselect with "-m not integration")',
+        "markers", "integration: marks tests as integration tests"
     )
-
-def pytest_collection_modifyitems(config, items):
-    if not config.getoption("--run-integration"):
-        skip_integration = pytest.mark.skip(reason="need --run-integration option to run")
-        for item in items:
-            if "integration" in item.keywords:
-                item.add_marker(skip_integration)
-
-# Добавляем опцию командной строки для запуска интеграционных тестов
-def pytest_addoption(parser):
-    parser.addoption(
-        "--run-integration", action="store_true", default=False, help="run integration tests"
+    config.addinivalue_line(
+        "markers", "redis: marks tests that require Redis"
+    )
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow running"
     )

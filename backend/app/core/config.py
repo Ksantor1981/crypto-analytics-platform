@@ -1,7 +1,63 @@
-
 from pydantic_settings import BaseSettings
 from typing import List, Optional
 import os
+from pydantic import BaseModel
+
+class RedisConfig(BaseModel):
+    """Redis configuration"""
+    host: str = "localhost"
+    port: int = 6379
+    db: int = 0
+    socket_timeout: int = 30
+    socket_connect_timeout: int = 30
+    socket_keepalive: bool = True
+    socket_keepalive_options: dict = {}
+    health_check_interval: int = 30
+    max_connections: int = 10
+
+class TelegramConfig(BaseModel):
+    """Telegram configuration"""
+    api_id: Optional[str] = None
+    api_hash: Optional[str] = None
+    session_name: str = "crypto_analytics_session"
+    channels: List[str] = []
+    flood_sleep_threshold: int = 60
+    request_delay: float = 1.0
+    max_list_size: int = 100
+
+class ProcessingConfig(BaseModel):
+    """Signal processing configuration"""
+    collection_interval_seconds: int = 60
+    batch_processing_interval_seconds: int = 30
+    batch_size: int = 100
+    signal_retention_days: int = 30
+    max_concurrent_processors: int = 5
+    retry_attempts: int = 3
+    retry_delay_seconds: int = 5
+    timeout_seconds: int = 300
+
+class MarketDataConfig(BaseModel):
+    """Market data configuration"""
+    update_interval_seconds: int = 300
+    api_timeout_seconds: int = 30
+    tracked_symbols: List[str] = [
+        "bitcoin", "ethereum", "binancecoin", "cardano", "solana",
+        "ripple", "polkadot", "dogecoin", "avalanche-2", "chainlink"
+    ]
+    data_retention_days: int = 90
+    max_api_calls_per_minute: int = 50
+    cache_duration_seconds: int = 60
+
+class LoggingConfig(BaseModel):
+    """Logging configuration"""
+    level: str = "INFO"
+    file_enabled: bool = True
+    file_path: str = "logs/crypto_analytics.log"
+    max_file_size_mb: int = 100
+    backup_count: int = 5
+    include_trace_id: bool = True
+    format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    json_format: bool = False
 
 class Settings(BaseSettings):
     # API
@@ -21,7 +77,7 @@ class Settings(BaseSettings):
         return self.DATABASE_URL
     
     # JWT
-    SECRET_KEY: str = "crypto-analytics-secret-key-2024-development"
+    SECRET_KEY: str = "crypto-analytics-secret-key-2024-development-very-long-and-secure-key-for-production"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
@@ -43,7 +99,7 @@ class Settings(BaseSettings):
     # ML Service
     ML_SERVICE_URL: str = "http://localhost:8001"
     
-    # Stripe - ДОБАВЛЯЕМ НЕДОСТАЮЩИЕ ПОЛЯ
+    # Stripe
     STRIPE_PUBLISHABLE_KEY: Optional[str] = None
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
@@ -77,3 +133,15 @@ class Settings(BaseSettings):
 
 def get_settings() -> Settings:
     return Settings()
+
+# Создаем экземпляры конфигураций для импорта в тестах
+settings = get_settings()
+redis_config = RedisConfig()
+telegram_config = TelegramConfig(
+    api_id=settings.TELEGRAM_API_ID,
+    api_hash=settings.TELEGRAM_API_HASH,
+    session_name=settings.TELEGRAM_SESSION_NAME or "crypto_analytics_session"
+)
+processing_config = ProcessingConfig()
+market_data_config = MarketDataConfig()
+logging_config = LoggingConfig()
