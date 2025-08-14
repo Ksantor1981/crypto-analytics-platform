@@ -124,15 +124,34 @@ jobs:
 
   notify:
     needs: [lint-and-test, build]
-    if: always()
+    # Запускаем уведомления только если это не PR от форка
+    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     
     steps:
-    - name: Send Slack Notification
+    - name: Check Slack Webhook
+      id: check_webhook
+      run: |
+        if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+          echo "webhook_exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "webhook_exists=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Send Slack Notification on Success
+      if: needs.build.result == 'success' && steps.check_webhook.outputs.webhook_exists == 'true'
       uses: 8398a7/action-slack@v3
       with:
-        status: ${{ job.status }}
+        status: success
         fields: repo,message,commit,author,action,eventName,ref,workflow
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      if: failure()
+    
+    - name: Send Slack Notification on Failure
+      if: needs.build.result == 'failure' && steps.check_webhook.outputs.webhook_exists == 'true'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
