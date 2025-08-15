@@ -20,8 +20,7 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const loginData: LoginRequest = { email, password };
-      await login(loginData);
+      await login(email, password);
       router.push('/dashboard');
     } catch (err) {
       setError('Неверный email или пароль');

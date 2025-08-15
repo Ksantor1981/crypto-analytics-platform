@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loading } from '@/components/ui/Loading';
+import { User } from '@/types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

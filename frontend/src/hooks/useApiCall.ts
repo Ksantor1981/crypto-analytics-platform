@@ -1,71 +1,61 @@
 import { useState, useEffect } from 'react';
-import { ApiResponse } from '@/lib/api';
 
 export function useApiCall<T>(
-  apiCall: () => Promise<ApiResponse<T>>,
-  deps: any[] = []
+  apiCall: () => Promise<T>,
+  dependencies: any[] = []
 ) {
   const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const execute = async () => {
     setLoading(true);
     setError(null);
-
+    
     try {
-      const response = await apiCall();
-      if (response.data) {
-        setData(response.data);
-      } else if (response.error) {
-        setError(response.error);
-      }
+      const result = await apiCall();
+      setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    let mounted = true;
+    execute();
+  }, dependencies);
 
-    fetchData().then(() => {
-      if (!mounted) {
-        // Component unmounted, ignore
-      }
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, deps);
-
-  return { data, loading, error, refetch: fetchData };
+  return {
+    data,
+    loading,
+    error,
+    refetch: execute
+  };
 }
 
 // Специализированные хуки для часто используемых API вызовов
 export function useChannels(page = 1, limit = 20) {
   const apiCall = async () => {
-    const { default: apiClient } = await import('@/lib/api');
-    return apiClient.getChannels(page, limit);
+    const { apiClient } = await import('@/lib/api');
+    return apiClient.getChannels();
   };
 
   return useApiCall(apiCall, [page, limit]);
 }
 
-export function useSignals(channelId?: number, page = 1, limit = 20) {
+export function useSignals(channelId?: string, page = 1, limit = 20) {
   const apiCall = async () => {
-    const { default: apiClient } = await import('@/lib/api');
+    const { apiClient } = await import('@/lib/api');
     return apiClient.getSignals(channelId, page, limit);
   };
 
   return useApiCall(apiCall, [channelId, page, limit]);
 }
 
-export function useChannel(id: number) {
+export function useChannel(id: string) {
   const apiCall = async () => {
-    const { default: apiClient } = await import('@/lib/api');
+    const { apiClient } = await import('@/lib/api');
     return apiClient.getChannel(id);
   };
 

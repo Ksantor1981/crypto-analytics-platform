@@ -1,16 +1,12 @@
+'use client';
+
 import { useState } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { TrendingUp, Eye, EyeOff } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
@@ -22,35 +18,19 @@ export default function LoginPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError(null);
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: formData.email,
-            password: formData.password,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        await login(data.access_token);
+      const success = await login(formData.email, formData.password);
+      if (success) {
         router.push('/dashboard');
       } else {
-        const errorData = await response.json();
-        setError(errorData.detail || 'Неверный email или пароль');
+        setError('Неверный email или пароль');
       }
     } catch (err) {
       setError('Ошибка подключения к серверу. Попробуйте позже.');
@@ -137,91 +117,52 @@ export default function LoginPage() {
                       required
                       value={formData.password}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Введите пароль"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
+                      placeholder="••••••••"
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 px-3 flex items-center"
                       onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400" />
+                        <EyeOff className="h-4 w-4 text-gray-400" />
                       ) : (
-                        <Eye className="h-5 w-5 text-gray-400" />
+                        <Eye className="h-4 w-4 text-gray-400" />
                       )}
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <input
-                      id="remember"
-                      name="remember"
-                      type="checkbox"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="remember"
-                      className="ml-2 block text-sm text-gray-700"
-                    >
-                      Запомнить меня
-                    </label>
-                  </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium transition-colors"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Вход...' : 'Войти'}
+                </Button>
+
+                <div className="text-center text-sm text-gray-600">
+                  Нет аккаунта?{' '}
+                  <Link
+                    href="/auth/register"
+                    className="text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Зарегистрироваться
+                  </Link>
+                </div>
+
+                <div className="text-center">
                   <Link
                     href="/auth/forgot-password"
-                    className="text-sm text-blue-600 hover:text-blue-500"
+                    className="text-sm text-gray-500 hover:text-gray-700"
                   >
                     Забыли пароль?
                   </Link>
                 </div>
-
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Вход...' : 'Войти'}
-                </Button>
               </form>
-
-              <div className="mt-4 text-center">
-                <Link
-                  href="/auth/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-500 font-medium"
-                >
-                  Забыли пароль?
-                </Link>
-              </div>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Нет аккаунта?{' '}
-                  <Link
-                    href="/auth/register"
-                    className="text-blue-600 hover:text-blue-500 font-medium"
-                  >
-                    Зарегистрироваться
-                  </Link>
-                </p>
-              </div>
-
-              {/* Demo credentials */}
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                <h4 className="text-sm font-medium text-yellow-800 mb-2">
-                  Демо-доступ:
-                </h4>
-                <p className="text-xs text-yellow-700">
-                  Email: demo@cryptoanalytics.com
-                  <br />
-                  Пароль: demo123
-                </p>
-              </div>
             </CardContent>
           </Card>
-
-          <div className="mt-8 text-center text-sm text-gray-500">
-            <Link href="/" className="hover:text-gray-700">
-              ← Вернуться на главную
-            </Link>
-          </div>
         </div>
       </div>
     </>
