@@ -150,5 +150,12 @@ const AlertsPage: NextPage = () => {
   );
 };
 
+// Отключаем SSG для этой страницы
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}
+
 export default AlertsPage;
 

@@ -103,33 +103,31 @@ export default function SubscriptionPage() {
           id: 'pro',
           name: 'Профессиональный',
           description: 'Для активных трейдеров',
-          price: 79,
+          price: 99,
           currency: 'USD',
           billing_period: 'monthly',
           features: [
-            'Доступ к 20 каналам',
-            'Премиум сигналы',
-            'ML анализ',
+            'Неограниченный доступ к каналам',
+            'Продвинутые сигналы',
             'Приоритетная поддержка',
             'API доступ',
-            'Персональный менеджер',
+            'Экспорт данных',
           ],
           popular: true,
         },
         {
           id: 'enterprise',
           name: 'Корпоративный',
-          description: 'Для команд и компаний',
-          price: 199,
+          description: 'Для команд и организаций',
+          price: 299,
           currency: 'USD',
           billing_period: 'monthly',
           features: [
-            'Неограниченный доступ',
-            'Все каналы',
-            'Кастомные интеграции',
-            'Dedicated поддержка',
-            'White-label решение',
-            'Обучение команды',
+            'Все функции Pro',
+            'Командный доступ',
+            'Индивидуальная настройка',
+            'Выделенная поддержка',
+            'SLA гарантии',
           ],
         },
       ]);
@@ -141,8 +139,8 @@ export default function SubscriptionPage() {
   };
 
   const handleUpgrade = async (planId: string) => {
+    setSelectedPlan(planId);
     try {
-      setSelectedPlan(planId);
       await apiClient.updateSubscription(planId as 'free' | 'pro' | 'enterprise');
       // Обновляем данные после успешного обновления
       await fetchSubscriptions();
@@ -155,9 +153,10 @@ export default function SubscriptionPage() {
 
   const handleCancelSubscription = async (subscriptionId: string) => {
     try {
-      // Временно просто логируем, так как cancelSubscription не реализован в API
       console.log('Cancelling subscription:', subscriptionId);
-      await fetchSubscriptions();
+      // Временно просто логируем
+      // await apiClient.cancelSubscription(subscriptionId);
+      // await fetchSubscriptions();
     } catch (error) {
       console.error('Error cancelling subscription:', error);
     }
@@ -166,8 +165,8 @@ export default function SubscriptionPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Загрузка...</div>
         </div>
       </DashboardLayout>
     );
@@ -179,33 +178,33 @@ export default function SubscriptionPage() {
         <title>Подписки - Crypto Analytics Platform</title>
         <meta name="description" content="Управление подписками и тарифными планами" />
       </Head>
-
       <DashboardLayout>
-        <div className="space-y-6">
-          {/* Header */}
+        <div className="space-y-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Подписки</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Управление подписками
+            </h1>
             <p className="text-gray-600">
-              Управляйте своими подписками и тарифными планами
+              Просматривайте и управляйте вашими подписками на каналы
             </p>
           </div>
 
-          {/* Current Subscriptions */}
+          {/* Active Subscriptions */}
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Текущие подписки
+              Активные подписки
             </h2>
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {subscriptions.map(subscription => (
                 <Card key={subscription.id}>
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-lg font-medium">
+                        <h3 className="text-lg font-semibold">
                           {subscription.channel_name}
                         </h3>
-                        <p className="text-sm text-gray-500">
-                          {subscription.price} {subscription.currency}/{subscription.billing_period}
+                        <p className="text-gray-600">
+                          ${subscription.price}/{subscription.billing_period}
                         </p>
                       </div>
                       <Badge
@@ -314,6 +313,13 @@ export default function SubscriptionPage() {
       </DashboardLayout>
     </>
   );
+}
+
+// Отключаем SSG для этой страницы
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
 }
 
 
