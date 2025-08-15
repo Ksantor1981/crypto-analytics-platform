@@ -4,15 +4,15 @@ import axios from 'axios';
 // 1. Типы данных для канала (на основе моковых данных)
 interface ChannelSignal {
   id: number;
-  pair: string;
+  symbol: string;
   type: 'LONG' | 'SHORT';
-  entryPrice: number;
-  targetPrice: number;
-  stopLoss: number;
+  entry_price: number;
+  target_price?: number;
+  stop_loss?: number;
   status: 'open' | 'closed' | 'failed';
   timestamp: string;
-  currentPrice?: number;
-  exitPrice?: number;
+  current_price?: number;
+  exit_price?: number;
   pnl?: number;
 }
 
@@ -20,13 +20,14 @@ export interface ChannelDetails {
   id: number;
   name: string;
   description: string;
+  platform: string; // Добавляем platform
+  category: string;
   accuracy: number;
-  signals: number;
   roi: number;
   subscribers: number;
+  signals_count: number; // Добавляем signals_count
   rating: number;
   avatar: string;
-  category: string;
   status: 'active' | 'pending' | 'error';
   isFollowing: boolean;
   lastSignal: string;
@@ -39,7 +40,7 @@ export interface ChannelDetails {
   maxDrawdown: number;
   sharpeRatio: number;
   monthlyGrowth: number[];
-  recentSignals: ChannelSignal[];
+  recent_signals: ChannelSignal[]; // Переименовываем в recent_signals
 }
 
 // 2. Функция для загрузки данных с API

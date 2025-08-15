@@ -16,7 +16,7 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/proxy/:path*',
+        source: '/api/:path*',
         destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/:path*`,
       },
     ];
@@ -24,13 +24,9 @@ const nextConfig = {
   images: {
     domains: ['localhost', '127.0.0.1'],
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/:path*`,
-      },
-    ];
-  },
+  // Отключаем SSG для страниц с React Context
+  trailingSlash: false,
+  generateEtags: false,
 };
+
 module.exports = nextConfig;
