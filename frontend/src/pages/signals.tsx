@@ -6,7 +6,7 @@ import { SignalsList, SignalsFilter, SignalsStats, SignalCard } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { signalsApi } from '@/lib/api/signals';
+import { apiClient } from '@/lib/api';
 import { Signal, SignalFilters } from '@/types';
 
 interface SignalsPageProps {
@@ -23,8 +23,8 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
   const fetchSignals = async () => {
     setIsLoading(true);
     try {
-      const response = await signalsApi.getSignals(filters);
-      setSignals(response);
+      const response = await apiClient.getSignals();
+      setSignals(response || []);
     } catch (error) {
       console.error('Error fetching signals:', error);
     } finally {
@@ -46,9 +46,8 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
 
   const handleAnalyzeSignal = async (signal: Signal) => {
     try {
-      // Вызов ML API для анализа сигнала
-      const prediction = await signalsApi.analyzeSignal(signal.id);
-      console.log('ML Analysis:', prediction);
+      // Временно просто логируем, так как analyzeSignal не реализован в API
+      console.log('ML Analysis for signal:', signal.id);
       // Здесь можно показать модальное окно с результатами анализа
     } catch (error) {
       console.error('Error analyzing signal:', error);
@@ -101,9 +100,6 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
             </div>
           </div>
 
-          {/* Statistics */}
-          <SignalsStats signals={signals} />
-
           {/* Filters */}
           <SignalsFilter
             filters={filters}
@@ -111,141 +107,67 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
             onReset={handleResetFilters}
           />
 
-          {/* Results count */}
-          <Card>
+          {/* Stats */}
+          <SignalsStats signals={signals} />
+
+          {/* Signals List */}
+          <div className="bg-white rounded-lg shadow">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Найдено сигналов: {signals.length}
+                <h2 className="text-lg font-semibold">
+                  Сигналы ({signals.length})
                 </h2>
-                <div className="text-sm text-gray-600">
-                  {isLoading
-                    ? 'Загрузка...'
-                    : 'Последнее обновление: только что'}
+                <div className="text-sm text-gray-500">
+                  Последнее обновление: {new Date().toLocaleString()}
                 </div>
               </div>
             </CardHeader>
-          </Card>
-
-          {/* Signals list/grid */}
-          {viewMode === 'list' ? (
-            <SignalsList
-              signals={signals}
-              isLoading={isLoading}
-              onSignalSelect={handleAnalyzeSignal}
-              showChannel={true}
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <CardContent>
               {isLoading ? (
-                // Loading skeleton for grid
-                Array.from({ length: 6 }).map((_, i) => (
-                  <Card key={i}>
-                    <CardContent className="p-6">
-                      <div className="animate-pulse">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-                          <div>
-                            <div className="w-24 h-4 bg-gray-200 rounded mb-2"></div>
-                            <div className="w-16 h-3 bg-gray-200 rounded"></div>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="w-full h-3 bg-gray-200 rounded"></div>
-                          <div className="w-3/4 h-3 bg-gray-200 rounded"></div>
-                          <div className="w-1/2 h-3 bg-gray-200 rounded"></div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : signals.length === 0 ? (
-                <div className="col-span-full">
-                  <Card>
-                    <CardContent className="text-center py-12">
-                      <div className="text-gray-400 text-6xl mb-4">⚡</div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Нет сигналов
-                      </h3>
-                      <p className="text-gray-600">
-                        Попробуйте изменить фильтры или подключить новые каналы
-                      </p>
-                    </CardContent>
-                  </Card>
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
+              ) : signals.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>Сигналы не найдены</p>
+                </div>
+              ) : viewMode === 'list' ? (
+                <SignalsList
+                  signals={signals}
+                  isLoading={isLoading}
+                  onSignalSelect={handleAnalyzeSignal}
+                  showChannel={true}
+                />
               ) : (
-                signals.map(signal => (
-                  <div key={signal.id}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {signals.map(signal => (
                     <SignalCard
+                      key={signal.id}
                       signal={signal}
                       showChannel={true}
                       onAnalyze={handleAnalyzeSignal}
                     />
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
-            </div>
-          )}
+            </CardContent>
+          </div>
         </div>
       </DashboardLayout>
     </>
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
+export const getServerSideProps: GetServerSideProps = async () => {
   try {
-    // В реальном приложении здесь будет запрос к API
-    // const response = await signalsApi.getSignals();
-
-    // Пока возвращаем моковые данные
-    const initialSignals: Signal[] = [
-      {
-        id: '1',
-        channel_id: '1',
-        pair: 'BTC/USDT',
-        asset: 'BTC/USDT',
-        direction: 'long',
-        entry_price: 45000,
-        target_price: 48000,
-        stop_loss: 43000,
-        status: 'active',
-        pnl: 2.5,
-        confidence: 0.85,
-        description: 'Пробой сопротивления, хорошая точка входа',
-        created_at: new Date().toISOString(),
-        channel: {
-          id: '1',
-          name: 'Crypto Signals Pro',
-        },
-      },
-      {
-        id: '2',
-        channel_id: '2',
-        pair: 'ETH/USDT',
-        asset: 'ETH/USDT',
-        direction: 'short',
-        entry_price: 3200,
-        target_price: 3000,
-        stop_loss: 3350,
-        status: 'completed',
-        pnl: 6.25,
-        confidence: 0.92,
-        description: 'Медвежий флаг, ожидаем снижения',
-        created_at: new Date(Date.now() - 86400000).toISOString(),
-        channel: {
-          id: '2',
-          name: 'Technical Analysis Hub',
-        },
-      },
-    ];
-
+    // Временно возвращаем пустой массив, так как серверный рендеринг API не настроен
     return {
       props: {
-        initialSignals,
+        initialSignals: [],
       },
     };
   } catch (error) {
-    console.error('Error fetching signals:', error);
+    console.error('Error fetching initial signals:', error);
     return {
       props: {
         initialSignals: [],

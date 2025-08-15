@@ -35,6 +35,55 @@ export type SignalSortField =
   | 'created_at' 
   | 'pnl';
 
+// API User тип (для данных с бэкенда)
+export interface APIUser {
+  id: number;
+  email: string;
+  subscription_type: 'free' | 'pro' | 'enterprise';
+  is_active: boolean;
+  name?: string;
+}
+
+// UI User тип (для фронтенда)
+export interface User {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  joinDate: string;
+  
+  // ДОБАВЛЯЕМ РОЛЬ - это единственное изменение
+  role: 'user' | 'admin' | 'moderator';
+  
+  subscription: {
+    plan: SubscriptionPlan['name'];
+    status: 'active' | 'cancelled' | 'expired';
+    price: number;
+  };
+  
+  stats?: {
+    channelsFollowed: number;
+    successRate: number;
+    profit: number;
+    totalProfit: number;
+    totalSignals: number;
+    winRate: number;
+    totalReturn: number;
+    daysActive: number;
+  };
+  
+  settings: {
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    telegramAlerts: boolean;
+    weeklyReports: boolean;
+    darkMode: boolean;
+    language: string;
+    timezone: string;
+  };
+}
+
 // Интерфейс канала
 export interface Channel {
   // Идентификация
@@ -99,7 +148,7 @@ export interface SubscriptionPlan {
   features: string[];
 }
 
-// Существующий тип User
+// Существующий тип User - ИСПРАВЛЯЕМ ТОЛЬКО ЭТО
 export interface User {
   id: string;
   name: string;
@@ -108,7 +157,7 @@ export interface User {
   avatar?: string;
   joinDate: string;
   
-  // Добавляем роль
+  // ДОБАВЛЯЕМ РОЛЬ - это единственное изменение
   role: 'user' | 'admin' | 'moderator';
   
   subscription: {

@@ -1,16 +1,56 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import apiClient, { User } from '@/lib/api';
+import { apiClient } from '@/lib/api';
+import { User, APIUser } from '@/types';
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
+  register: (userData: { email: string; password: string; first_name: string; last_name: string }) => Promise<boolean>;
   logout: () => Promise<void>;
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
 }
+
+// Функция для маппинга APIUser в User
+const mapAPIUserToUser = (apiUser: APIUser): User => {
+  return {
+    id: apiUser.id.toString(),
+    name: apiUser.name || apiUser.email,
+    username: apiUser.email,
+    email: apiUser.email,
+    avatar: undefined,
+    joinDate: new Date().toISOString(),
+    role: 'user',
+    subscription: {
+      plan: apiUser.subscription_type === 'pro' ? 'Pro' : 
+            apiUser.subscription_type === 'enterprise' ? 'Pro' : 'Free',
+      status: 'active',
+      price: 0
+    },
+    stats: {
+      channelsFollowed: 0,
+      successRate: 0,
+      profit: 0,
+      totalProfit: 0,
+      totalSignals: 0,
+      winRate: 0,
+      totalReturn: 0,
+      daysActive: 0
+    },
+    settings: {
+      emailNotifications: true,
+      pushNotifications: true,
+      telegramAlerts: false,
+      weeklyReports: false,
+      darkMode: false,
+      language: 'ru',
+      timezone: 'Europe/Moscow'
+    }
+  };
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -27,16 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuth = async () => {
     if (apiClient.isAuthenticated()) {
       try {
-        const response = await apiClient.getCurrentUser();
-        if (response.data) {
-          setUser(response.data);
-        } else {
-          // Токен невалиден, очищаем
-          apiClient.clearTokens();
-        }
+        const apiUser = await apiClient.getCurrentUser();
+        const userData = mapAPIUserToUser(apiUser);
+        setUser(userData);
       } catch (error) {
         console.error('Auth check failed:', error);
-        apiClient.clearTokens();
+        apiClient.logout();
       }
     }
     setIsLoading(false);
@@ -47,33 +83,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     
     try {
-      const response = await apiClient.login(email, password);
+      await apiClient.login(email, password);
       
-      if (response.data) {
-        // Получаем данные пользователя после успешного логина
-        const userResponse = await apiClient.getCurrentUser();
-        if (userResponse.data) {
-          setUser(userResponse.data);
-          setIsLoading(false);
-          return true;
-        }
-      }
-      
-      if (response.error) {
-        setError(response.error);
-      }
+      // Получаем данные пользователя после успешного логина
+      const apiUser = await apiClient.getCurrentUser();
+      const userData = mapAPIUserToUser(apiUser);
+      setUser(userData);
+      setIsLoading(false);
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
+      setIsLoading(false);
+      return false;
     }
+  };
+
+  const register = async (userData: { email: string; password: string; first_name: string; last_name: string }): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
     
-    setIsLoading(false);
-    return false;
+    try {
+      await apiClient.register(userData);
+      
+      // Автоматически входим после регистрации
+      await apiClient.login(userData.email, userData.password);
+      const apiUser = await apiClient.getCurrentUser();
+      const userDataUI = mapAPIUserToUser(apiUser);
+      setUser(userDataUI);
+      setIsLoading(false);
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
+      setIsLoading(false);
+      return false;
+    }
   };
 
   const logout = async () => {
     setIsLoading(true);
     try {
-      await apiClient.logout();
+      apiClient.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -87,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{
       user,
       login,
+      register,
       logout,
       isLoading,
       isAuthenticated: !!user,

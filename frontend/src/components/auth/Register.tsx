@@ -47,7 +47,20 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
     }
 
     try {
-      await register(formData);
+      // Проверяем, что все обязательные поля заполнены
+      if (!formData.first_name || !formData.last_name) {
+        setError('Пожалуйста, заполните все поля');
+        setIsLoading(false);
+        return;
+      }
+      
+      await register({
+        email: formData.email,
+        password: formData.password,
+        first_name: formData.first_name,
+        last_name: formData.last_name
+      });
+      
       if (onSuccess) {
         onSuccess();
       } else {

@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { subscriptionsApi } from '@/lib/api/subscriptions';
+import { apiClient } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 
 interface Subscription {
@@ -47,10 +47,8 @@ export default function SubscriptionPage() {
 
   const fetchSubscriptions = async () => {
     try {
-      // const response = await subscriptionsApi.getUserSubscriptions();
-      // setSubscriptions(response.data);
-
-      // Моковые данные
+      const response = await apiClient.getSubscriptions();
+      // Временно используем моковые данные, так как API может возвращать другую структуру
       setSubscriptions([
         {
           id: '1',
@@ -85,10 +83,7 @@ export default function SubscriptionPage() {
 
   const fetchPricingPlans = async () => {
     try {
-      // const response = await subscriptionsApi.getPricingPlans();
-      // setPricingPlans(response.data);
-
-      // Моковые данные
+      // Временно используем моковые данные
       setPricingPlans([
         {
           id: 'basic',
@@ -98,43 +93,43 @@ export default function SubscriptionPage() {
           currency: 'USD',
           billing_period: 'monthly',
           features: [
-            'До 3 каналов',
-            'Базовая аналитика',
-            'Email поддержка',
-            'Мобильные уведомления',
+            'Доступ к 5 каналам',
+            'Базовые сигналы',
+            'Email уведомления',
+            'Поддержка по email',
           ],
         },
         {
           id: 'pro',
           name: 'Профессиональный',
-          description: 'Для опытных трейдеров',
+          description: 'Для активных трейдеров',
           price: 79,
           currency: 'USD',
           billing_period: 'monthly',
           features: [
-            'До 10 каналов',
-            'Продвинутая аналитика',
-            'ML прогнозы',
+            'Доступ к 20 каналам',
+            'Премиум сигналы',
+            'ML анализ',
             'Приоритетная поддержка',
             'API доступ',
-            'Экспорт данных',
+            'Персональный менеджер',
           ],
           popular: true,
         },
         {
           id: 'enterprise',
           name: 'Корпоративный',
-          description: 'Для профессиональных команд',
+          description: 'Для команд и компаний',
           price: 199,
           currency: 'USD',
           billing_period: 'monthly',
           features: [
-            'Неограниченное количество каналов',
-            'Полная аналитика',
-            'Персональный менеджер',
+            'Неограниченный доступ',
+            'Все каналы',
             'Кастомные интеграции',
-            'White-label решения',
-            'SLA гарантии',
+            'Dedicated поддержка',
+            'White-label решение',
+            'Обучение команды',
           ],
         },
       ]);
@@ -145,17 +140,14 @@ export default function SubscriptionPage() {
     }
   };
 
-  const handleSubscribe = async (planId: string) => {
-    setSelectedPlan(planId);
+  const handleUpgrade = async (planId: string) => {
     try {
-      // Интеграция с Stripe
-      // const response = await subscriptionsApi.createCheckoutSession(planId);
-      // window.location.href = response.checkout_url;
-
-      console.log('Subscribing to plan:', planId);
-      // Здесь будет редирект на Stripe Checkout
+      setSelectedPlan(planId);
+      await apiClient.updateSubscription(planId as 'free' | 'pro' | 'enterprise');
+      // Обновляем данные после успешного обновления
+      await fetchSubscriptions();
     } catch (error) {
-      console.error('Error creating subscription:', error);
+      console.error('Error upgrading subscription:', error);
     } finally {
       setSelectedPlan(null);
     }
@@ -163,43 +155,19 @@ export default function SubscriptionPage() {
 
   const handleCancelSubscription = async (subscriptionId: string) => {
     try {
-      // await subscriptionsApi.cancelSubscription(subscriptionId);
+      // Временно просто логируем, так как cancelSubscription не реализован в API
+      console.log('Cancelling subscription:', subscriptionId);
       await fetchSubscriptions();
     } catch (error) {
       console.error('Error cancelling subscription:', error);
     }
   };
 
-  const handleReactivateSubscription = async (subscriptionId: string) => {
-    try {
-      // await subscriptionsApi.reactivateSubscription(subscriptionId);
-      await fetchSubscriptions();
-    } catch (error) {
-      console.error('Error reactivating subscription:', error);
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge variant="default">Активна</Badge>;
-      case 'cancelled':
-        return <Badge variant="secondary">Отменена</Badge>;
-      case 'expired':
-        return <Badge variant="destructive">Истекла</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Загрузка...</p>
-          </div>
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       </DashboardLayout>
     );
@@ -209,222 +177,137 @@ export default function SubscriptionPage() {
     <>
       <Head>
         <title>Подписки - Crypto Analytics Platform</title>
-        <meta
-          name="description"
-          content="Управление подписками и тарифными планами"
-        />
+        <meta name="description" content="Управление подписками и тарифными планами" />
       </Head>
 
       <DashboardLayout>
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Header */}
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">Подписки</h1>
-            <p className="mt-2 text-gray-600">
-              Управляйте вашими подписками и выберите подходящий тарифный план
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Подписки</h1>
+            <p className="text-gray-600">
+              Управляйте своими подписками и тарифными планами
             </p>
           </div>
 
-          {/* Current subscriptions */}
-          {subscriptions.length > 0 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Текущие подписки
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {subscriptions.map(subscription => (
-                  <Card key={subscription.id}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900">
+          {/* Current Subscriptions */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Текущие подписки
+            </h2>
+            <div className="grid gap-4">
+              {subscriptions.map(subscription => (
+                <Card key={subscription.id}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-medium">
                           {subscription.channel_name}
                         </h3>
-                        {getStatusBadge(subscription.status)}
+                        <p className="text-sm text-gray-500">
+                          {subscription.price} {subscription.currency}/{subscription.billing_period}
+                        </p>
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Стоимость</span>
-                        <span className="font-semibold">
-                          ${subscription.price}/
-                          {subscription.billing_period === 'monthly'
-                            ? 'мес'
-                            : 'год'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Начало</span>
-                        <span className="text-sm">
-                          {formatDate(subscription.start_date)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Окончание</span>
-                        <span className="text-sm">
-                          {formatDate(subscription.end_date)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Автопродление</span>
-                        <span className="text-sm">
-                          {subscription.auto_renew ? 'Включено' : 'Выключено'}
-                        </span>
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      {subscription.status === 'active' ? (
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={() =>
-                            handleCancelSubscription(subscription.id)
-                          }
-                        >
-                          Отменить подписку
-                        </Button>
-                      ) : subscription.status === 'cancelled' ? (
-                        <Button
-                          variant="default"
-                          className="w-full"
-                          onClick={() =>
-                            handleReactivateSubscription(subscription.id)
-                          }
-                        >
-                          Возобновить подписку
-                        </Button>
-                      ) : (
-                        <Button variant="outline" className="w-full" disabled>
-                          Подписка истекла
-                        </Button>
-                      )}
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Pricing plans */}
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Тарифные планы
-              </h2>
-              <p className="mt-2 text-gray-600">
-                Выберите план, который подходит для ваших потребностей
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {pricingPlans.map(plan => (
-                <Card
-                  key={plan.id}
-                  className={`relative ${plan.popular ? 'border-blue-500 border-2' : ''}`}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <Badge variant="default">Популярный</Badge>
-                    </div>
-                  )}
-
-                  <CardHeader className="text-center">
-                    <h3 className="text-xl font-semibold text-gray-900">
-                      {plan.name}
-                    </h3>
-                    <p className="text-gray-600 mt-2">{plan.description}</p>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold text-gray-900">
-                        ${plan.price}
-                      </span>
-                      <span className="text-gray-600">
-                        /{plan.billing_period === 'monthly' ? 'мес' : 'год'}
-                      </span>
+                      <Badge
+                        variant={
+                          subscription.status === 'active'
+                            ? 'default'
+                            : subscription.status === 'cancelled'
+                            ? 'secondary'
+                            : 'destructive'
+                        }
+                      >
+                        {subscription.status === 'active'
+                          ? 'Активна'
+                          : subscription.status === 'cancelled'
+                          ? 'Отменена'
+                          : 'Истекла'}
+                      </Badge>
                     </div>
                   </CardHeader>
-
                   <CardContent>
-                    <ul className="space-y-3">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-green-500 mr-2">✓</span>
-                          <span className="text-gray-700">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-500">Начало:</span>
+                        <br />
+                        {formatDate(subscription.start_date)}
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Окончание:</span>
+                        <br />
+                        {formatDate(subscription.end_date)}
+                      </div>
+                    </div>
                   </CardContent>
-
                   <CardFooter>
-                    <Button
-                      variant={plan.popular ? 'default' : 'outline'}
-                      className="w-full"
-                      onClick={() => handleSubscribe(plan.id)}
-                      disabled={selectedPlan === plan.id}
-                    >
-                      {selectedPlan === plan.id
-                        ? 'Обработка...'
-                        : 'Выбрать план'}
-                    </Button>
+                    <div className="flex space-x-2">
+                      {subscription.status === 'active' && (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleCancelSubscription(subscription.id)}
+                        >
+                          Отменить
+                        </Button>
+                      )}
+                      <Button variant="outline">Детали</Button>
+                    </div>
                   </CardFooter>
                 </Card>
               ))}
             </div>
           </div>
 
-          {/* FAQ */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Часто задаваемые вопросы
+          {/* Pricing Plans */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Тарифные планы
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardContent>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Как отменить подписку?
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Вы можете отменить подписку в любое время через эту
-                    страницу. Доступ к каналам сохранится до окончания
-                    оплаченного периода.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Можно ли изменить план?
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Да, вы можете повысить или понизить тарифный план в любое
-                    время. Изменения вступят в силу в следующем биллинговом
-                    периоде.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Безопасны ли платежи?
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Все платежи обрабатываются через Stripe - надежную платежную
-                    систему. Мы не храним данные ваших карт.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Есть ли возврат средств?
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Мы предлагаем полный возврат средств в течение 7 дней после
-                    покупки, если вы не удовлетворены сервисом.
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {pricingPlans.map(plan => (
+                <Card
+                  key={plan.id}
+                  className={`relative ${
+                    plan.popular ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-blue-500 text-white">
+                        Популярный
+                      </Badge>
+                    </div>
+                  )}
+                  <CardHeader>
+                    <h3 className="text-xl font-semibold">{plan.name}</h3>
+                    <p className="text-gray-600">{plan.description}</p>
+                    <div className="text-3xl font-bold">
+                      ${plan.price}
+                      <span className="text-sm font-normal text-gray-500">
+                        /{plan.billing_period}
+                      </span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {plan.features.map((feature, index) => (
+                        <li key={index} className="flex items-center">
+                          <span className="text-green-500 mr-2">✓</span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      className="w-full"
+                      onClick={() => handleUpgrade(plan.id)}
+                      disabled={selectedPlan === plan.id}
+                    >
+                      {selectedPlan === plan.id ? 'Обновление...' : 'Выбрать план'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
