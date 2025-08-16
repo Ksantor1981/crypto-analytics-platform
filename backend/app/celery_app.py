@@ -15,8 +15,7 @@ redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 celery_app = Celery(
     "crypto_analytics_signals",
     broker=redis_url,
-    backend=redis_url,
-    include=['workers.tasks']
+    backend=redis_url
 )
 
 # Celery configuration

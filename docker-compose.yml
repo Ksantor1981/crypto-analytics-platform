@@ -89,9 +89,6 @@ services:
     depends_on:
       backend:
         condition: service_healthy  # Ждем готовности backend
-    volumes:
-      - ./frontend:/app  # Для development
-      - /app/node_modules  # Исключаем node_modules
     networks:
       - crypto_analytics_network
     restart: unless-stopped
@@ -155,7 +152,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: crypto-analytics-trading-worker
-    command: celery -A app.celery worker --loglevel=info
+    command: celery -A app.celery_app worker --loglevel=info
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://crypto_analytics_user:secure_postgres_password_2024!@postgres:5432/crypto_analytics}
       - REDIS_URL=${REDIS_URL:-redis://:secure_redis_password_2024!@redis:6379/0}
