@@ -77,10 +77,10 @@ class Signal(BaseModel):
     
     # Analysis flags
     is_successful = Column(Boolean, nullable=True)  # Based on our success criteria
-    reached_tp1 = Column(Boolean, default=False)
-    reached_tp2 = Column(Boolean, default=False)
-    reached_tp3 = Column(Boolean, default=False)
-    hit_stop_loss = Column(Boolean, default=False)
+    reached_tp1 = Column(Boolean, default=False, nullable=False)
+    reached_tp2 = Column(Boolean, default=False, nullable=False)
+    reached_tp3 = Column(Boolean, default=False, nullable=False)
+    hit_stop_loss = Column(Boolean, default=False, nullable=False)
     
     # ML prediction
     ml_success_probability = Column(Numeric(5, 4), nullable=True)  # 0.0 to 1.0

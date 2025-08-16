@@ -1,7 +1,7 @@
 {
-  "asset": "BTC",
+  "asset": "BTCUSDT",
   "entry_price": 50000,
-  "target_price": 55000,
+  "target_price": 52000,
   "stop_loss": 48000,
   "direction": "LONG"
 }

@@ -22,6 +22,10 @@ from .subscription import (
     SubscriptionRenewal, StripeWebhookData
 )
 from .token import Token, TokenPayload, TokenRefresh
+from .backtesting import (
+    BacktestingRequest, BacktestingResponse, StrategyResult, 
+    SignalPerformance, StrategyInfo
+)
 from .user import (
     UserBase, UserCreate, UserUpdate, UserInDB, UserResponse, UserLogin, 
     UserListResponse, UserProfile

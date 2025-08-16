@@ -1,0 +1,8 @@
+{
+  "strategy": "momentum",
+  "start_date": "2025-01-01T00:00:00",
+  "end_date": "2025-08-16T23:59:59",
+  "parameters": {
+    "threshold": 0.7
+  }
+}
