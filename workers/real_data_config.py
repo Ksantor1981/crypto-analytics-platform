@@ -3,10 +3,17 @@
 import os
 
 # Telegram API Configuration
+# ВАЖНО: Для сбора сигналов из каналов нужен ПОЛЬЗОВАТЕЛЬСКИЙ аккаунт, а не bot
+# Bot может только отправлять сообщения, но не читать историю каналов
 # Приоритет: переменные окружения -> hardcoded значения (для разработки)
 TELEGRAM_API_ID = int(os.getenv('TELEGRAM_API_ID', '21073808'))
 TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '2e3adb8940912dd295fe20c1d2ce5368')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7926974097:AAEsGt_YQxp_o7TdbkyYUjQo2hCHw3DPSAw')
+
+# Для реального сбора сигналов нужен пользовательский аккаунт:
+# 1. Получить API_ID и API_HASH на https://my.telegram.org
+# 2. Использовать номер телефона пользователя (не bot token)
+# 3. Пройти авторизацию через код из SMS
 
 # Reddit API Configuration  
 # Приоритет: переменные окружения -> hardcoded значения (для разработки)

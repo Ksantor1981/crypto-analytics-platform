@@ -96,7 +96,8 @@ class TelegramSignalCollector:
                 return False
             
         try:
-            session_name = f"real_session_{self.api_id}" if self.use_real_config else self.config.session_name
+            import time
+            session_name = f"real_session_{self.api_id}_{int(time.time())}" if self.use_real_config else self.config.session_name
             
             self.client = TelegramClient(
                 session_name,
@@ -370,10 +371,14 @@ class TelegramSignalCollector:
             return []
         
         signals = []
-        channel_name = channel_config if isinstance(channel_config, str) else channel_config.get('name', '')
+        # Используем username для поиска канала
+        if isinstance(channel_config, str):
+            channel_name = channel_config
+        else:
+            channel_name = channel_config.get('username', channel_config.get('name', ''))
         
         try:
-            # Get channel entity
+            # Get channel entity using username
             entity = await self.client.get_entity(channel_name)
             
             # Calculate time range for message collection
@@ -443,11 +448,20 @@ class TelegramSignalCollector:
             for channel, task in tasks:
                 try:
                     signals = await task
-                    channel_results[channel] = len(signals)
+                    # Используем username как ключ для channel_results
+                    if isinstance(channel, dict):
+                        channel_key = channel.get('username', channel.get('name', str(channel)))
+                    else:
+                        channel_key = str(channel)
+                    channel_results[channel_key] = len(signals)
                     all_signals.extend(signals)
                 except Exception as e:
                     logger.error(f"Error collecting from {channel}: {e}")
-                    channel_results[channel] = 0
+                    if isinstance(channel, dict):
+                        channel_key = channel.get('username', channel.get('name', str(channel)))
+                    else:
+                        channel_key = str(channel)
+                    channel_results[channel_key] = 0
             
             # Sort signals by confidence
             all_signals.sort(key=lambda x: x.get('confidence', 0), reverse=True)
@@ -528,7 +542,12 @@ class TelegramSignalCollector:
         channel_results = {}
         if self.use_real_config:
             for channel in self.channels:
-                channel_results[channel] = 1
+                # Используем username как ключ для channel_results
+                if isinstance(channel, dict):
+                    channel_key = channel.get('username', channel.get('name', str(channel)))
+                else:
+                    channel_key = str(channel)
+                channel_results[channel_key] = 1
         else:
             for channel in self.channels:
                 channel_name = channel.username if hasattr(channel, 'username') else str(channel)

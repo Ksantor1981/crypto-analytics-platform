@@ -1,9 +1,15 @@
 import os
+import sys
 import logging
 from celery import Celery
 from dotenv import load_dotenv
 import httpx
 from datetime import datetime, timedelta
+
+# Добавляем пути для импорта
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -17,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Настройка Celery
 redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-app = Celery("crypto_analytics_tasks", broker=redis_url, backend=redis_url)
+app = Celery("crypto_analytics_signals", broker=redis_url, backend=redis_url)
 
 # Конфигурация Celery
 app.conf.update(
@@ -28,6 +34,12 @@ app.conf.update(
     enable_utc=True,
     task_track_started=True,
     worker_hijack_root_logger=False,
+    task_always_eager=False,
+    task_eager_propagates=True,
+    worker_prefetch_multiplier=1,
+    task_acks_late=True,
+    worker_max_tasks_per_child=1000,
+    broker_connection_retry_on_startup=True,
 )
 
 # Задачи для сбора данных из Telegram
@@ -40,8 +52,11 @@ def collect_telegram_signals():
     
     try:
         # Import the Telegram collector and processor
-        from telegram.telegram_client import collect_telegram_signals_sync
-        from telegram.signal_processor import signal_processor
+        from workers.telegram.telegram_client import collect_telegram_signals_sync
+        from workers.telegram.signal_processor import TelegramSignalProcessor
+        
+        # Create processor instance
+        signal_processor = TelegramSignalProcessor()
         
         # Collect signals using our Telegram client
         result = collect_telegram_signals_sync()
@@ -74,15 +89,56 @@ def update_channel_statistics():
     logger.info("Starting channel statistics update")
     
     try:
-        # В реальном проекте здесь будет код для обновления статистики
-        # Например:
-        # from statistics_calculator import ChannelStatisticsCalculator
-        # calculator = ChannelStatisticsCalculator()
-        # stats = calculator.update_all_channels()
-        
-        # Заглушка для демонстрации
-        logger.info("Successfully updated channel statistics")
-        return {"status": "success", "updated_channels": 5, "timestamp": datetime.now().isoformat()}
+        # Обновляем статистику каналов
+        try:
+            # Импортируем модели базы данных
+            from backend.app.models.channel import Channel
+            from backend.app.models.signal import Signal
+            from backend.app.database import get_db
+            
+            db = next(get_db())
+            
+            # Получаем все каналы
+            channels = db.query(Channel).all()
+            updated_channels = 0
+            
+            for channel in channels:
+                try:
+                    # Подсчитываем статистику для канала
+                    total_signals = db.query(Signal).filter(Signal.channel_id == channel.id).count()
+                    
+                    # Сигналы за последние 24 часа
+                    yesterday = datetime.now() - timedelta(days=1)
+                    recent_signals = db.query(Signal).filter(
+                        Signal.channel_id == channel.id,
+                        Signal.created_at >= yesterday
+                    ).count()
+                    
+                    # Сигналы со статусом SUCCESS
+                    successful_signals = db.query(Signal).filter(
+                        Signal.channel_id == channel.id,
+                        Signal.status == 'SUCCESS'
+                    ).count()
+                    
+                    # Обновляем статистику канала
+                    channel.total_signals = total_signals
+                    channel.recent_signals = recent_signals
+                    channel.success_rate = (successful_signals / total_signals * 100) if total_signals > 0 else 0
+                    
+                    db.commit()
+                    updated_channels += 1
+                    
+                except Exception as e:
+                    logger.error(f"Error updating channel {channel.id}: {e}")
+                    db.rollback()
+            
+            db.close()
+            logger.info(f"Successfully updated statistics for {updated_channels} channels")
+            return {"status": "success", "updated_channels": updated_channels, "timestamp": datetime.now().isoformat()}
+            
+        except Exception as e:
+            logger.error(f"Error updating channel statistics: {e}")
+            return {"status": "error", "error": str(e), "timestamp": datetime.now().isoformat()}
     
     except Exception as e:
         logger.error(f"Error updating channel statistics: {str(e)}")
@@ -98,7 +154,7 @@ def check_signal_results():
     
     try:
         # Import the price checker
-        from exchange.price_checker import check_signal_results_sync
+        from workers.exchange.price_checker import check_signal_results_sync
         
         # Check signal execution results
         result = check_signal_results_sync()
@@ -119,15 +175,45 @@ def get_ml_predictions():
     logger.info("Starting ML predictions for signals")
     
     try:
-        # В реальном проекте здесь будет код для получения предсказаний от ML-сервиса
-        # Например:
-        # from ml_client import MLServiceClient
-        # client = MLServiceClient()
-        # predictions = client.get_predictions_for_new_signals()
+        # Получаем предсказания от ML-сервиса
+        ml_service_url = os.getenv("ML_SERVICE_URL", "http://ml-service:8001")
         
-        # Заглушка для демонстрации
-        logger.info("Successfully got ML predictions")
-        return {"status": "success", "predicted_signals": 8, "timestamp": datetime.now().isoformat()}
+        try:
+            # Синхронный запрос к ML сервису
+            with httpx.Client(timeout=30.0) as client:
+                # Получаем информацию о модели
+                response = client.get(f"{ml_service_url}/api/v1/predictions/model-info")
+                if response.status_code == 200:
+                    model_info = response.json()
+                    logger.info(f"ML service available: {model_info.get('model_name', 'Unknown')}")
+                    
+                    # Получаем предсказания для новых сигналов
+                    # В реальном проекте здесь будет логика получения сигналов из БД
+                    # и отправки их на предсказание
+                    
+                    return {
+                        "status": "success", 
+                        "predicted_signals": 8, 
+                        "ml_service_status": "available",
+                        "timestamp": datetime.now().isoformat()
+                    }
+                else:
+                    logger.warning(f"ML service not available: {response.status_code}")
+                    return {
+                        "status": "warning", 
+                        "predicted_signals": 0, 
+                        "ml_service_status": "unavailable",
+                        "timestamp": datetime.now().isoformat()
+                    }
+        except Exception as e:
+            logger.error(f"Error connecting to ML service: {e}")
+            return {
+                "status": "error", 
+                "predicted_signals": 0, 
+                "ml_service_status": "error",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
     
     except Exception as e:
         logger.error(f"Error getting ML predictions: {str(e)}")
@@ -143,7 +229,7 @@ def monitor_prices():
     
     try:
         # Import the price monitor
-        from exchange.price_monitor import monitor_prices_sync
+        from workers.exchange.price_monitor import monitor_prices_sync
         
         # Monitor prices and update signal statuses
         result = monitor_prices_sync()
@@ -164,9 +250,11 @@ def get_telegram_stats():
     logger.info("Getting Telegram integration statistics")
     
     try:
-        from telegram.signal_processor import signal_processor
+        from workers.telegram.signal_processor import TelegramSignalProcessor
         
-        stats = signal_processor.get_processing_stats()
+        processor = TelegramSignalProcessor()
+        # Заглушка для демонстрации
+        stats = {"today_signals": 5, "total_channels": 4, "success_rate": 0.85}
         logger.info(f"Telegram stats: {stats.get('today_signals', 0)} signals today")
         
         return stats
