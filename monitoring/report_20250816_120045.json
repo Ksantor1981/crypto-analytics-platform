@@ -1,0 +1,105 @@
+{
+  "timestamp": "2025-08-16T12:00:45.494037",
+  "health": {
+    "overall_status": "degraded",
+    "healthy_services": 3,
+    "total_services": 5,
+    "services": [
+      {
+        "service": "backend",
+        "status": "healthy",
+        "response_time": 0.062,
+        "timestamp": "2025-08-16T12:00:42.047472"
+      },
+      {
+        "service": "ml-service",
+        "status": "healthy",
+        "response_time": 0.031,
+        "timestamp": "2025-08-16T12:00:42.047472"
+      },
+      {
+        "service": "frontend",
+        "status": "unhealthy",
+        "error": "All connection attempts failed",
+        "timestamp": "2025-08-16T12:00:44.351902"
+      },
+      {
+        "service": "redis",
+        "status": "healthy",
+        "timestamp": "2025-08-16T12:00:44.361272"
+      },
+      {
+        "service": "postgres",
+        "status": "unhealthy",
+        "error": "connection to server at \"localhost\" (::1), port 5432 failed: FATAL:  password authentication failed for user \"crypto_analytics_user\"\n",
+        "timestamp": "2025-08-16T12:00:44.383652"
+      }
+    ],
+    "timestamp": "2025-08-16T12:00:44.383652"
+  },
+  "performance": {
+    "system_metrics": {
+      "timestamp": "2025-08-16T12:00:45.410945",
+      "cpu_percent": 13.8,
+      "memory_percent": 77.8,
+      "disk_usage_percent": 92.81825696359493,
+      "network_io_bytes": 25834235684,
+      "active_connections": 149
+    },
+    "api_metrics": [
+      {
+        "timestamp": "2025-08-16T12:00:45.426619",
+        "endpoint": "http://localhost:8000/health",
+        "response_time": 0.015673398971557617,
+        "status_code": 200,
+        "request_count": 1
+      },
+      {
+        "timestamp": "2025-08-16T12:00:45.443023",
+        "endpoint": "http://localhost:8001/health",
+        "response_time": 0.015877723693847656,
+        "status_code": 200,
+        "request_count": 1
+      },
+      {
+        "timestamp": "2025-08-16T12:00:45.468013",
+        "endpoint": "http://localhost:8000/api/v1/signals",
+        "response_time": 0.024990558624267578,
+        "status_code": 307,
+        "request_count": 1
+      },
+      {
+        "timestamp": "2025-08-16T12:00:45.492327",
+        "endpoint": "http://localhost:8001/api/v1/predictions/model-info",
+        "response_time": 0.024314165115356445,
+        "status_code": 404,
+        "request_count": 1
+      }
+    ],
+    "db_metrics": [],
+    "summary": {}
+  },
+  "alerts": [
+    {
+      "type": "service_down",
+      "service": "frontend",
+      "message": "Сервис frontend недоступен: All connection attempts failed",
+      "severity": "high",
+      "timestamp": "2025-08-16T12:00:44.383652"
+    },
+    {
+      "type": "service_down",
+      "service": "postgres",
+      "message": "Сервис postgres недоступен: connection to server at \"localhost\" (::1), port 5432 failed: FATAL:  password authentication failed for user \"crypto_analytics_user\"\n",
+      "severity": "high",
+      "timestamp": "2025-08-16T12:00:44.383652"
+    },
+    {
+      "type": "system_degraded",
+      "message": "Система работает в деградированном режиме: 3/5 сервисов работают",
+      "severity": "medium",
+      "timestamp": "2025-08-16T12:00:44.383652"
+    }
+  ],
+  "status": "degraded"
+}

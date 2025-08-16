@@ -1,0 +1,7 @@
+{
+  "asset": "BTC",
+  "entry_price": 50000,
+  "target_price": 55000,
+  "stop_loss": 48000,
+  "direction": "LONG"
+}

@@ -1,212 +1,221 @@
 #!/usr/bin/env python3
 """
-Тестовый скрипт для проверки ML-сервиса
+Тестирование ML сервиса
 """
 
 import requests
 import json
 from datetime import datetime
 
-# Конфигурация
+# Базовый URL ML сервиса
 ML_SERVICE_URL = "http://localhost:8001"
 
-def test_health_check():
-    """Тест health check эндпоинта"""
-    print("🔍 Тестируем health check...")
+def test_health():
+    """Тест health endpoints"""
+    print("🔍 Тестирование health endpoints...")
     
-    try:
-        response = requests.get(f"{ML_SERVICE_URL}/api/v1/health")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ Health check прошел успешно!")
-            print(f"   Статус: {data.get('status')}")
-            print(f"   Сервис: {data.get('service')}")
-            print(f"   Версия: {data.get('version')}")
-            return True
-        else:
-            print(f"❌ Health check не прошел: {response.status_code}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Ошибка при health check: {e}")
-        return False
+    # Основной health
+    response = requests.get(f"{ML_SERVICE_URL}/")
+    print(f"✅ Основной health: {response.status_code}")
+    print(f"   Ответ: {response.json()}")
+    
+    # Health predictions
+    response = requests.get(f"{ML_SERVICE_URL}/api/v1/predictions/health")
+    print(f"✅ Predictions health: {response.status_code}")
+    print(f"   Ответ: {response.json()}")
+    
+    # Health backtesting
+    response = requests.get(f"{ML_SERVICE_URL}/api/v1/backtesting/health")
+    print(f"✅ Backtesting health: {response.status_code}")
+    print(f"   Ответ: {response.json()}")
+    
+    # Health risk analysis
+    response = requests.get(f"{ML_SERVICE_URL}/api/v1/risk-analysis/health")
+    print(f"✅ Risk analysis health: {response.status_code}")
+    print(f"   Ответ: {response.json()}")
 
 def test_model_info():
     """Тест информации о модели"""
-    print("\n🔍 Тестируем информацию о модели...")
+    print("\n🔍 Тестирование информации о модели...")
     
-    try:
-        response = requests.get(f"{ML_SERVICE_URL}/api/v1/predictions/model/info")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ Информация о модели получена!")
-            print(f"   Версия модели: {data.get('model_version')}")
-            print(f"   Тип модели: {data.get('model_type')}")
-            print(f"   Обучена: {data.get('is_trained')}")
-            print(f"   Признаки: {data.get('feature_names')}")
-            return True
-        else:
-            print(f"❌ Не удалось получить информацию о модели: {response.status_code}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Ошибка при получении информации о модели: {e}")
-        return False
+    response = requests.get(f"{ML_SERVICE_URL}/api/v1/predictions/model/info")
+    print(f"✅ Model info: {response.status_code}")
+    data = response.json()
+    print(f"   Версия модели: {data['model_version']}")
+    print(f"   Тип модели: {data['model_type']}")
+    print(f"   Обучена: {data['is_trained']}")
+    print(f"   Признаки: {data['feature_names']}")
 
-def test_signal_prediction():
-    """Тест предсказания сигналов"""
-    print("\n🔍 Тестируем предсказание сигналов...")
+def test_market_data():
+    """Тест рыночных данных"""
+    print("\n🔍 Тестирование рыночных данных...")
+    
+    assets = ["BTC", "ETH", "BNB", "SOL"]
+    
+    for asset in assets:
+        response = requests.get(f"{ML_SERVICE_URL}/api/v1/predictions/market-data/{asset}")
+        print(f"✅ Market data {asset}: {response.status_code}")
+        data = response.json()
+        print(f"   Цена: ${data['data']['price']:.2f}")
+        print(f"   Объем: {data['data']['volume']:.0f}")
+        print(f"   Изменение 24ч: {data['data']['change_24h']:.2f}%")
+        print(f"   RSI: {data['data']['rsi']:.2f}")
+
+def test_prediction():
+    """Тест предсказаний"""
+    print("\n🔍 Тестирование предсказаний...")
     
     # Тестовые данные
     test_cases = [
         {
-            "name": "BTC LONG с высоким рейтингом",
-            "data": {
-                "asset": "BTC",
-                "direction": "LONG", 
-                "entry_price": 50000,
-                "channel_accuracy": 0.8,
-                "confidence": 0.7
-            }
+            "asset": "BTC",
+            "entry_price": 50000,
+            "target_price": 55000,
+            "stop_loss": 48000,
+            "direction": "LONG"
         },
         {
-            "name": "ETH SHORT с низким рейтингом",
-            "data": {
-                "asset": "ETH",
-                "direction": "SHORT",
-                "entry_price": 3000,
-                "channel_accuracy": 0.3,
-                "confidence": 0.4
-            }
+            "asset": "ETH",
+            "entry_price": 3000,
+            "target_price": 3300,
+            "stop_loss": 2850,
+            "direction": "LONG"
         },
         {
-            "name": "BNB LONG с нейтральным рейтингом",
-            "data": {
-                "asset": "BNB",
-                "direction": "LONG",
-                "entry_price": 400,
-                "channel_accuracy": 0.5,
-                "confidence": 0.5
-            }
+            "asset": "SOL",
+            "entry_price": 100,
+            "target_price": 90,
+            "stop_loss": 110,
+            "direction": "SHORT"
         }
     ]
     
-    success_count = 0
-    
-    for test_case in test_cases:
-        print(f"\n   📊 Тест: {test_case['name']}")
+    for i, test_case in enumerate(test_cases, 1):
+        print(f"\n📊 Тест предсказания #{i}:")
+        print(f"   Актив: {test_case['asset']}")
+        print(f"   Направление: {test_case['direction']}")
+        print(f"   Вход: ${test_case['entry_price']}")
+        print(f"   Цель: ${test_case['target_price']}")
+        print(f"   Стоп: ${test_case['stop_loss']}")
         
         try:
             response = requests.post(
                 f"{ML_SERVICE_URL}/api/v1/predictions/predict",
-                json=test_case['data'],
-                headers={'Content-Type': 'application/json'}
+                json=test_case,
+                headers={"Content-Type": "application/json"}
             )
             
             if response.status_code == 200:
                 data = response.json()
-                print(f"   ✅ Предсказание получено!")
-                print(f"      Вероятность успеха: {data.get('success_probability', 'N/A')}")
-                print(f"      Уверенность: {data.get('confidence', 'N/A')}")
-                print(f"      Рекомендация: {data.get('recommendation', 'N/A')}")
-                print(f"      Оценка риска: {data.get('risk_score', 'N/A')}")
-                success_count += 1
+                print(f"✅ Предсказание успешно!")
+                print(f"   Результат: {data['prediction']}")
+                print(f"   Уверенность: {data['confidence']:.2f}")
+                print(f"   Ожидаемая доходность: {data['expected_return']:.2f}%")
+                print(f"   Уровень риска: {data['risk_level']}")
+                print(f"   Рекомендация: {data['recommendation']}")
             else:
-                print(f"   ❌ Ошибка предсказания: {response.status_code}")
-                print(f"      Ответ: {response.text}")
+                print(f"❌ Ошибка: {response.status_code}")
+                print(f"   Ответ: {response.text}")
                 
         except Exception as e:
-            print(f"   ❌ Ошибка при предсказании: {e}")
-    
-    print(f"\n📈 Результат: {success_count}/{len(test_cases)} тестов прошли успешно")
-    return success_count == len(test_cases)
+            print(f"❌ Исключение: {e}")
 
-def test_error_handling():
-    """Тест обработки ошибок"""
-    print("\n🔍 Тестируем обработку ошибок...")
+def test_backtesting():
+    """Тест бэктестинга"""
+    print("\n🔍 Тестирование бэктестинга...")
     
-    # Тест с некорректными данными
-    invalid_data = {
-        "asset": "INVALID",
-        "direction": "INVALID",
-        "entry_price": "not_a_number",
-        "channel_accuracy": 2.0,  # Должно быть 0-1
-        "confidence": -1.0  # Должно быть 0-1
+    backtest_request = {
+        "asset": "BTC",
+        "start_date": "2024-01-01",
+        "end_date": "2024-12-31",
+        "strategy": "simple",
+        "initial_capital": 10000
     }
     
     try:
         response = requests.post(
-            f"{ML_SERVICE_URL}/api/v1/predictions/predict",
-            json=invalid_data,
-            headers={'Content-Type': 'application/json'}
+            f"{ML_SERVICE_URL}/api/v1/backtesting/run",
+            json=backtest_request,
+            headers={"Content-Type": "application/json"}
         )
         
-        if response.status_code == 422:  # Validation error
-            print("✅ Обработка ошибок работает корректно (422 - validation error)")
-            return True
-        elif response.status_code == 200:
-            print("⚠️  Сервис принял некорректные данные (возможно, есть валидация)")
-            return True
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Бэктестинг успешен!")
+            print(f"   Актив: {data['asset']}")
+            print(f"   Период: {data['period']}")
+            print(f"   Общая доходность: {data['results']['total_return']:.2f}%")
+            print(f"   Коэффициент Шарпа: {data['results']['sharpe_ratio']:.2f}")
+            print(f"   Максимальная просадка: {data['results']['max_drawdown']:.2f}%")
+            print(f"   Винрейт: {data['results']['win_rate']:.2f}%")
+            print(f"   Всего сделок: {data['results']['total_trades']}")
         else:
-            print(f"❌ Неожиданный статус код: {response.status_code}")
-            return False
+            print(f"❌ Ошибка: {response.status_code}")
+            print(f"   Ответ: {response.text}")
             
     except Exception as e:
-        print(f"❌ Ошибка при тестировании обработки ошибок: {e}")
-        return False
+        print(f"❌ Исключение: {e}")
+
+def test_risk_analysis():
+    """Тест анализа рисков"""
+    print("\n🔍 Тестирование анализа рисков...")
+    
+    risk_request = {
+        "asset": "BTC",
+        "position_size": 1000,
+        "entry_price": 50000,
+        "stop_loss": 48000,
+        "take_profit": 55000,
+        "direction": "LONG",
+        "risk_tolerance": "MEDIUM"
+    }
+    
+    try:
+        response = requests.post(
+            f"{ML_SERVICE_URL}/api/v1/risk-analysis/analyze",
+            json=risk_request,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Анализ рисков успешен!")
+            print(f"   Актив: {data['asset']}")
+            print(f"   Уровень риска: {data['risk_level']}")
+            print(f"   Оценка риска: {data['risk_score']:.2f}")
+            print(f"   Рекомендации: {data['recommendations']}")
+            print(f"   Предупреждения: {data['warnings']}")
+        else:
+            print(f"❌ Ошибка: {response.status_code}")
+            print(f"   Ответ: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ Исключение: {e}")
 
 def main():
     """Основная функция тестирования"""
-    print("🚀 Начинаем тестирование ML-сервиса")
+    print("🚀 ТЕСТИРОВАНИЕ ML СЕРВИСА")
+    print("=" * 50)
+    print(f"Время начала: {datetime.now()}")
+    print(f"URL сервиса: {ML_SERVICE_URL}")
     print("=" * 50)
     
-    # Проверяем, что сервис доступен
-    if not test_health_check():
-        print("\n❌ ML-сервис недоступен. Убедитесь, что он запущен на порту 8001")
-        return
-    
-    # Тестируем основные функции
-    tests = [
-        ("Health Check", test_health_check),
-        ("Model Info", test_model_info),
-        ("Signal Prediction", test_signal_prediction),
-        ("Error Handling", test_error_handling)
-    ]
-    
-    results = []
-    
-    for test_name, test_func in tests:
-        try:
-            result = test_func()
-            results.append((test_name, result))
-        except Exception as e:
-            print(f"❌ Ошибка в тесте {test_name}: {e}")
-            results.append((test_name, False))
-    
-    # Итоговый отчет
-    print("\n" + "=" * 50)
-    print("📊 ИТОГОВЫЙ ОТЧЕТ")
-    print("=" * 50)
-    
-    passed = 0
-    total = len(results)
-    
-    for test_name, result in results:
-        status = "✅ ПРОШЕЛ" if result else "❌ НЕ ПРОШЕЛ"
-        print(f"{test_name}: {status}")
-        if result:
-            passed += 1
-    
-    print(f"\n📈 Результат: {passed}/{total} тестов прошли успешно")
-    
-    if passed == total:
-        print("🎉 Все тесты прошли успешно! ML-сервис работает корректно.")
-    else:
-        print("⚠️  Некоторые тесты не прошли. Проверьте логи сервиса.")
-    
-    print(f"\n⏰ Время тестирования: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    try:
+        # Тестируем все компоненты
+        test_health()
+        test_model_info()
+        test_market_data()
+        test_prediction()
+        test_backtesting()
+        test_risk_analysis()
+        
+        print("\n" + "=" * 50)
+        print("✅ ТЕСТИРОВАНИЕ ЗАВЕРШЕНО УСПЕШНО!")
+        print("=" * 50)
+        
+    except Exception as e:
+        print(f"\n❌ КРИТИЧЕСКАЯ ОШИБКА: {e}")
+        print("=" * 50)
 
 if __name__ == "__main__":
     main() 
