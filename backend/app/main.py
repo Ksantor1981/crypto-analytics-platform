@@ -21,7 +21,7 @@ try:
     from .api.endpoints import (
         channels, users, signals, subscriptions, 
         payments, ml_integration, telegram_integration, 
-        trading, ml_predictions
+        trading, ml_predictions, backtesting
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -34,7 +34,7 @@ except ImportError as e:
         from api.endpoints import (
             channels, users, signals, subscriptions,
             payments, ml_integration, telegram_integration,
-            trading, ml_predictions
+            trading, ml_predictions, backtesting
         )
         from core.middleware import SubscriptionLimitMiddleware
         from core.scheduler import TradingScheduler
@@ -184,7 +184,8 @@ routers_config = [
     ("ml_integration", "/api/v1/ml", "ml"),
     ("telegram_integration", "/api/v1/telegram", "telegram"),
     ("trading", "/api/v1/trading", "trading"),
-    ("ml_predictions", "/api/v1/predictions", "predictions")
+    ("ml_predictions", "/api/v1/predictions", "predictions"),
+    ("backtesting", "/api/v1/backtesting", "backtesting")
 ]
 
 # Подключаем роутеры с обработкой ошибок

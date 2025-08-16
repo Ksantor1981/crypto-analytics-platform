@@ -1,0 +1,10 @@
+{
+  "strategy": "momentum",
+  "start_date": "2025-01-01T00:00:00Z",
+  "end_date": "2025-08-16T23:59:59Z",
+  "assets": ["BTCUSDT", "ETHUSDT"],
+  "parameters": {
+    "lookback_period": 7,
+    "threshold": 0.7
+  }
+}
