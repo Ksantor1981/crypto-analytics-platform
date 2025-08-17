@@ -1,38 +1,31 @@
-from sqlalchemy import Column, String, Float, Integer, Text, Boolean, ForeignKey
-from sqlalchemy.orm import relationship
+"""
+Channel model for storing Telegram channel information
+"""
 
-from .base import BaseModel
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
+from sqlalchemy.sql import func
+from backend.app.core.database import BaseModel
+
 
 class Channel(BaseModel):
-    """
-    Model representing a crypto signal channel (Telegram, Reddit, Twitter, RSS, TradingView)
-    """
+    """Model for storing Telegram channel information"""
+    
     __tablename__ = "channels"
     
-    name = Column(String(255), nullable=False, index=True)
-    platform = Column(String(50), nullable=False, index=True)  # telegram, reddit, twitter, rss, tradingview
-    url = Column(String(255), nullable=False, unique=True)
-    category = Column(String(50), nullable=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), unique=True, index=True, nullable=False)
+    name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
-    
-    # Channel statistics
-    accuracy = Column(Float, nullable=True)
-    signals_count = Column(Integer, default=0)
-    successful_signals = Column(Integer, default=0)
-    average_roi = Column(Float, nullable=True)
-    max_drawdown = Column(Float, nullable=True)
-    
-    # Status
-    is_active = Column(Boolean, default=True)
-    is_verified = Column(Boolean, default=False)
-
-    # Ownership
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    owner = relationship("User", back_populates="channels")
-    
-    # Relationships
-    signals = relationship("Signal", back_populates="channel", cascade="all, delete-orphan")
-    performance_metrics = relationship("PerformanceMetric", back_populates="channel", cascade="all, delete-orphan")
+    platform = Column(String(50), default="telegram", nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    subscribers_count = Column(Integer, nullable=True)
+    category = Column(String(100), nullable=True)
+    priority = Column(Integer, default=1, nullable=False)
+    expected_accuracy = Column(String(50), nullable=True)
+    status = Column(String(50), default="active", nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     def __repr__(self):
-        return f"<Channel {self.name} ({self.platform})>" 
+        return f"<Channel(username='{self.username}', name='{self.name}', platform='{self.platform}')>" 

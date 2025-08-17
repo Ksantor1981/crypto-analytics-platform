@@ -1,0 +1,87 @@
+{
+  "analyses": [
+    {
+      "channel": "CryptoCapo",
+      "timestamp": "2025-08-16T23:41:50.984581",
+      "asset": "UNKNOWN",
+      "direction": "BULLISH",
+      "confidence": 0.6,
+      "levels": [
+        100.0
+      ],
+      "analysis_type": "market_analysis",
+      "raw_text": "#DXY\nExpecting a bullish move for the dollar. Confirmation above 100.",
+      "asset_name": "Unknown Asset"
+    },
+    {
+      "channel": "CryptoCapo",
+      "timestamp": "2025-08-16T23:41:50.986583",
+      "asset": "BTC",
+      "direction": "BULLISH",
+      "confidence": 0.7,
+      "levels": [
+        47000.0
+      ],
+      "analysis_type": "market_analysis",
+      "raw_text": "BITCOIN ANALYSIS\nBTC showing bullish momentum. Key resistance at 45000. Break above 47000 confirms uptrend.",
+      "asset_name": "Bitcoin"
+    },
+    {
+      "channel": "CryptoCapo",
+      "timestamp": "2025-08-16T23:41:50.986583",
+      "asset": "ETH",
+      "direction": "BULLISH",
+      "confidence": 0.7,
+      "levels": [
+        2800.0,
+        3200.0
+      ],
+      "analysis_type": "market_analysis",
+      "raw_text": "ETHEREUM UPDATE\nETH bearish below 3200. Support at 3000. Break below 2800 accelerates decline.",
+      "asset_name": "Ethereum"
+    }
+  ],
+  "trading_ideas": [
+    {
+      "asset": "UNKNOWN",
+      "asset_name": "Unknown Asset",
+      "direction": "BULLISH",
+      "confidence": 0.6,
+      "entry_levels": [
+        100.0
+      ],
+      "source": "CryptoCapo",
+      "analysis_type": "technical_analysis",
+      "timestamp": "2025-08-16T23:41:50.984581",
+      "recommendation": "Рассмотреть покупку UNKNOWN при достижении уровней: 100.0"
+    },
+    {
+      "asset": "BTC",
+      "asset_name": "Bitcoin",
+      "direction": "BULLISH",
+      "confidence": 0.7,
+      "entry_levels": [
+        47000.0
+      ],
+      "source": "CryptoCapo",
+      "analysis_type": "technical_analysis",
+      "timestamp": "2025-08-16T23:41:50.986583",
+      "recommendation": "Рассмотреть покупку BTC при достижении уровней: 47000.0"
+    },
+    {
+      "asset": "ETH",
+      "asset_name": "Ethereum",
+      "direction": "BULLISH",
+      "confidence": 0.7,
+      "entry_levels": [
+        2800.0,
+        3200.0
+      ],
+      "source": "CryptoCapo",
+      "analysis_type": "technical_analysis",
+      "timestamp": "2025-08-16T23:41:50.986583",
+      "recommendation": "Рассмотреть покупку ETH при достижении уровней: 2800.0, 3200.0"
+    }
+  ],
+  "timestamp": "2025-08-16T23:41:50.990142"
+}
