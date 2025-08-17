@@ -94,6 +94,15 @@ venv.bak/
 .env.*.local
 .envrc
 
+# Security and secrets
+*.key
+*.pem
+*.crt
+*.csr
+secrets/
+secrets.json
+*.secret
+
 # Frontend dependencies
 node_modules/
 .next/

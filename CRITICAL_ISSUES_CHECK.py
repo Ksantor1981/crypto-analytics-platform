@@ -358,8 +358,26 @@ class CriticalIssuesChecker:
             with open("docker-compose.yml", "r") as f:
                 docker_content = f.read()
                 
-            if "password" in docker_content.lower() or "secret" in docker_content.lower():
-                self.log_check("Security", "Hardcoded secrets", "WARNING", "Возможные hardcoded секреты в docker-compose.yml")
+            # Проверяем на hardcoded секреты (не переменные окружения)
+            hardcoded_patterns = [
+                "password=",
+                "secret=",
+                "key=",
+                "token="
+            ]
+            
+            lines = docker_content.split('\n')
+            hardcoded_found = []
+            
+            for line in lines:
+                line_lower = line.lower().strip()
+                if any(pattern in line_lower for pattern in hardcoded_patterns):
+                    # Проверяем, что это не переменная окружения
+                    if not line_lower.startswith(('- ', '  - ')) or '${' not in line:
+                        hardcoded_found.append(line.strip())
+            
+            if hardcoded_found:
+                self.log_check("Security", "Hardcoded secrets", "WARNING", f"Найдено {len(hardcoded_found)} возможных hardcoded секретов")
             else:
                 self.log_check("Security", "Hardcoded secrets", "PASS", "Hardcoded секреты не найдены")
                 
@@ -393,7 +411,8 @@ class CriticalIssuesChecker:
         # Проверка workers
         workers_dir = Path("workers")
         if workers_dir.exists():
-            worker_files = list(workers_dir.glob("*.py"))
+            # Ищем файлы в основной папке и подпапках
+            worker_files = list(workers_dir.rglob("*.py"))
             critical_workers = ["telegram_scraper.py", "reddit_collector.py", "signal_patterns.py"]
             
             found_workers = [f.name for f in worker_files]

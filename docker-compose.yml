@@ -5,7 +5,7 @@ services:
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-crypto_analytics}
       - POSTGRES_USER=${POSTGRES_USER:-crypto_analytics_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure_postgres_password_2024!}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
     ports:
       - "${POSTGRES_PORT:-5432}:5432"  # Настраиваемый порт
@@ -44,9 +44,9 @@ services:
       dockerfile: Dockerfile
     container_name: crypto-analytics-backend
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgresql://crypto_analytics_user:secure_postgres_password_2024!@postgres:5432/crypto_analytics}
-      - REDIS_URL=${REDIS_URL:-redis://:secure_redis_password_2024!@redis:6379/0}  # Добавлен пароль
-      - SECRET_KEY=${SECRET_KEY:-very_long_and_complex_secret_key_for_jwt_2024_minimum_32_characters}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - DEBUG=${DEBUG:-false}
       # Добавляем ML service URL
@@ -105,7 +105,7 @@ services:
       dockerfile: Dockerfile
     container_name: crypto-analytics-ml-service
     environment:
-      - REDIS_URL=${REDIS_URL:-redis://:secure_redis_password_2024!@redis:6379/1}  # Отдельная DB
+      - REDIS_URL=${REDIS_URL}
       - MODEL_CACHE_ENABLED=${MODEL_CACHE_ENABLED:-true}
     ports:
       - "${ML_SERVICE_PORT:-8001}:8001"
@@ -154,10 +154,10 @@ services:
     container_name: crypto-analytics-trading-worker
     command: celery -A app.celery_app worker --loglevel=info
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgresql://crypto_analytics_user:secure_postgres_password_2024!@postgres:5432/crypto_analytics}
-      - REDIS_URL=${REDIS_URL:-redis://:secure_redis_password_2024!@redis:6379/0}
-      - SECRET_KEY=${SECRET_KEY:-very_long_and_complex_secret_key_for_jwt_2024_minimum_32_characters}
-      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY:-a374187449d497776d6901fdc756137bcd9f1f554863898dc61ff9ff921368ff}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -178,9 +178,9 @@ services:
     container_name: crypto-analytics-signal-worker
     command: celery -A tasks worker --loglevel=info
     environment:
-      - DATABASE_URL=postgresql://crypto_analytics_user:secure_postgres_password_2024!@postgres:5432/crypto_analytics
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=very_long_and_complex_secret_key_for_jwt_2024_minimum_32_characters
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SECRET_KEY=${SECRET_KEY}
       - ML_SERVICE_URL=http://ml-service:8001
     depends_on:
       postgres:
