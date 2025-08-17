@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function HomeNew() {
+export default function Home() {
   const router = useRouter();
   const [timestamp, setTimestamp] = useState<string>('');
   
@@ -23,7 +25,7 @@ export default function HomeNew() {
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        {/* Хедер с версионированием */}
+        {/* Header */}
         <header className="relative z-50 bg-black/20 backdrop-blur-xl border-b border-purple-500/20">
           <div className="container mx-auto px-6 py-4">
             <nav className="flex items-center justify-between">
@@ -32,7 +34,7 @@ export default function HomeNew() {
                   CryptoAnalytics
                 </div>
                 <span className="text-xs text-purple-300 bg-purple-500/20 px-2 py-1 rounded">
-                  v2.0.{timestamp}
+                  v3.0.{timestamp}
                 </span>
               </div>
               
@@ -43,18 +45,18 @@ export default function HomeNew() {
                 <a href="#pricing" className="text-purple-200 hover:text-purple-400 transition-colors">
                   Pricing
                 </a>
-                <button 
+                <Button 
                   onClick={() => router.push('/auth/login')}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-2 rounded-lg text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                 >
                   Get Started
-                </button>
+                </Button>
               </div>
             </nav>
           </div>
         </header>
 
-        {/* Hero Section - ОБНОВЛЕННЫЙ ДИЗАЙН */}
+        {/* Hero Section */}
         <section className="relative py-20 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10"></div>
           
@@ -68,122 +70,155 @@ export default function HomeNew() {
               </h1>
               
               <p className="text-xl text-purple-200 mb-8 max-w-2xl mx-auto leading-relaxed">
-                Анализируйте криптовалютные сигналы с помощью машинного обучения. 
-                87.2% точность предсказаний для максимальной прибыли.
+                Analyze cryptocurrency signals with machine learning. 
+                87.2% prediction accuracy for maximum profit.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                <button 
+                <Button 
                   onClick={() => router.push('/auth/register')}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-4 rounded-xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all"
+                  size="lg"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-lg px-8 py-4"
                 >
-                  Начать бесплатно
-                </button>
-                <button 
+                  Start Free Trial
+                </Button>
+                <Button 
                   onClick={() => router.push('/demo')}
-                  className="border-2 border-purple-400 text-purple-300 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-purple-400/10 transition-all"
+                  variant="outline"
+                  size="lg"
+                  className="border-2 border-purple-400 text-purple-300 hover:bg-purple-400/10 text-lg px-8 py-4"
                 >
-                  Посмотреть демо
-                </button>
+                  View Demo
+                </Button>
               </div>
 
-              {/* Статистики */}
+              {/* Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-                <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/20">
-                  <div className="text-3xl font-bold text-purple-400 mb-2">87.2%</div>
-                  <div className="text-purple-200">Точность ML модели</div>
-                </div>
-                <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/20">
-                  <div className="text-3xl font-bold text-pink-400 mb-2">110+</div>
-                  <div className="text-purple-200">Аналитических признаков</div>
-                </div>
-                <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/20">
-                  <div className="text-3xl font-bold text-purple-400 mb-2">&lt;0.3s</div>
-                  <div className="text-purple-200">Время отклика API</div>
-                </div>
+                <Card className="bg-white/5 backdrop-blur-lg border-purple-500/20">
+                  <CardContent className="p-6">
+                    <div className="text-3xl font-bold text-purple-400 mb-2">87.2%</div>
+                    <div className="text-purple-200">ML Model Accuracy</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-white/5 backdrop-blur-lg border-purple-500/20">
+                  <CardContent className="p-6">
+                    <div className="text-3xl font-bold text-pink-400 mb-2">110+</div>
+                    <div className="text-purple-200">Analytical Features</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-white/5 backdrop-blur-lg border-purple-500/20">
+                  <CardContent className="p-6">
+                    <div className="text-3xl font-bold text-purple-400 mb-2">&lt;0.3s</div>
+                    <div className="text-purple-200">API Response Time</div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Features Section - НОВЫЙ ДИЗАЙН */}
+        {/* Features Section */}
         <section id="features" className="py-20 bg-black/20">
           <div className="container mx-auto px-6">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Возможности платформы
+                Platform Features
               </h2>
               <p className="text-purple-200 text-lg max-w-2xl mx-auto">
-                Используйте силу искусственного интеллекта для анализа криптовалютных сигналов
+                Harness the power of artificial intelligence for cryptocurrency signal analysis
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Feature 1 */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/20 hover:border-purple-400/40 transition-all">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-6">
-                  <span className="text-2xl">🤖</span>
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-4">AI-анализ сигналов</h3>
-                <p className="text-purple-200">
-                  Ensemble модели машинного обучения анализируют сигналы с точностью 87.2%
-                </p>
-              </div>
+              <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg border-purple-500/20 hover:border-purple-400/40 transition-all">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4">
+                    <span className="text-2xl">🤖</span>
+                  </div>
+                  <CardTitle className="text-white">AI Signal Analysis</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-purple-200">
+                    Ensemble machine learning models analyze signals with 87.2% accuracy
+                  </p>
+                </CardContent>
+              </Card>
 
               {/* Feature 2 */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/20 hover:border-purple-400/40 transition-all">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-6">
-                  <span className="text-2xl">📊</span>
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-4">Real-time данные</h3>
-                <p className="text-purple-200">
-                  Актуальные данные с бирж Binance и Bybit в реальном времени
-                </p>
-              </div>
+              <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg border-purple-500/20 hover:border-purple-400/40 transition-all">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4">
+                    <span className="text-2xl">📊</span>
+                  </div>
+                  <CardTitle className="text-white">Real-time Data</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-purple-200">
+                    Live data from Binance and Bybit exchanges in real-time
+                  </p>
+                </CardContent>
+              </Card>
 
               {/* Feature 3 */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/20 hover:border-purple-400/40 transition-all">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-6">
-                  <span className="text-2xl">🎯</span>
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-4">Антирейтинг каналов</h3>
-                <p className="text-purple-200">
-                  Инновационная система оценки качества криптовалютных каналов
-                </p>
-              </div>
+              <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg border-purple-500/20 hover:border-purple-400/40 transition-all">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4">
+                    <span className="text-2xl">🎯</span>
+                  </div>
+                  <CardTitle className="text-white">Channel Rating</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-purple-200">
+                    Innovative system for evaluating cryptocurrency channel quality
+                  </p>
+                </CardContent>
+              </Card>
 
               {/* Feature 4 */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/20 hover:border-purple-400/40 transition-all">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-6">
-                  <span className="text-2xl">⚡</span>
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-4">Высокая производительность</h3>
-                <p className="text-purple-200">
-                  API отвечает менее чем за 0.3 секунды, 99.9% uptime
-                </p>
-              </div>
+              <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg border-purple-500/20 hover:border-purple-400/40 transition-all">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4">
+                    <span className="text-2xl">⚡</span>
+                  </div>
+                  <CardTitle className="text-white">High Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-purple-200">
+                    API responds in less than 0.3 seconds, 99.9% uptime
+                  </p>
+                </CardContent>
+              </Card>
 
               {/* Feature 5 */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/20 hover:border-purple-400/40 transition-all">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-6">
-                  <span className="text-2xl">🔒</span>
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-4">Безопасность</h3>
-                <p className="text-purple-200">
-                  JWT аутентификация, RBAC система, защита от DDoS атак
-                </p>
-              </div>
+              <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg border-purple-500/20 hover:border-purple-400/40 transition-all">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4">
+                    <span className="text-2xl">🔒</span>
+                  </div>
+                  <CardTitle className="text-white">Security</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-purple-200">
+                    JWT authentication, RBAC system, DDoS protection
+                  </p>
+                </CardContent>
+              </Card>
 
               {/* Feature 6 */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/20 hover:border-purple-400/40 transition-all">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-6">
-                  <span className="text-2xl">🚀</span>
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-4">Auto-trading (скоро)</h3>
-                <p className="text-purple-200">
-                  Автоматическая торговля на основе AI-анализа сигналов
-                </p>
-              </div>
+              <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg border-purple-500/20 hover:border-purple-400/40 transition-all">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4">
+                    <span className="text-2xl">🚀</span>
+                  </div>
+                  <CardTitle className="text-white">Auto-trading (Coming Soon)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-purple-200">
+                    Automated trading based on AI signal analysis
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
@@ -193,99 +228,111 @@ export default function HomeNew() {
           <div className="container mx-auto px-6">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Тарифные планы
+                Pricing Plans
               </h2>
               <p className="text-purple-200 text-lg">
-                Выберите подходящий план для ваших потребностей
+                Choose the plan that fits your needs
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {/* Free Plan */}
-              <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/20">
-                <h3 className="text-2xl font-bold text-white mb-4">Free</h3>
-                <div className="text-4xl font-bold text-purple-400 mb-6">
-                  $0<span className="text-lg text-purple-200">/мес</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    5 каналов
-                  </li>
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    Базовая аналитика
-                  </li>
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    Email поддержка
-                  </li>
-                </ul>
-                <button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-colors">
-                  Начать бесплатно
-                </button>
-              </div>
+              <Card className="bg-white/5 backdrop-blur-lg border-purple-500/20">
+                <CardHeader>
+                  <CardTitle className="text-white">Free</CardTitle>
+                  <div className="text-4xl font-bold text-purple-400">
+                    $0<span className="text-lg text-purple-200">/mo</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      5 channels
+                    </li>
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      Basic analytics
+                    </li>
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      Email support
+                    </li>
+                  </ul>
+                  <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                    Start Free
+                  </Button>
+                </CardContent>
+              </Card>
 
               {/* Pro Plan */}
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl p-8 border-2 border-purple-400 relative">
+              <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg border-2 border-purple-400 relative">
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full text-sm font-semibold">
-                  Популярный
+                  Popular
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4">Pro</h3>
-                <div className="text-4xl font-bold text-purple-400 mb-6">
-                  $29<span className="text-lg text-purple-200">/мес</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    50 каналов
-                  </li>
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    Расширенная аналитика
-                  </li>
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    ML предсказания
-                  </li>
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    Приоритетная поддержка
-                  </li>
-                </ul>
-                <button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg hover:shadow-lg transition-all">
-                  Выбрать Pro
-                </button>
-              </div>
+                <CardHeader>
+                  <CardTitle className="text-white">Pro</CardTitle>
+                  <div className="text-4xl font-bold text-purple-400">
+                    $29<span className="text-lg text-purple-200">/mo</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      50 channels
+                    </li>
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      Advanced analytics
+                    </li>
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      ML predictions
+                    </li>
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      Priority support
+                    </li>
+                  </ul>
+                  <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                    Choose Pro
+                  </Button>
+                </CardContent>
+              </Card>
 
               {/* Enterprise Plan */}
-              <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/20">
-                <h3 className="text-2xl font-bold text-white mb-4">Enterprise</h3>
-                <div className="text-4xl font-bold text-purple-400 mb-6">
-                  $99<span className="text-lg text-purple-200">/мес</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    Безлимит каналов
-                  </li>
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    API доступ
-                  </li>
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    Персональный менеджер
-                  </li>
-                  <li className="flex items-center text-purple-200">
-                    <span className="text-green-400 mr-3">✓</span>
-                    SLA 99.9%
-                  </li>
-                </ul>
-                <button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-colors">
-                  Связаться с нами
-                </button>
-              </div>
+              <Card className="bg-white/5 backdrop-blur-lg border-purple-500/20">
+                <CardHeader>
+                  <CardTitle className="text-white">Enterprise</CardTitle>
+                  <div className="text-4xl font-bold text-purple-400">
+                    $99<span className="text-lg text-purple-200">/mo</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      Unlimited channels
+                    </li>
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      API access
+                    </li>
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      Personal manager
+                    </li>
+                    <li className="flex items-center text-purple-200">
+                      <span className="text-green-400 mr-3">✓</span>
+                      99.9% SLA
+                    </li>
+                  </ul>
+                  <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                    Contact Us
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
@@ -298,10 +345,10 @@ export default function HomeNew() {
                 CryptoAnalytics
               </div>
               <p className="text-purple-300 mb-6">
-                Анализ криптовалютных сигналов с помощью искусственного интеллекта
+                Cryptocurrency signal analysis with artificial intelligence
               </p>
               <div className="text-purple-400 text-sm">
-                © 2025 CryptoAnalytics. Все права защищены. v2.0.{timestamp}
+                © 2025 CryptoAnalytics. All rights reserved. v3.0.{timestamp}
               </div>
             </div>
           </div>
