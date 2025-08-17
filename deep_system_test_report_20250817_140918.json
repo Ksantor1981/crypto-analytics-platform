@@ -1,0 +1,430 @@
+{
+  "timestamp": "2025-08-17T14:09:18.412949",
+  "total_tests": 56,
+  "passed": 49,
+  "failed": 0,
+  "warnings": 7,
+  "test_time": 0.5303466320037842,
+  "categories": {
+    "File Structure": [
+      {
+        "test": "Файл README.md",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.414952"
+      },
+      {
+        "test": "Файл TASKS2.md",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.414952"
+      },
+      {
+        "test": "Файл docker-compose.yml",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.414952"
+      },
+      {
+        "test": "Файл backend/app/main.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.414952"
+      },
+      {
+        "test": "Файл backend/app/models/feedback.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.414952"
+      },
+      {
+        "test": "Файл backend/app/schemas/feedback.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.416099"
+      },
+      {
+        "test": "Файл backend/app/api/endpoints/feedback.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.416099"
+      },
+      {
+        "test": "Файл frontend/components/FeedbackForm.tsx",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.416099"
+      },
+      {
+        "test": "Файл frontend/pages/feedback.tsx",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.416099"
+      },
+      {
+        "test": "Файл workers/telegram/telegram_scraper.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.416099"
+      },
+      {
+        "test": "Файл workers/reddit_collector.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.416099"
+      },
+      {
+        "test": "Файл workers/signal_patterns.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.417101"
+      },
+      {
+        "test": "Файл workers/telegram_feedback_bot.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.417101"
+      },
+      {
+        "test": "Файл workers/channel_discovery_system.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.417101"
+      }
+    ],
+    "Imports": [
+      {
+        "test": "Импорт SignalPatterns",
+        "status": "PASS",
+        "details": "Модуль signal_patterns успешно импортирован",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.418641"
+      },
+      {
+        "test": "Импорт RedditSignalCollector",
+        "status": "PASS",
+        "details": "Модуль reddit_collector успешно импортирован",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.581377"
+      },
+      {
+        "test": "Импорт TelegramSignalScraper",
+        "status": "PASS",
+        "details": "Модуль telegram.telegram_scraper успешно импортирован",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.665776"
+      },
+      {
+        "test": "Импорт ChannelDiscoverySystem",
+        "status": "PASS",
+        "details": "Модуль channel_discovery_system успешно импортирован",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.666879"
+      }
+    ],
+    "Signal Processing": [
+      {
+        "test": "Сигнал 1",
+        "status": "WARNING",
+        "details": "Неполная обработка: {'trading_pair': 'BTC/USDT', 'direction': 'LONG', 'entry_price': 45000.0, 'target_price': 47000.0, 'stop_loss': 44000.0, 'confidence': 0.7, 'source': 'step_pattern', 'channel_username': 'test', 'message_id': 'test', 'extracted_at': datetime.datetime(2025, 8, 17, 12, 9, 18, 671079)}",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.671079"
+      },
+      {
+        "test": "Сигнал 2",
+        "status": "WARNING",
+        "details": "Неполная обработка: {'trading_pair': 'ETH/USDT', 'direction': 'SHORT', 'entry_price': 3200.0, 'target_price': 3000.0, 'stop_loss': 3300.0, 'confidence': 0.7, 'source': 'step_pattern', 'channel_username': 'test', 'message_id': 'test', 'extracted_at': datetime.datetime(2025, 8, 17, 12, 9, 18, 671079)}",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.671079"
+      },
+      {
+        "test": "Сигнал 3",
+        "status": "WARNING",
+        "details": "Неполная обработка: {'trading_pair': 'ADA/USDT', 'direction': 'LONG', 'entry_price': 0.45, 'target_price': 0.5, 'stop_loss': 0.42, 'confidence': 0.7, 'source': 'step_pattern', 'channel_username': 'test', 'message_id': 'test', 'extracted_at': datetime.datetime(2025, 8, 17, 12, 9, 18, 671079)}",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.671079"
+      },
+      {
+        "test": "Сигнал 4",
+        "status": "WARNING",
+        "details": "Неполная обработка: {}",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.672586"
+      },
+      {
+        "test": "Сигнал 5",
+        "status": "WARNING",
+        "details": "Неполная обработка: {}",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.672586"
+      }
+    ],
+    "Telegram Integration": [
+      {
+        "test": "Инициализация скрапера",
+        "status": "PASS",
+        "details": "TelegramSignalScraper создан",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.672586"
+      }
+    ],
+    "Reddit Integration": [
+      {
+        "test": "Инициализация коллектора",
+        "status": "PASS",
+        "details": "RedditSignalCollector создан",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.672586"
+      }
+    ],
+    "Feedback System": [
+      {
+        "test": "Файл feedback.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.673592"
+      },
+      {
+        "test": "Файл feedback.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.673592"
+      },
+      {
+        "test": "Файл feedback.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.673592"
+      },
+      {
+        "test": "Файл FeedbackForm.tsx",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.673592"
+      },
+      {
+        "test": "Файл feedback.tsx",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.673592"
+      },
+      {
+        "test": "Файл telegram_feedback_bot.py",
+        "status": "PASS",
+        "details": "Файл найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.674591"
+      },
+      {
+        "test": "Telegram бот",
+        "status": "WARNING",
+        "details": "Telegram библиотеки не установлены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.926022"
+      }
+    ],
+    "Channel Discovery": [
+      {
+        "test": "Инициализация",
+        "status": "PASS",
+        "details": "ChannelDiscoverySystem создан",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.927530"
+      }
+    ],
+    "Configuration": [
+      {
+        "test": "Файл docker-compose.yml",
+        "status": "PASS",
+        "details": "Файл существует и не пустой",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.928540"
+      },
+      {
+        "test": "Файл requirements.txt",
+        "status": "PASS",
+        "details": "Файл существует и не пустой",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.928540"
+      },
+      {
+        "test": "Файл requirements.txt",
+        "status": "PASS",
+        "details": "Файл существует и не пустой",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.929539"
+      },
+      {
+        "test": "Файл package.json",
+        "status": "PASS",
+        "details": "Файл существует и не пустой",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.929539"
+      }
+    ],
+    "Database Schema": [
+      {
+        "test": "Файл feedback.py",
+        "status": "PASS",
+        "details": "Файл существует и не пустой",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.930539"
+      },
+      {
+        "test": "Файл channel.py",
+        "status": "PASS",
+        "details": "Файл существует и не пустой",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.930539"
+      },
+      {
+        "test": "Файл telegram_channels.json",
+        "status": "PASS",
+        "details": "Файл существует и не пустой",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.931540"
+      }
+    ],
+    "API Endpoints": [
+      {
+        "test": "Файл feedback.py",
+        "status": "PASS",
+        "details": "API эндпоинты найдены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.931540"
+      },
+      {
+        "test": "Файл ocr_integration.py",
+        "status": "PASS",
+        "details": "API эндпоинты найдены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.932653"
+      },
+      {
+        "test": "Файл reddit_integration.py",
+        "status": "PASS",
+        "details": "API эндпоинты найдены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.932653"
+      }
+    ],
+    "Frontend Components": [
+      {
+        "test": "Файл FeedbackForm.tsx",
+        "status": "PASS",
+        "details": "React компонент найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.933656"
+      },
+      {
+        "test": "Файл feedback.tsx",
+        "status": "PASS",
+        "details": "React компонент найден",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.933656"
+      }
+    ],
+    "Worker Scripts": [
+      {
+        "test": "Скрипт telegram_scraper.py",
+        "status": "PASS",
+        "details": "Python классы и функции найдены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.934653"
+      },
+      {
+        "test": "Скрипт reddit_collector.py",
+        "status": "PASS",
+        "details": "Python классы и функции найдены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.935654"
+      },
+      {
+        "test": "Скрипт signal_patterns.py",
+        "status": "PASS",
+        "details": "Python классы и функции найдены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.935654"
+      },
+      {
+        "test": "Скрипт telegram_feedback_bot.py",
+        "status": "PASS",
+        "details": "Python классы и функции найдены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.936652"
+      },
+      {
+        "test": "Скрипт channel_discovery_system.py",
+        "status": "PASS",
+        "details": "Python классы и функции найдены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.936652"
+      }
+    ],
+    "Documentation": [
+      {
+        "test": "Документ README.md",
+        "status": "PASS",
+        "details": "Документ содержит контент",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.937654"
+      },
+      {
+        "test": "Документ TASKS2.md",
+        "status": "PASS",
+        "details": "Документ содержит контент",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.937654"
+      },
+      {
+        "test": "Документ COMPREHENSIVE_FUNCTIONALITY_REPORT.md",
+        "status": "PASS",
+        "details": "Документ содержит контент",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.937654"
+      },
+      {
+        "test": "Документ FEEDBACK_SYSTEM_REPORT.md",
+        "status": "PASS",
+        "details": "Документ содержит контент",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.938774"
+      }
+    ],
+    "Integration Scenarios": [
+      {
+        "test": "Обработка сигнала",
+        "status": "PASS",
+        "details": "Сигнал корректно обработан",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.938774"
+      },
+      {
+        "test": "Система обратной связи",
+        "status": "WARNING",
+        "details": "Telegram библиотеки не установлены",
+        "error": "",
+        "timestamp": "2025-08-17T14:09:18.942291"
+      }
+    ]
+  }
+}

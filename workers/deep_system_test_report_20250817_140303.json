@@ -1,0 +1,409 @@
+{
+  "timestamp": "2025-08-17T14:03:03.217678",
+  "total_tests": 53,
+  "passed": 0,
+  "failed": 53,
+  "warnings": 0,
+  "test_time": 0.027984619140625,
+  "categories": {
+    "File Structure": [
+      {
+        "test": "Файл README.md",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: README.md",
+        "timestamp": "2025-08-17T14:03:03.218662"
+      },
+      {
+        "test": "Файл TASKS2.md",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: TASKS2.md",
+        "timestamp": "2025-08-17T14:03:03.219174"
+      },
+      {
+        "test": "Файл docker-compose.yml",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: docker-compose.yml",
+        "timestamp": "2025-08-17T14:03:03.219174"
+      },
+      {
+        "test": "Файл backend/app/main.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: backend/app/main.py",
+        "timestamp": "2025-08-17T14:03:03.219681"
+      },
+      {
+        "test": "Файл backend/app/models/feedback.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: backend/app/models/feedback.py",
+        "timestamp": "2025-08-17T14:03:03.219681"
+      },
+      {
+        "test": "Файл backend/app/schemas/feedback.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: backend/app/schemas/feedback.py",
+        "timestamp": "2025-08-17T14:03:03.219681"
+      },
+      {
+        "test": "Файл backend/app/api/endpoints/feedback.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: backend/app/api/endpoints/feedback.py",
+        "timestamp": "2025-08-17T14:03:03.220260"
+      },
+      {
+        "test": "Файл frontend/components/FeedbackForm.tsx",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: frontend/components/FeedbackForm.tsx",
+        "timestamp": "2025-08-17T14:03:03.220260"
+      },
+      {
+        "test": "Файл frontend/pages/feedback.tsx",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: frontend/pages/feedback.tsx",
+        "timestamp": "2025-08-17T14:03:03.220260"
+      },
+      {
+        "test": "Файл workers/telegram_scraper.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: workers/telegram_scraper.py",
+        "timestamp": "2025-08-17T14:03:03.220773"
+      },
+      {
+        "test": "Файл workers/reddit_collector.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: workers/reddit_collector.py",
+        "timestamp": "2025-08-17T14:03:03.220773"
+      },
+      {
+        "test": "Файл workers/signal_patterns.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: workers/signal_patterns.py",
+        "timestamp": "2025-08-17T14:03:03.220773"
+      },
+      {
+        "test": "Файл workers/telegram_feedback_bot.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: workers/telegram_feedback_bot.py",
+        "timestamp": "2025-08-17T14:03:03.220773"
+      },
+      {
+        "test": "Файл workers/channel_discovery_system.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: workers/channel_discovery_system.py",
+        "timestamp": "2025-08-17T14:03:03.220773"
+      }
+    ],
+    "Imports": [
+      {
+        "test": "Импорт SignalPatterns",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка импорта workers.signal_patterns: No module named 'workers.signal_patterns'",
+        "timestamp": "2025-08-17T14:03:03.224306"
+      },
+      {
+        "test": "Импорт RedditSignalCollector",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка импорта workers.reddit_collector: No module named 'workers.reddit_collector'",
+        "timestamp": "2025-08-17T14:03:03.225825"
+      },
+      {
+        "test": "Импорт TelegramSignalScraper",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка импорта workers.telegram.telegram_scraper: No module named 'workers.telegram'",
+        "timestamp": "2025-08-17T14:03:03.225825"
+      },
+      {
+        "test": "Импорт TelegramFeedbackBot",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка импорта workers.telegram_feedback_bot: No module named 'workers.telegram_feedback_bot'",
+        "timestamp": "2025-08-17T14:03:03.226826"
+      },
+      {
+        "test": "Импорт ChannelDiscoverySystem",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка импорта workers.channel_discovery_system: No module named 'workers.channel_discovery_system'",
+        "timestamp": "2025-08-17T14:03:03.227826"
+      }
+    ],
+    "Signal Processing": [
+      {
+        "test": "Инициализация",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка инициализации: No module named 'workers.signal_patterns'",
+        "timestamp": "2025-08-17T14:03:03.227826"
+      }
+    ],
+    "Telegram Integration": [
+      {
+        "test": "Инициализация",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка инициализации: No module named 'workers.telegram'",
+        "timestamp": "2025-08-17T14:03:03.229339"
+      }
+    ],
+    "Reddit Integration": [
+      {
+        "test": "Инициализация",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка инициализации: No module named 'workers.reddit_collector'",
+        "timestamp": "2025-08-17T14:03:03.229953"
+      }
+    ],
+    "Feedback System": [
+      {
+        "test": "Файл feedback.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: backend/app/models/feedback.py",
+        "timestamp": "2025-08-17T14:03:03.230966"
+      },
+      {
+        "test": "Файл feedback.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: backend/app/schemas/feedback.py",
+        "timestamp": "2025-08-17T14:03:03.230966"
+      },
+      {
+        "test": "Файл feedback.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: backend/app/api/endpoints/feedback.py",
+        "timestamp": "2025-08-17T14:03:03.231966"
+      },
+      {
+        "test": "Файл FeedbackForm.tsx",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: frontend/components/FeedbackForm.tsx",
+        "timestamp": "2025-08-17T14:03:03.231966"
+      },
+      {
+        "test": "Файл feedback.tsx",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: frontend/pages/feedback.tsx",
+        "timestamp": "2025-08-17T14:03:03.231966"
+      },
+      {
+        "test": "Файл telegram_feedback_bot.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден: workers/telegram_feedback_bot.py",
+        "timestamp": "2025-08-17T14:03:03.232965"
+      },
+      {
+        "test": "Telegram бот",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка создания бота: No module named 'workers.telegram_feedback_bot'",
+        "timestamp": "2025-08-17T14:03:03.233966"
+      }
+    ],
+    "Channel Discovery": [
+      {
+        "test": "Инициализация",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка инициализации: No module named 'workers.channel_discovery_system'",
+        "timestamp": "2025-08-17T14:03:03.234964"
+      }
+    ],
+    "Configuration": [
+      {
+        "test": "Файл docker-compose.yml",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.235972"
+      },
+      {
+        "test": "Файл requirements.txt",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.236966"
+      },
+      {
+        "test": "Файл requirements.txt",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.236966"
+      },
+      {
+        "test": "Файл package.json",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.237965"
+      }
+    ],
+    "Database Schema": [
+      {
+        "test": "Файл feedback.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.237965"
+      },
+      {
+        "test": "Файл channel.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.237965"
+      },
+      {
+        "test": "Файл telegram_channels.json",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.239476"
+      }
+    ],
+    "API Endpoints": [
+      {
+        "test": "Файл feedback.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.240119"
+      },
+      {
+        "test": "Файл ocr_integration.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.240119"
+      },
+      {
+        "test": "Файл reddit_integration.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.240119"
+      }
+    ],
+    "Frontend Components": [
+      {
+        "test": "Файл FeedbackForm.tsx",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.240119"
+      },
+      {
+        "test": "Файл feedback.tsx",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.241126"
+      }
+    ],
+    "Worker Scripts": [
+      {
+        "test": "Скрипт telegram_scraper.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.241126"
+      },
+      {
+        "test": "Скрипт reddit_collector.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.241126"
+      },
+      {
+        "test": "Скрипт signal_patterns.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.242126"
+      },
+      {
+        "test": "Скрипт telegram_feedback_bot.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.242126"
+      },
+      {
+        "test": "Скрипт channel_discovery_system.py",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.242126"
+      }
+    ],
+    "Documentation": [
+      {
+        "test": "Документ README.md",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.243134"
+      },
+      {
+        "test": "Документ TASKS2.md",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.243134"
+      },
+      {
+        "test": "Документ COMPREHENSIVE_FUNCTIONALITY_REPORT.md",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.243134"
+      },
+      {
+        "test": "Документ FEEDBACK_SYSTEM_REPORT.md",
+        "status": "FAIL",
+        "details": "",
+        "error": "Файл не найден",
+        "timestamp": "2025-08-17T14:03:03.243134"
+      }
+    ],
+    "Integration Scenarios": [
+      {
+        "test": "Обработка сигнала",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка: No module named 'workers.signal_patterns'",
+        "timestamp": "2025-08-17T14:03:03.244646"
+      },
+      {
+        "test": "Система обратной связи",
+        "status": "FAIL",
+        "details": "",
+        "error": "Ошибка: No module named 'workers.telegram_feedback_bot'",
+        "timestamp": "2025-08-17T14:03:03.244646"
+      }
+    ]
+  }
+}
