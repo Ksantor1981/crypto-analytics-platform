@@ -408,6 +408,13 @@ class SignalPatterns:
                 unique_signals.append(signal)
         
         return unique_signals
+    
+    def extract_signal_info(self, text: str) -> Dict[str, Any]:
+        """Извлечение информации о сигнале из текста (для совместимости)"""
+        signals = self.extract_signals_from_text(text, "test", "test")
+        if signals:
+            return signals[0]
+        return {}
 
 # Экспорты для совместимости
 SIGNAL_PATTERNS = SignalPatterns().signal_patterns
@@ -415,4 +422,7 @@ SIGNAL_PATTERNS = SignalPatterns().signal_patterns
 def extract_signal_info(text: str) -> Dict[str, Any]:
     """Функция для извлечения информации о сигнале из текста"""
     patterns = SignalPatterns()
-    return patterns.extract_signal_info(text) 
+    signals = patterns.extract_signals_from_text(text, "test", "test")
+    if signals:
+        return signals[0]
+    return {} 

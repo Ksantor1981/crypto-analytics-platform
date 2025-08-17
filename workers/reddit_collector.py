@@ -10,8 +10,15 @@ from datetime import datetime, timedelta
 import aiohttp
 import json
 
-from .real_data_config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
-from .telegram.telegram_client import TelegramSignalCollector
+try:
+    from .real_data_config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
+    from .telegram.telegram_client import TelegramSignalCollector
+except ImportError:
+    # Fallback for direct import
+    REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID', '')
+    REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET', '')
+    REDDIT_USER_AGENT = os.getenv('REDDIT_USER_AGENT', 'CryptoAnalytics/1.0')
+    TelegramSignalCollector = None
 
 logger = logging.getLogger(__name__)
 
