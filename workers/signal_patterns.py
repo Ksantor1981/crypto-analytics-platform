@@ -230,12 +230,12 @@ class SignalPatterns:
         
         for pattern in self.pair_patterns:
             matches = re.finditer(pattern, text, re.IGNORECASE)
-            for match in matches:
-                try:
+                for match in matches:
+                    try:
                     if len(match.groups()) == 2:
                         # Формат: BTC/USDT
                         pair = f"{match.group(1).upper()}/{match.group(2).upper()}"
-                    else:
+                        else:
                         # Формат: BTCUSDT
                         pair = match.group(1).upper()
                     
@@ -249,7 +249,7 @@ class SignalPatterns:
                         
                 except Exception as e:
                     logger.warning(f"Ошибка извлечения пары: {e}")
-                    continue
+                        continue
                 
                     # Дополнительная проверка для случаев без явных пар
             if not pairs:

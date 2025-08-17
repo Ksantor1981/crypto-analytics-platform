@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Box, Grid, Card, CardContent, Alert } from '@mui/material';
+import { Container, Typography, Box, Card, CardContent, Alert } from '@mui/material';
 import Head from 'next/head';
 import FeedbackForm from '../components/FeedbackForm';
 
@@ -21,14 +21,14 @@ const FeedbackPage: React.FC = () => {
           </Typography>
         </Box>
 
-        <Grid container spacing={4}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4 }}>
           {/* Форма обратной связи */}
-          <Grid item xs={12} md={8}>
+          <Box sx={{ flex: { xs: 1, md: 2 } }}>
             <FeedbackForm />
-          </Grid>
+          </Box>
 
           {/* Информационная панель */}
-          <Grid item xs={12} md={4}>
+          <Box sx={{ flex: { xs: 1, md: 1 } }}>
             <Box sx={{ position: 'sticky', top: 20 }}>
               <Card sx={{ mb: 3 }}>
                 <CardContent>
@@ -151,8 +151,8 @@ const FeedbackPage: React.FC = () => {
                 </CardContent>
               </Card>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
         {/* Дополнительная информация */}
         <Box sx={{ mt: 6, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
@@ -164,49 +164,43 @@ const FeedbackPage: React.FC = () => {
             Ваша обратная связь помогает нам улучшать продукт и делать его более полезным для всех пользователей.
           </Typography>
           
-          <Grid container spacing={2} sx={{ mt: 2 }}>
-            <Grid item xs={12} sm={4}>
-              <Box textAlign="center">
-                <Typography variant="h4" color="primary">
-                  🚀
-                </Typography>
-                <Typography variant="h6">
-                  Быстро
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Быстрые ответы на все вопросы
-                </Typography>
-              </Box>
-            </Grid>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 2 }}>
+            <Box sx={{ flex: 1 }} textAlign="center">
+              <Typography variant="h4" color="primary">
+                🚀
+              </Typography>
+              <Typography variant="h6">
+                Быстро
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Быстрые ответы на все вопросы
+              </Typography>
+            </Box>
             
-            <Grid item xs={12} sm={4}>
-              <Box textAlign="center">
-                <Typography variant="h4" color="primary">
-                  💎
-                </Typography>
-                <Typography variant="h6">
-                  Качественно
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Профессиональная поддержка
-                </Typography>
-              </Box>
-            </Grid>
+            <Box sx={{ flex: 1 }} textAlign="center">
+              <Typography variant="h4" color="primary">
+                💎
+              </Typography>
+              <Typography variant="h6">
+                Качественно
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Профессиональная поддержка
+              </Typography>
+            </Box>
             
-            <Grid item xs={12} sm={4}>
-              <Box textAlign="center">
-                <Typography variant="h4" color="primary">
-                  🤝
-                </Typography>
-                <Typography variant="h6">
-                  Дружелюбно
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Приветливое общение
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
+            <Box sx={{ flex: 1 }} textAlign="center">
+              <Typography variant="h4" color="primary">
+                🤝
+              </Typography>
+              <Typography variant="h6">
+                Дружелюбно
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Приветливое общение
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </Container>
     </>

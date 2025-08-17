@@ -23,7 +23,7 @@ const FeedbackForm: React.FC = () => {
   const [submitMessage, setSubmitMessage] = useState('');
 
   const handleInputChange = (field: keyof FeedbackFormData) => (
-    event: React.ChangeEvent<HTMLInputElement | { value: unknown }>
+    event: React.ChangeEvent<HTMLInputElement> | { target: { value: unknown } }
   ) => {
     setFormData({
       ...formData,
