@@ -815,7 +815,7 @@ const csvBlob = await api.exportSignals("csv", {date_from: "2025-08-01"});
 - **Email:** api-support@cryptoanalytics.com
 - **Документация:** https://docs.cryptoanalytics.com/api
 - **Status Page:** https://status.cryptoanalytics.com
-- **Discord:** https://discord.gg/cryptoanalytics
+- **Reddit:** https://reddit.com/r/cryptocurrency
 
 ## 🔄 Changelog
 

@@ -9,4 +9,10 @@ numpy==1.26.1
 httpx==0.25.1
 aiohttp==3.9.1
 easyocr==1.7.1
-pillow==10.1.0 
+pillow==10.1.0
+
+# Scraping dependencies
+beautifulsoup4==4.12.2
+selenium==4.15.2
+lxml==4.9.3
+requests-html==0.10.0 

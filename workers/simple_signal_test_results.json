@@ -1,0 +1,107 @@
+{
+  "signals_data": [
+    {
+      "channel_name": "signalsbitcoinandethereum",
+      "signal_date": "2025-08-17T11:16:34.940773",
+      "trading_pair": "BTC/USDT",
+      "direction": "LONG",
+      "entry_price": 45000.0,
+      "target_price": 47000.0,
+      "stop_loss": 44000.0,
+      "forecast_rating": 75,
+      "signal_executed": true,
+      "actual_result": "FAILURE",
+      "profit_loss": -2.22,
+      "execution_time": "2025-08-17T11:16:34.940773"
+    },
+    {
+      "channel_name": "signalsbitcoinandethereum",
+      "signal_date": "2025-08-17T10:16:34.940773",
+      "trading_pair": "ETH/USDT",
+      "direction": "SHORT",
+      "entry_price": 3200.0,
+      "target_price": 3000.0,
+      "stop_loss": 3300.0,
+      "forecast_rating": 70,
+      "signal_executed": true,
+      "actual_result": "SUCCESS",
+      "profit_loss": 6.25,
+      "execution_time": "2025-08-17T11:16:34.940773"
+    },
+    {
+      "channel_name": "CryptoCapoTG",
+      "signal_date": "2025-08-17T11:16:34.940773",
+      "trading_pair": "BTC/USDT",
+      "direction": "LONG",
+      "entry_price": 45000.0,
+      "target_price": 47000.0,
+      "stop_loss": 44000.0,
+      "forecast_rating": 85,
+      "signal_executed": true,
+      "actual_result": "SUCCESS",
+      "profit_loss": 4.44,
+      "execution_time": "2025-08-17T11:16:34.940773"
+    },
+    {
+      "channel_name": "CryptoCapoTG",
+      "signal_date": "2025-08-17T10:16:34.940773",
+      "trading_pair": "ETH/USDT",
+      "direction": "SHORT",
+      "entry_price": 3200.0,
+      "target_price": 3000.0,
+      "stop_loss": 3300.0,
+      "forecast_rating": 80,
+      "signal_executed": true,
+      "actual_result": "SUCCESS",
+      "profit_loss": 6.25,
+      "execution_time": "2025-08-17T11:16:34.940773"
+    }
+  ],
+  "analytics_report": {
+    "timestamp": "2025-08-17T11:16:34.940773",
+    "summary": {
+      "total_signals": 4,
+      "successful_signals": 3,
+      "success_rate": 0.75,
+      "avg_forecast_rating": 77.5
+    },
+    "channel_analytics": {
+      "signalsbitcoinandethereum": {
+        "total_signals": 2,
+        "successful_signals": 1,
+        "avg_forecast_rating": 72.5,
+        "avg_profit_loss": 2.0149999999999997,
+        "success_rate": 0.5
+      },
+      "CryptoCapoTG": {
+        "total_signals": 2,
+        "successful_signals": 2,
+        "avg_forecast_rating": 82.5,
+        "avg_profit_loss": 5.345000000000001,
+        "success_rate": 1.0
+      }
+    },
+    "top_channels": [
+      [
+        "CryptoCapoTG",
+        {
+          "total_signals": 2,
+          "successful_signals": 2,
+          "avg_forecast_rating": 82.5,
+          "avg_profit_loss": 5.345000000000001,
+          "success_rate": 1.0
+        }
+      ],
+      [
+        "signalsbitcoinandethereum",
+        {
+          "total_signals": 2,
+          "successful_signals": 1,
+          "avg_forecast_rating": 72.5,
+          "avg_profit_loss": 2.0149999999999997,
+          "success_rate": 0.5
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "timestamp": "2025-08-16T23:44:24.323272",
+  "total_signals": 2,
+  "valid_signals": 2,
+  "channels_processed": 3,
+  "channel_stats": {
+    "signalsbitcoinandethereum": {
+      "signals_count": 1,
+      "channel_type": "signal",
+      "quality": "medium",
+      "success_rate": 0.65
+    },
+    "CryptoCapoTG": {
+      "signals_count": 0,
+      "channel_type": "analysis",
+      "quality": "high",
+      "success_rate": 0.75
+    },
+    "cryptosignals": {
+      "signals_count": 1,
+      "channel_type": "signal",
+      "quality": "medium",
+      "success_rate": 0.6
+    }
+  },
+  "signals": [
+    {
+      "trading_pair": "BTC/USDT",
+      "direction": "LONG",
+      "entry_price": 45000.0,
+      "target_price": 47000.0,
+      "stop_loss": 44000.0,
+      "confidence": 0.8,
+      "source": "signalsbitcoinandethereum",
+      "quality_score": 0.65,
+      "timestamp": "2025-08-16T23:44:24.318527"
+    },
+    {
+      "trading_pair": "BTC/USDT",
+      "direction": "LONG",
+      "entry_price": 45000.0,
+      "target_price": 47000.0,
+      "stop_loss": 44000.0,
+      "confidence": 0.8,
+      "source": "cryptosignals",
+      "quality_score": 0.6,
+      "timestamp": "2025-08-16T23:44:24.323272"
+    }
+  ]
+}

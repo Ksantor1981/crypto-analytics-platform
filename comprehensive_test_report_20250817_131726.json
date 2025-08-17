@@ -1,0 +1,84 @@
+{
+  "backend": {
+    "overall": {
+      "status": "❌ КРИТИЧЕСКАЯ ОШИБКА",
+      "message": "Backend недоступен: No module named 'app'"
+    }
+  },
+  "frontend": {
+    "feedback_form": {
+      "status": "✅ УСПЕШНО",
+      "message": "Компонент формы обратной связи найден"
+    },
+    "feedback_page": {
+      "status": "✅ УСПЕШНО",
+      "message": "Страница обратной связи найдена"
+    },
+    "main_pages": {
+      "status": "⚠️ ПРЕДУПРЕЖДЕНИЕ",
+      "message": "Найдено только 0 основных страниц"
+    }
+  },
+  "database": {
+    "overall": {
+      "status": "❌ КРИТИЧЕСКАЯ ОШИБКА",
+      "message": "БД недоступна: No module named 'app'"
+    }
+  },
+  "ocr": {
+    "overall": {
+      "status": "❌ КРИТИЧЕСКАЯ ОШИБКА",
+      "message": "OCR недоступен: No module named 'app'"
+    }
+  },
+  "telegram": {
+    "overall": {
+      "status": "❌ КРИТИЧЕСКАЯ ОШИБКА",
+      "message": "Telegram интеграция недоступна: unexpected indent (signal_patterns.py, line 233)"
+    }
+  },
+  "reddit": {
+    "overall": {
+      "status": "❌ КРИТИЧЕСКАЯ ОШИБКА",
+      "message": "Reddit интеграция недоступна: cannot import name 'RedditCollector' from 'workers.reddit_collector' (C:\\project\\crypto-analytics-platform\\workers\\reddit_collector.py)"
+    }
+  },
+  "feedback": {
+    "overall": {
+      "status": "❌ КРИТИЧЕСКАЯ ОШИБКА",
+      "message": "Система обратной связи недоступна: No module named 'app'"
+    }
+  },
+  "channel_discovery": {
+    "system": {
+      "status": "✅ УСПЕШНО",
+      "message": "Система обнаружения каналов доступна"
+    },
+    "analyzer": {
+      "status": "✅ УСПЕШНО",
+      "message": "Улучшенный анализатор каналов доступен"
+    },
+    "configuration": {
+      "status": "✅ УСПЕШНО",
+      "message": "Конфигурация загружена: 43 Telegram, 27 Reddit"
+    }
+  },
+  "signal_processing": {
+    "overall": {
+      "status": "❌ КРИТИЧЕСКАЯ ОШИБКА",
+      "message": "Обработка сигналов недоступна: unexpected indent (signal_patterns.py, line 233)"
+    }
+  },
+  "overall": {
+    "status": "❌ КРИТИЧНО",
+    "message": "Требуется серьезная доработка",
+    "statistics": {
+      "total_tests": 13,
+      "successful_tests": 5,
+      "warning_tests": 1,
+      "failed_tests": 7,
+      "success_rate": 38.46153846153847,
+      "execution_time": 55.22607421875
+    }
+  }
+}

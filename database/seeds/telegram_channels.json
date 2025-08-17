@@ -1,0 +1,142 @@
+{
+  "telegram_channels": {
+    "monitoring_enabled": true,
+    "update_interval_minutes": 5,
+    "weekly_check": true,
+    "last_check_date": "2025-06-30",
+    "channels": [
+      {
+        "name": "🎯 Binance Killers",
+        "username": "@binancekillers",
+        "url": "https://t.me/binancekillers",
+        "category": "Trading signals",
+        "priority": 1,
+        "expected_accuracy": "65-75%",
+        "enabled": true,
+        "status": "active"
+      },
+      {
+        "name": "📈 Crypto Futures Signals",
+        "username": "@Crypto_Futures_Signals",
+        "url": "https://t.me/Crypto_Futures_Signals",
+        "category": "Futures trading",
+        "priority": 1,
+        "expected_accuracy": "70-80%",
+        "enabled": true,
+        "status": "active"
+      },
+      {
+        "name": "📊 TradingView Ideas",
+        "username": "@TradingViewIdeas",
+        "url": "https://t.me/TradingViewIdeas",
+        "category": "Trading analysis",
+        "priority": 1,
+        "expected_accuracy": "70-85%",
+        "enabled": true,
+        "status": "active"
+      },
+      {
+        "name": "💎 Crypto Inner Circle",
+        "username": "@Crypto_Inner_Circler",
+        "url": "https://t.me/Crypto_Inner_Circler",
+        "category": "Trading insights",
+        "priority": 1,
+        "expected_accuracy": "65-75%",
+        "enabled": true,
+        "status": "active"
+      },
+      {
+        "name": "🐺 Wolf of Trading",
+        "username": "@Wolf_of_Trading_singals",
+        "url": "https://t.me/Wolf_of_Trading_singals",
+        "category": "Trading signals",
+        "priority": 1,
+        "expected_accuracy": "65-75%",
+        "enabled": true,
+        "status": "active"
+      },
+      {
+        "name": "📊 Altsignals.io",
+        "username": "@io_altsignals",
+        "url": "https://t.me/io_altsignals",
+        "category": "Altcoin signals",
+        "priority": 1,
+        "expected_accuracy": "70-80%",
+        "enabled": true,
+        "status": "active"
+      },
+      {
+        "name": "🔥 CryptoCapo TG",
+        "username": "@CryptoCapoTG",
+        "url": "https://t.me/CryptoCapoTG",
+        "category": "Technical analysis",
+        "priority": 1,
+        "expected_accuracy": "75-85%",
+        "enabled": true,
+        "status": "active"
+      },
+      {
+        "name": "🐷 Fat Pig Signals",
+        "username": "@fatpigsignals",
+        "url": "https://t.me/fatpigsignals",
+        "category": "Trading signals",
+        "priority": 1,
+        "expected_accuracy": "65-75%",
+        "enabled": true,
+        "status": "active"
+      },
+      {
+        "name": "📚 Learn2Trade",
+        "username": "@learn2trade",
+        "url": "https://t.me/learn2trade",
+        "category": "Education & Signals",
+        "priority": 1,
+        "expected_accuracy": "60-70%",
+        "enabled": true,
+        "status": "active"
+      },
+      {
+        "name": "📊 Signals - Bitcoin and Ethereum",
+        "username": "@Signals_BTC_ETH",
+        "url": "https://t.me/Signals_BTC_ETH",
+        "category": "BTC & ETH signals",
+        "priority": 2,
+        "expected_accuracy": "70-80%",
+        "enabled": true,
+        "status": "new"
+      },
+      {
+        "name": "🌐 TTcoin Cryptocurrency",
+        "username": "@TTcoin_crypto",
+        "url": "https://t.me/TTcoin_crypto",
+        "category": "Crypto analysis",
+        "priority": 2,
+        "expected_accuracy": "65-75%",
+        "enabled": true,
+        "status": "new"
+      },
+      {
+        "name": "🐋 Dinobet.io WhaleCharts",
+        "username": "@WhaleCharts",
+        "url": "https://t.me/WhaleCharts",
+        "category": "Whale tracking",
+        "priority": 2,
+        "expected_accuracy": "70-80%",
+        "enabled": true,
+        "status": "new"
+      }
+    ],
+    "removed_channels": [
+      {
+        "name": "CryptocurrencyPinned",
+        "reason": "channel not found",
+        "removed_date": "2025-06-30"
+      },
+      {
+        "name": "AltcoinBuzzTelegram",
+        "reason": "channel not found",
+        "removed_date": "2025-06-30"
+      }
+    ]
+  }
+} 
