@@ -1,0 +1,150 @@
+{
+  "timestamp": "2025-08-17T14:57:03.585755",
+  "total_checks": 20,
+  "passed": 16,
+  "failed": 1,
+  "warnings": 3,
+  "critical_issues": [
+    "Dependencies: Backend requirements"
+  ],
+  "details": {
+    "Frontend": [
+      {
+        "check": "Сборка Next.js",
+        "status": "PASS",
+        "message": "Frontend успешно собирается",
+        "error": ""
+      },
+      {
+        "check": "Зависимости",
+        "status": "PASS",
+        "message": "Все необходимые зависимости установлены",
+        "error": ""
+      }
+    ],
+    "ML Service": [
+      {
+        "check": "Импорт main.py",
+        "status": "PASS",
+        "message": "ML Service успешно импортируется",
+        "error": ""
+      },
+      {
+        "check": "Модели",
+        "status": "PASS",
+        "message": "Найдено 12 файлов моделей",
+        "error": ""
+      }
+    ],
+    "CI/CD": [
+      {
+        "check": "GitHub Actions",
+        "status": "PASS",
+        "message": "Найдено 6 workflow файлов",
+        "error": ""
+      },
+      {
+        "check": "Docker Compose",
+        "status": "PASS",
+        "message": "Все необходимые сервисы настроены",
+        "error": ""
+      }
+    ],
+    "Testing": [
+      {
+        "check": "Backend тесты",
+        "status": "PASS",
+        "message": "Найдено 3 тестовых файлов",
+        "error": ""
+      },
+      {
+        "check": "Frontend тесты",
+        "status": "PASS",
+        "message": "Найдено 2 тестовых файлов",
+        "error": ""
+      },
+      {
+        "check": "Pytest конфигурация",
+        "status": "PASS",
+        "message": "pytest.ini найден",
+        "error": ""
+      }
+    ],
+    "Dependencies": [
+      {
+        "check": "Backend requirements",
+        "status": "FAIL",
+        "message": "Отсутствуют: ['fastapi', 'sqlalchemy', 'pydantic', 'uvicorn']",
+        "error": ""
+      },
+      {
+        "check": "Frontend package.json",
+        "status": "PASS",
+        "message": "Все критические зависимости присутствуют",
+        "error": ""
+      }
+    ],
+    "Staging": [
+      {
+        "check": "Staging workflow",
+        "status": "PASS",
+        "message": "deploy-staging.yml найден",
+        "error": ""
+      },
+      {
+        "check": "Environment файлы",
+        "status": "PASS",
+        "message": ".env.example найден",
+        "error": ""
+      }
+    ],
+    "Security": [
+      {
+        "check": "Security workflow",
+        "status": "PASS",
+        "message": "security-audit.yml найден",
+        "error": ""
+      },
+      {
+        "check": "Hardcoded secrets",
+        "status": "WARNING",
+        "message": "Возможные hardcoded секреты в docker-compose.yml",
+        "error": ""
+      },
+      {
+        "check": ".gitignore",
+        "status": "WARNING",
+        "message": "Отсутствуют паттерны: ['*.key', '*.pem', 'secrets']",
+        "error": ""
+      }
+    ],
+    "Data Processing": [
+      {
+        "check": "Workers",
+        "status": "WARNING",
+        "message": "Отсутствуют: ['telegram_scraper.py']",
+        "error": ""
+      },
+      {
+        "check": "OCR Service",
+        "status": "PASS",
+        "message": "OCR сервис найден",
+        "error": ""
+      }
+    ],
+    "UX": [
+      {
+        "check": "Документация",
+        "status": "PASS",
+        "message": "README.md найден",
+        "error": ""
+      },
+      {
+        "check": "Frontend страницы",
+        "status": "PASS",
+        "message": "Найдено 1 страниц",
+        "error": ""
+      }
+    ]
+  }
+}
