@@ -1,0 +1,55 @@
+{
+  "frontend": {
+    "next.js проект": true,
+    "typescript конфигурация": true,
+    "tailwind конфигурация": true,
+    "eslint конфигурация": true,
+    "prettier конфигурация": true,
+    "husky pre-commit": true,
+    "главная страница": true,
+    "страница демо": true,
+    "страница входа": true,
+    "страница регистрации": true,
+    "дашборд": true,
+    "ui компоненты": true,
+    "language switcher": true,
+    "language context": true,
+    "глобальные стили": true,
+    "shadcn/ui переменные": true
+  },
+  "backend": {
+    "fastapi приложение": false,
+    "requirements.txt": true,
+    "dockerfile": true,
+    "auth endpoints": false,
+    "channels endpoints": false,
+    "signals endpoints": false,
+    "модели данных": true,
+    "миграции alembic": true
+  },
+  "ml_service": {
+    "ml сервис существует": true,
+    "main.py": true,
+    "requirements.txt": true,
+    "dockerfile": true,
+    "модели ml": true
+  },
+  "workers": {
+    "workers папка": true,
+    "celery конфигурация": false,
+    "tasks": true,
+    "dockerfile": true
+  },
+  "docker": {
+    "docker-compose.yml": true,
+    "docker-compose.override.yml": false,
+    ".env файл": true,
+    ".env.example": true
+  },
+  "documentation": {
+    "README.md": true,
+    "TASKS2.md": true,
+    "ТЗ документ": true,
+    "API документация": false
+  }
+}
