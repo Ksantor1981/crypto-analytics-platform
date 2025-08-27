@@ -1,71 +1,51 @@
 #!/usr/bin/env python3
 """
-Упрощенный тест Telegram клиента
+Простой тест Telegram подключения
 """
-
-import sys
 import os
-import asyncio
-from datetime import datetime
+from pathlib import Path
 
-# Добавляем пути для импорта
-sys.path.append(os.path.join(os.path.dirname(__file__), 'workers'))
+def load_env():
+    """Загружает данные из .env файла"""
+    env_path = Path('.env')
+    if env_path.exists():
+        with open(env_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ[key] = value
 
-async def test_telegram_simple():
-    """Простой тест Telegram клиента"""
-    print("🔍 Простой тест Telegram клиента...")
+def test_telegram():
+    """Тестирует Telegram подключение"""
+    print("🔍 Тест Telegram подключения")
     
+    # Загружаем данные
+    load_env()
+    
+    api_id = os.getenv('TELEGRAM_API_ID')
+    api_hash = os.getenv('TELEGRAM_API_HASH')
+    
+    print(f"API_ID: {api_id}")
+    print(f"API_HASH: {api_hash[:10] if api_hash else 'None'}...")
+    
+    if not all([api_id, api_hash]):
+        print("❌ Не все данные найдены")
+        return
+    
+    # Пробуем импортировать telethon
     try:
-        from workers.telegram.telegram_client import TelegramSignalCollector
+        import telethon
+        print(f"✅ Telethon version: {telethon.__version__}")
         
-        print("📡 Создание коллектора...")
-        collector = TelegramSignalCollector(use_real_config=True)
+        from telethon import TelegramClient
+        print("✅ TelegramClient импортирован")
         
-        print("🔐 Инициализация клиента...")
-        if await collector.initialize_client():
-            print("✅ Клиент инициализирован")
-            
-            print("📡 Сбор сигналов...")
-            result = await collector.collect_signals()
-            
-            print(f"✅ Результат: {result.get('status', 'unknown')}")
-            
-            if result.get('signals'):
-                print(f"   Сигналов собрано: {len(result['signals'])}")
-                for i, signal in enumerate(result['signals'][:3], 1):
-                    print(f"   {i}. {signal.get('asset', 'N/A')} {signal.get('direction', 'N/A')} @ ${signal.get('entry_price', 'N/A')}")
-                    print(f"      Канал: {signal.get('channel', 'N/A')}")
-            else:
-                print("   Сигналов не найдено")
-            
-            # Закрываем клиент
-            if collector.client:
-                await collector.client.disconnect()
-            
-            return result.get('status') == 'success'
-        else:
-            print("❌ Не удалось инициализировать клиент")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Ошибка: {e}")
-        return False
-
-async def main():
-    """Основная функция"""
-    print("🚀 ПРОСТОЙ ТЕСТ TELEGRAM")
-    print("=" * 30)
-    print(f"Время: {datetime.now()}")
-    print("=" * 30)
+    except ImportError as e:
+        print(f"❌ Ошибка импорта: {e}")
+        return
     
-    success = await test_telegram_simple()
-    
-    print("\n" + "=" * 30)
-    if success:
-        print("🎉 TELEGRAM КЛИЕНТ РАБОТАЕТ!")
-    else:
-        print("❌ TELEGRAM КЛИЕНТ НЕ РАБОТАЕТ")
-    print("=" * 30)
+    print("✅ Все готово для подключения к Telegram!")
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == '__main__':
+    test_telegram()

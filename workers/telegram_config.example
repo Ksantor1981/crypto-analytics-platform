@@ -1,7 +1,7 @@
 # Telegram API Configuration
 # Get these from https://my.telegram.org/apps
-TELEGRAM_API_ID=your_api_id_here
-TELEGRAM_API_HASH=your_api_hash_here
+TELEGRAM_API_ID=21073808
+TELEGRAM_API_HASH=2e3adb8940912dd295fe20c1d2ce5368
 TELEGRAM_SESSION_NAME=crypto_analytics_session
 
 # Optional: Bot token for bot API

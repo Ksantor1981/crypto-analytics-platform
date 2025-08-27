@@ -1,0 +1,61 @@
+{
+  "success": true,
+  "total_platforms": 3,
+  "successful_platforms": 2,
+  "total_signals": 0,
+  "final_signals": 0,
+  "processing_time": 8.04327130317688,
+  "platform_results": [
+    {
+      "platform": "telegram",
+      "success": false,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "processing_time": 0.0066225528717041016,
+      "error": "'RealTelegramParser' object has no attribute 'parse_all_channels'"
+    },
+    {
+      "platform": "reddit",
+      "success": true,
+      "total_signals": 7,
+      "filtered_signals": 0,
+      "processing_time": 4.024703025817871,
+      "error": null
+    },
+    {
+      "platform": "tradingview",
+      "success": true,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "processing_time": 8.034684658050537,
+      "error": null
+    }
+  ],
+  "signals": [],
+  "platform_comparison": {
+    "telegram": {
+      "total_signals": 0,
+      "successful_runs": 0,
+      "avg_signals_per_run": 0,
+      "success_rate": 0.0
+    },
+    "reddit": {
+      "total_signals": 0,
+      "successful_runs": 1,
+      "avg_signals_per_run": 0.0,
+      "success_rate": 50.0
+    },
+    "tradingview": {
+      "total_signals": 0,
+      "successful_runs": 1,
+      "avg_signals_per_run": 0.0,
+      "success_rate": 50.0
+    }
+  },
+  "recommendations": [
+    "Платформа reddit: низкая продуктивность, рассмотрите оптимизацию",
+    "Платформа tradingview: низкая продуктивность, рассмотрите оптимизацию",
+    "Общее количество сигналов низкое, рассмотрите расширение источников"
+  ],
+  "timestamp": "2025-08-24T19:02:56.504928"
+}

@@ -1,0 +1,169 @@
+{
+  "accessible_channels": [
+    {
+      "username": "CryptoCapoTG",
+      "message_count": 23
+    },
+    {
+      "username": "cryptosignals",
+      "message_count": 26
+    },
+    {
+      "username": "binance_signals",
+      "message_count": 26
+    },
+    {
+      "username": "binance_signals_official",
+      "message_count": 20
+    },
+    {
+      "username": "crypto_signals_daily",
+      "message_count": 11
+    },
+    {
+      "username": "bitcoin_signals",
+      "message_count": 26
+    },
+    {
+      "username": "crypto_analytics_pro",
+      "message_count": 2
+    },
+    {
+      "username": "price_alerts",
+      "message_count": 20
+    },
+    {
+      "username": "crypto_news_signals",
+      "message_count": 3
+    }
+  ],
+  "inaccessible_channels": [
+    "coinbase_signals",
+    "kraken_signals",
+    "ethereum_signals_daily",
+    "altcoin_signals_pro",
+    "defi_signals_daily",
+    "trading_signals_24_7",
+    "market_signals",
+    "technical_analysis_signals",
+    "fundamental_analysis_signals"
+  ],
+  "channels_with_signals": [
+    {
+      "username": "cryptosignals",
+      "signal_count": 8
+    },
+    {
+      "username": "binance_signals",
+      "signal_count": 1
+    },
+    {
+      "username": "bitcoin_signals",
+      "signal_count": 1
+    }
+  ],
+  "total_signals": 10,
+  "all_signals": [
+    {
+      "pattern_used": "(Buy|Sell)\\s+side\\s+liquidity\\s+(above|below)\\s+(\\...",
+      "message_text": "#ETH Weekly If ETH wants to make a new ATH and wants to grab a Buy side liquidity above 4107 in August then it must not close weekly candle below 3636...",
+      "message_id": "cryptosignals_5",
+      "full_match": "Buy side liquidity above 4107",
+      "direction": "BUY",
+      "asset": "UNKNOWN",
+      "entry_price": 4107.0,
+      "channel_username": "cryptosignals"
+    },
+    {
+      "pattern_used": "(Buy|Sell)\\s+side\\s+liquidity\\s+(above|below)\\s+(\\...",
+      "message_text": "#ETH Weekly If ETH wants to make a new ATH and wants to grab a Buy side liquidity above 4107 in August then it must not close weekly candle below 3636...",
+      "message_id": "cryptosignals_5",
+      "full_match": "Buy side liquidity above 4107",
+      "direction": "BUY",
+      "asset": "UNKNOWN",
+      "entry_price": 4107.0,
+      "channel_username": "cryptosignals"
+    },
+    {
+      "pattern_used": "(Buy|Sell)\\s+side\\s+liquidity\\s+(above|below)\\s+(\\...",
+      "message_text": "#ETH Weekly   If ETH wants to make a new ATH and wants to grab a Buy side liquidity above 4107 in August then it must not close weekly candle below 36...",
+      "message_id": "cryptosignals_15",
+      "full_match": "Buy side liquidity above 4107",
+      "direction": "BUY",
+      "asset": "UNKNOWN",
+      "entry_price": 4107.0,
+      "channel_username": "cryptosignals"
+    },
+    {
+      "pattern_used": "(Buy|Sell)\\s+side\\s+liquidity\\s+(above|below)\\s+(\\...",
+      "message_text": "#ETH Weekly   If ETH wants to make a new ATH and wants to grab a Buy side liquidity above 4107 in August then it must not close weekly candle below 36...",
+      "message_id": "cryptosignals_15",
+      "full_match": "Buy side liquidity above 4107",
+      "direction": "BUY",
+      "asset": "UNKNOWN",
+      "entry_price": 4107.0,
+      "channel_username": "cryptosignals"
+    },
+    {
+      "pattern_used": "(Buy|Sell)\\s+side\\s+liquidity\\s+(above|below)\\s+(\\...",
+      "message_text": "It&#39;s playing exactly as planned.Going up to grab Sell side Liquidity above 4107 after closing the weekly candle below 3636.Watch crypto closely no...",
+      "message_id": "cryptosignals_16",
+      "full_match": "Sell side Liquidity above 4107",
+      "direction": "SELL",
+      "asset": "UNKNOWN",
+      "entry_price": 4107.0,
+      "channel_username": "cryptosignals"
+    },
+    {
+      "pattern_used": "(Buy|Sell)\\s+side\\s+liquidity\\s+(above|below)\\s+(\\...",
+      "message_text": "#ETH Weekly   If ETH wants to make a new ATH and wants to grab a Buy side liquidity above 4107 in August then it must not close weekly candle below 36...",
+      "message_id": "cryptosignals_17",
+      "full_match": "Buy side liquidity above 4107",
+      "direction": "BUY",
+      "asset": "UNKNOWN",
+      "entry_price": 4107.0,
+      "channel_username": "cryptosignals"
+    },
+    {
+      "pattern_used": "(Buy|Sell)\\s+side\\s+liquidity\\s+(above|below)\\s+(\\...",
+      "message_text": "#ETH Weekly   If ETH wants to make a new ATH and wants to grab a Buy side liquidity above 4107 in August then it must not close weekly candle below 36...",
+      "message_id": "cryptosignals_17",
+      "full_match": "Buy side liquidity above 4107",
+      "direction": "BUY",
+      "asset": "UNKNOWN",
+      "entry_price": 4107.0,
+      "channel_username": "cryptosignals"
+    },
+    {
+      "pattern_used": "(Buy|Sell)\\s+side\\s+liquidity\\s+(above|below)\\s+(\\...",
+      "message_text": "#ETH played Exactly as planned, buy side liquidity above 4107 grabbed now waiting for weakness.Bearishess doesn&#39;t mean that u short the markets bl...",
+      "message_id": "cryptosignals_18",
+      "full_match": "buy side liquidity above 4107",
+      "direction": "BUY",
+      "asset": "UNKNOWN",
+      "entry_price": 4107.0,
+      "channel_username": "cryptosignals"
+    },
+    {
+      "pattern_used": "(Buying|Longing)\\s+[#\\$](\\w+)...",
+      "message_text": "LONGING &#036;SYS HEREExchange: Binance / Binance FuturesBuying / Longing #SYS now. Fully bottomed, next stop &#036;0.05🚀...",
+      "message_id": "binance_signals_9",
+      "full_match": "Longing #SYS",
+      "direction": "LONG",
+      "asset": "SYS",
+      "entry_price": null,
+      "channel_username": "binance_signals"
+    },
+    {
+      "pattern_used": "(Buying|Longing)\\s+[#\\$](\\w+)...",
+      "message_text": "LONGING &#036;SYS HEREExchange: Binance / Binance FuturesBuying / Longing #SYS now. Fully bottomed, next stop &#036;0.05🚀...",
+      "message_id": "bitcoin_signals_9",
+      "full_match": "Longing #SYS",
+      "direction": "LONG",
+      "asset": "SYS",
+      "entry_price": null,
+      "channel_username": "bitcoin_signals"
+    }
+  ],
+  "check_time": "2025-08-23T20:36:05.991287"
+}

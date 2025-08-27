@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "total_signals": 0,
+  "signals": [],
+  "channel_stats": {
+    "signalsbitcoinandethereum": {
+      "signals_found": 0,
+      "channel_name": "signalsbitcoinandethereum"
+    },
+    "CryptoCapoTG": {
+      "signals_found": 0,
+      "channel_name": "CryptoCapoTG"
+    },
+    "cryptosignals": {
+      "signals_found": 0,
+      "channel_name": "cryptosignals"
+    },
+    "binance_signals": {
+      "signals_found": 0,
+      "channel_name": "binance_signals"
+    },
+    "crypto_analytics": {
+      "signals_found": 0,
+      "channel_name": "crypto_analytics"
+    }
+  },
+  "collection_time": "2025-08-24T00:06:33.155496",
+  "hours_back": 24
+}

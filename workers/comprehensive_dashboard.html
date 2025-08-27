@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Комплексный Анализ Торговых Сигналов</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .chart-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+
+        .signals-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .signals-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .signals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .signal-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .signal-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .signal-asset {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .signal-direction {
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .signal-direction.buy {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .signal-direction.sell {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+                 .signal-details {
+             display: grid;
+             grid-template-columns: 1fr 1fr;
+             gap: 10px;
+             font-size: 0.9rem;
+         }
+
+         .signal-timeline {
+             margin-top: 10px;
+             padding: 8px;
+             background: #f8f9fa;
+             border-radius: 5px;
+             font-size: 0.8rem;
+         }
+
+         .timeline-item {
+             display: flex;
+             justify-content: space-between;
+             margin-bottom: 5px;
+         }
+
+         .timeline-item:last-child {
+             margin-bottom: 0;
+         }
+
+         .days-remaining {
+             display: inline-block;
+             padding: 2px 6px;
+             border-radius: 3px;
+             font-size: 0.7rem;
+             font-weight: bold;
+         }
+
+         .days-remaining.urgent {
+             background: #dc3545;
+             color: white;
+         }
+
+         .days-remaining.warning {
+             background: #ffc107;
+             color: #212529;
+         }
+
+         .days-remaining.normal {
+             background: #28a745;
+             color: white;
+         }
+
+        .signal-detail {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .signal-detail span:first-child {
+            color: #666;
+        }
+
+        .signal-detail span:last-child {
+            font-weight: bold;
+        }
+
+        .channel-accuracy {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .channel-accuracy h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .accuracy-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .accuracy-table th,
+        .accuracy-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .accuracy-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .accuracy-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .success-rate {
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .success-rate.high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .success-rate.medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .success-rate.low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+                 .controls {
+             text-align: center;
+             margin-bottom: 20px;
+         }
+
+         .filters {
+             display: flex;
+             justify-content: center;
+             gap: 15px;
+             margin-bottom: 20px;
+             flex-wrap: wrap;
+         }
+
+         .filter-btn {
+             background: #f8f9fa;
+             color: #333;
+             border: 1px solid #dee2e6;
+             padding: 8px 16px;
+             border-radius: 6px;
+             cursor: pointer;
+             font-size: 0.9rem;
+             transition: all 0.3s ease;
+         }
+
+         .filter-btn:hover {
+             background: #e9ecef;
+         }
+
+         .filter-btn.active {
+             background: #667eea;
+             color: white;
+             border-color: #667eea;
+         }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0 10px;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .signals-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Комплексный Анализ Торговых Сигналов</h1>
+            <p>Реальные данные со всех источников • Точность каналов • Актуальные сигналы</p>
+        </div>
+
+                 <div class="controls">
+             <button class="btn" onclick="loadData()">🔄 Обновить данные</button>
+             <button class="btn" onclick="exportData()">📊 Экспорт отчета</button>
+         </div>
+
+         <div class="filters">
+             <button class="filter-btn active" onclick="filterSignals('all')">Все сигналы</button>
+             <button class="filter-btn" onclick="filterSignals('urgent')">⏰ Срочные (сегодня)</button>
+             <button class="filter-btn" onclick="filterSignals('warning')">⚠️ Скоро (завтра)</button>
+             <button class="filter-btn" onclick="filterSignals('normal')">📅 Обычные (2+ дней)</button>
+         </div>
+
+        <div id="loading" class="loading">
+            <h3>Загрузка данных...</h3>
+            <p>Собираем сигналы со всех источников</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <!-- Статистика -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalSignals">0</h3>
+                    <p>Всего сигналов</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="activeSignals">0</h3>
+                    <p>Активных сигналов</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="avgAccuracy">0%</h3>
+                    <p>Средняя точность</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="sourcesCount">0</h3>
+                    <p>Источников проанализировано</p>
+                </div>
+            </div>
+
+            <!-- Графики -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3>Распределение сигналов по источникам</h3>
+                    <canvas id="sourcesChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Распределение по уверенности</h3>
+                    <canvas id="confidenceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Активные сигналы -->
+            <div class="signals-section">
+                <h3>🎯 Актуальные торговые сигналы</h3>
+                <div id="signalsGrid" class="signals-grid">
+                    <!-- Сигналы будут загружены динамически -->
+                </div>
+            </div>
+
+            <!-- Точность каналов -->
+            <div class="channel-accuracy">
+                <h3>🏆 Точность каналов</h3>
+                <table class="accuracy-table">
+                    <thead>
+                        <tr>
+                            <th>Канал</th>
+                            <th>Точность</th>
+                            <th>Сигналов</th>
+                            <th>Успешных</th>
+                            <th>Средняя уверенность</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accuracyTable">
+                        <!-- Данные будут загружены динамически -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+                 let reportData = null;
+         let currentFilter = 'all';
+
+         // Загрузка данных при загрузке страницы
+         document.addEventListener('DOMContentLoaded', function() {
+             loadData();
+         });
+
+        async function loadData() {
+            try {
+                showLoading(true);
+                
+                // Загружаем данные из файла отчета
+                const response = await fetch('./comprehensive_signals_report.json');
+                if (!response.ok) {
+                    throw new Error('Файл отчета не найден. Запустите сборщик сигналов.');
+                }
+                
+                reportData = await response.json();
+                displayData(reportData);
+                showLoading(false);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                showError(error.message);
+                showLoading(false);
+            }
+        }
+
+        function displayData(data) {
+            // Обновляем статистику
+            document.getElementById('totalSignals').textContent = data.summary.total_new_signals;
+            document.getElementById('activeSignals').textContent = data.summary.total_active_signals;
+            document.getElementById('sourcesCount').textContent = data.summary.sources_analyzed;
+            
+            // Средняя точность
+            const channels = Object.values(data.channel_accuracy);
+            const avgAccuracy = channels.length > 0 ? 
+                channels.reduce((sum, ch) => sum + ch.success_rate, 0) / channels.length : 0;
+            document.getElementById('avgAccuracy').textContent = avgAccuracy.toFixed(1) + '%';
+
+            // Проверяем, загружен ли Chart.js
+            if (typeof Chart !== 'undefined') {
+                // График источников
+                createSourcesChart(data.signal_distribution);
+                
+                // График уверенности
+                createConfidenceChart(data.signal_quality_analysis);
+            } else {
+                console.warn('Chart.js не загружен, графики не будут отображаться');
+            }
+            
+            // Активные сигналы
+            displayActiveSignals(data.active_signals);
+            
+            // Точность каналов
+            displayChannelAccuracy(data.channel_accuracy);
+        }
+
+        function createSourcesChart(distribution) {
+            const ctx = document.getElementById('sourcesChart').getContext('2d');
+            
+            if (window.sourcesChart && typeof window.sourcesChart.destroy === 'function') {
+                window.sourcesChart.destroy();
+            }
+            
+            window.sourcesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Telegram', 'API', 'Веб-сайты'],
+                    datasets: [{
+                        data: [distribution.telegram, distribution.api, distribution.website],
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createConfidenceChart(quality) {
+            const ctx = document.getElementById('confidenceChart').getContext('2d');
+            
+            if (window.confidenceChart && typeof window.confidenceChart.destroy === 'function') {
+                window.confidenceChart.destroy();
+            }
+            
+            window.confidenceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Высокая (≥70%)', 'Средняя (50-69%)', 'Низкая (<50%)'],
+                    datasets: [{
+                        label: 'Количество сигналов',
+                        data: [
+                            quality.confidence_distribution.high,
+                            quality.confidence_distribution.medium,
+                            quality.confidence_distribution.low
+                        ],
+                        backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+                 function displayActiveSignals(signals) {
+             const container = document.getElementById('signalsGrid');
+             container.innerHTML = '';
+
+             if (signals.length === 0) {
+                 container.innerHTML = '<p style="text-align: center; color: #666;">Нет активных сигналов</p>';
+                 return;
+             }
+
+             // Фильтруем сигналы
+             let filteredSignals = signals;
+             if (currentFilter !== 'all') {
+                 filteredSignals = signals.filter(signal => {
+                     if (currentFilter === 'urgent') return signal.days_remaining === 0;
+                     if (currentFilter === 'warning') return signal.days_remaining === 1;
+                     if (currentFilter === 'normal') return signal.days_remaining >= 2;
+                     return true;
+                 });
+             }
+
+             if (filteredSignals.length === 0) {
+                 container.innerHTML = '<p style="text-align: center; color: #666;">Нет сигналов для выбранного фильтра</p>';
+                 return;
+             }
+
+             filteredSignals.slice(0, 12).forEach(signal => {
+                 const card = document.createElement('div');
+                 card.className = 'signal-card';
+                 
+                 const directionClass = signal.direction.toLowerCase();
+                 const entryPrice = signal.entry_price ? `$${signal.entry_price.toLocaleString()}` : 'Market';
+                 const targetPrice = signal.target_price ? `$${signal.target_price.toLocaleString()}` : 'N/A';
+                 const stopLoss = signal.stop_loss ? `$${signal.stop_loss.toLocaleString()}` : 'N/A';
+                 
+                 // Форматируем даты
+                 const signalDate = signal.signal_date ? new Date(signal.signal_date).toLocaleString('ru-RU', {
+                     day: '2-digit',
+                     month: '2-digit',
+                     hour: '2-digit',
+                     minute: '2-digit'
+                 }) : 'N/A';
+                 
+                 const expectedDate = signal.expected_date ? new Date(signal.expected_date).toLocaleString('ru-RU', {
+                     day: '2-digit',
+                     month: '2-digit',
+                     hour: '2-digit',
+                     minute: '2-digit'
+                 }) : 'N/A';
+                 
+                 // Определяем класс для дней до события
+                 let daysClass = 'normal';
+                 if (signal.days_remaining === 0) daysClass = 'urgent';
+                 else if (signal.days_remaining <= 1) daysClass = 'warning';
+                 
+                 const daysText = signal.days_remaining === 0 ? 'Сегодня' : 
+                                 signal.days_remaining === 1 ? 'Завтра' : 
+                                 `${signal.days_remaining} дн.`;
+                 
+                 card.innerHTML = `
+                     <div class="signal-header">
+                         <div class="signal-asset">${signal.asset}</div>
+                         <div class="signal-direction ${directionClass}">${signal.direction}</div>
+                     </div>
+                     <div class="signal-details">
+                         <div class="signal-detail">
+                             <span>Вход:</span>
+                             <span>${entryPrice}</span>
+                         </div>
+                         <div class="signal-detail">
+                             <span>Цель:</span>
+                             <span>${targetPrice}</span>
+                         </div>
+                         <div class="signal-detail">
+                             <span>Стоп:</span>
+                             <span>${stopLoss}</span>
+                         </div>
+                         <div class="signal-detail">
+                             <span>Уверенность:</span>
+                             <span>${signal.confidence}%</span>
+                         </div>
+                         <div class="signal-detail">
+                             <span>Канал:</span>
+                             <span>${signal.channel}</span>
+                         </div>
+                         <div class="signal-detail">
+                             <span>Плечо:</span>
+                             <span>${signal.leverage || '1x'}</span>
+                         </div>
+                     </div>
+                     <div class="signal-timeline">
+                         <div class="timeline-item">
+                             <span>📅 Сигнал получен:</span>
+                             <span>${signalDate}</span>
+                         </div>
+                         <div class="timeline-item">
+                             <span>🎯 Ожидаемое событие:</span>
+                             <span>${expectedDate}</span>
+                         </div>
+                         <div class="timeline-item">
+                             <span>⏰ До события:</span>
+                             <span class="days-remaining ${daysClass}">${daysText}</span>
+                         </div>
+                     </div>
+                 `;
+                 
+                 container.appendChild(card);
+             });
+         }
+
+        function displayChannelAccuracy(accuracy) {
+            const tbody = document.getElementById('accuracyTable');
+            tbody.innerHTML = '';
+
+            const channels = Object.entries(accuracy)
+                .filter(([_, stats]) => stats.total_signals >= 5)
+                .sort(([_, a], [__, b]) => b.success_rate - a.success_rate)
+                .slice(0, 10);
+
+            channels.forEach(([channel, stats]) => {
+                const row = document.createElement('tr');
+                
+                let rateClass = 'low';
+                if (stats.success_rate >= 70) rateClass = 'high';
+                else if (stats.success_rate >= 50) rateClass = 'medium';
+                
+                row.innerHTML = `
+                    <td><strong>${channel}</strong></td>
+                    <td><span class="success-rate ${rateClass}">${stats.success_rate}%</span></td>
+                    <td>${stats.total_signals}</td>
+                    <td>${stats.successful_signals}</td>
+                    <td>${stats.avg_confidence}%</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('content').style.display = show ? 'none' : 'block';
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `
+                <strong>Ошибка:</strong> ${message}
+                <br><br>
+                <strong>Решение:</strong> Запустите скрипт comprehensive_signal_collector.py для сбора данных
+            `;
+            
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.controls'));
+        }
+
+                 function filterSignals(filterType) {
+             currentFilter = filterType;
+             
+             // Обновляем активную кнопку
+             document.querySelectorAll('.filter-btn').forEach(btn => {
+                 btn.classList.remove('active');
+             });
+             event.target.classList.add('active');
+             
+             // Перерисовываем сигналы с фильтром
+             if (reportData) {
+                 displayActiveSignals(reportData.active_signals);
+             }
+         }
+
+         function exportData() {
+             if (!reportData) {
+                 alert('Нет данных для экспорта. Сначала загрузите данные.');
+                 return;
+             }
+
+             const dataStr = JSON.stringify(reportData, null, 2);
+             const dataBlob = new Blob([dataStr], {type: 'application/json'});
+             const url = URL.createObjectURL(dataBlob);
+             
+             const link = document.createElement('a');
+             link.href = url;
+             link.download = `signals_report_${new Date().toISOString().split('T')[0]}.json`;
+             link.click();
+             
+             URL.revokeObjectURL(url);
+         }
+    </script>
+</body>
+</html>

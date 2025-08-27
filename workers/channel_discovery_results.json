@@ -1,0 +1,86 @@
+{
+  "timestamp": "2025-08-23T12:29:58.568814",
+  "search_stats": {
+    "total_searched": 9,
+    "new_channels_found": 7,
+    "channels_analyzed": 7
+  },
+  "new_channels_found": 7,
+  "channels_analyzed": 7,
+  "subscribed_channels": 2,
+  "high_priority_channels": 4,
+  "total_channels_in_db": 10,
+  "channel_analyses": [
+    {
+      "channel_username": "crypto_signals_crypto signals",
+      "content_type": "signal",
+      "content_quality": "medium",
+      "signal_frequency": 6.0,
+      "success_rate": 0.6,
+      "priority_score": 6.5,
+      "recommendation": "Требует дополнительного анализа",
+      "analysis_timestamp": "2025-08-23T12:29:58.564277"
+    },
+    {
+      "channel_username": "crypto_signals_trading signals",
+      "content_type": "signal",
+      "content_quality": "medium",
+      "signal_frequency": 6.0,
+      "success_rate": 0.6,
+      "priority_score": 6.5,
+      "recommendation": "Требует дополнительного анализа",
+      "analysis_timestamp": "2025-08-23T12:29:58.564277"
+    },
+    {
+      "channel_username": "crypto_signals_bitcoin signals",
+      "content_type": "signal",
+      "content_quality": "medium",
+      "signal_frequency": 6.0,
+      "success_rate": 0.6,
+      "priority_score": 6.5,
+      "recommendation": "Требует дополнительного анализа",
+      "analysis_timestamp": "2025-08-23T12:29:58.565287"
+    },
+    {
+      "channel_username": "crypto_analysis_crypto analysis",
+      "content_type": "analysis",
+      "content_quality": "high",
+      "signal_frequency": 3.0,
+      "success_rate": 0.7,
+      "priority_score": 7.5,
+      "recommendation": "Требует дополнительного анализа",
+      "analysis_timestamp": "2025-08-23T12:29:58.565287"
+    },
+    {
+      "channel_username": "crypto_signals_altcoin signals",
+      "content_type": "signal",
+      "content_quality": "medium",
+      "signal_frequency": 6.0,
+      "success_rate": 0.6,
+      "priority_score": 6.5,
+      "recommendation": "Требует дополнительного анализа",
+      "analysis_timestamp": "2025-08-23T12:29:58.565287"
+    },
+    {
+      "channel_username": "crypto_signals_defi signals",
+      "content_type": "signal",
+      "content_quality": "medium",
+      "signal_frequency": 6.0,
+      "success_rate": 0.6,
+      "priority_score": 6.5,
+      "recommendation": "Требует дополнительного анализа",
+      "analysis_timestamp": "2025-08-23T12:29:58.565287"
+    },
+    {
+      "channel_username": "crypto_signals_meme coin signals",
+      "content_type": "signal",
+      "content_quality": "medium",
+      "signal_frequency": 6.0,
+      "success_rate": 0.6,
+      "priority_score": 6.5,
+      "recommendation": "Требует дополнительного анализа",
+      "analysis_timestamp": "2025-08-23T12:29:58.565287"
+    }
+  ],
+  "duration_seconds": 0.005058
+}

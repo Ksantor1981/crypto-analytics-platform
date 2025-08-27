@@ -1,0 +1,73 @@
+{
+  "success": true,
+  "total_signals": 1,
+  "platform_results": {
+    "telegram": {
+      "success": true,
+      "total_signals": 1,
+      "filtered_signals": 1,
+      "processing_time": 11.762414455413818,
+      "error": null
+    },
+    "reddit": {
+      "success": true,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "processing_time": 4.014364004135132,
+      "error": null
+    },
+    "tradingview": {
+      "success": true,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "processing_time": 8.037083148956299,
+      "error": null
+    }
+  },
+  "signals": [
+    {
+      "id": "5d01ada840571b08",
+      "asset": "BTC",
+      "direction": "SHORT",
+      "entry_price": null,
+      "target_price": null,
+      "stop_loss": null,
+      "leverage": null,
+      "timeframe": null,
+      "signal_quality": "poor",
+      "real_confidence": 50.0,
+      "calculated_confidence": 50.0,
+      "channel": "cryptosignals",
+      "message_id": "msg_2",
+      "original_text": "#BTCIf weekly candle closes below 114311 then BTC will look for Daily FVG (110532 - 109241) for a potential bounce however if fails to bounce then daily OB+ (103450 - 98455) But i think at some point of time BTC will test structure breaking WFVG 92880 - 86520 may be in september.In short BTC has a potential to bounce from 110532 for a relief@cryptosignals",
+      "cleaned_text": "#BTCIf weekly candle closes below 114311 then BTC will look for Daily FVG (110532 - 109241) for a potential bounce however if fails to bounce then daily OB+ (103450 - 98455) But i think at some point of time BTC will test structure breaking WFVG 92880 - 86520 may be in september.In short BTC has a potential to bounce from 110532 for a relief@cryptosignals",
+      "signal_type": "telegram",
+      "timestamp": "2025-08-25T12:14:26.974664",
+      "extraction_time": "2025-08-25T12:14:26.974667",
+      "bybit_available": true,
+      "is_valid": true,
+      "validation_errors": [],
+      "risk_reward_ratio": null,
+      "potential_profit": null,
+      "potential_loss": null
+    }
+  ],
+  "platform_stats": {
+    "telegram": {
+      "total_signals": 1,
+      "successful_runs": 1,
+      "avg_quality": 0.0
+    },
+    "reddit": {
+      "total_signals": 0,
+      "successful_runs": 1,
+      "avg_quality": 0.0
+    },
+    "tradingview": {
+      "total_signals": 0,
+      "successful_runs": 1,
+      "avg_quality": 0.0
+    }
+  },
+  "timestamp": "2025-08-25T12:14:45.789865"
+}

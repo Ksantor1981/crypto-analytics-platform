@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Тест сигналов
+                console.log('Тестируем API сигналов...');
+                const signalsResponse = await fetch('http://localhost:8000/api/signals');
+                console.log('Статус сигналов:', signalsResponse.status);
+                
+                if (signalsResponse.ok) {
+                    const signalsData = await signalsResponse.json();
+                    console.log('Данные сигналов:', signalsData);
+                    results.innerHTML += `<h3>Сигналы (${signalsData.signals?.length || 0}):</h3>`;
+                    results.innerHTML += `<pre>${JSON.stringify(signalsData, null, 2)}</pre>`;
+                } else {
+                    results.innerHTML += `<h3>Ошибка сигналов: ${signalsResponse.status}</h3>`;
+                }
+                
+                // Тест каналов
+                console.log('Тестируем API каналов...');
+                const channelsResponse = await fetch('http://localhost:8000/api/channels');
+                console.log('Статус каналов:', channelsResponse.status);
+                
+                if (channelsResponse.ok) {
+                    const channelsData = await channelsResponse.json();
+                    console.log('Данные каналов:', channelsData);
+                    results.innerHTML += `<h3>Каналы (${channelsData.channels?.length || 0}):</h3>`;
+                    results.innerHTML += `<pre>${JSON.stringify(channelsData, null, 2)}</pre>`;
+                } else {
+                    results.innerHTML += `<h3>Ошибка каналов: ${channelsResponse.status}</h3>`;
+                }
+                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                results.innerHTML += `<h3>Ошибка: ${error.message}</h3>`;
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

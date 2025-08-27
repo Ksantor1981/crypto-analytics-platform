@@ -1,0 +1,826 @@
+{
+  "summary": {
+    "total_historical_signals": 3027,
+    "avg_accuracy": 71.57142857142857,
+    "total_pnl": 8678.96,
+    "current_signals": 30,
+    "expected_net_result": 88.24285714285713
+  },
+  "detailed_analysis": {
+    "total_signals": 30,
+    "channels_analyzed": 7,
+    "historical_performance": {
+      "cryptosignals": {
+        "total_signals": 494,
+        "avg_accuracy": 68.33333333333333,
+        "total_pnl": 1442.11,
+        "monthly_breakdown": [
+          {
+            "month": "2025-08",
+            "total_signals": 42,
+            "successful_signals": 25,
+            "failed_signals": 17,
+            "accuracy_percentage": 61,
+            "monthly_pnl": 119.45
+          },
+          {
+            "month": "2025-07",
+            "total_signals": 37,
+            "successful_signals": 24,
+            "failed_signals": 13,
+            "accuracy_percentage": 67,
+            "monthly_pnl": 58.74
+          },
+          {
+            "month": "2025-06",
+            "total_signals": 52,
+            "successful_signals": 33,
+            "failed_signals": 19,
+            "accuracy_percentage": 64,
+            "monthly_pnl": 158.07
+          },
+          {
+            "month": "2025-05",
+            "total_signals": 48,
+            "successful_signals": 37,
+            "failed_signals": 11,
+            "accuracy_percentage": 79,
+            "monthly_pnl": 221.29
+          },
+          {
+            "month": "2025-04",
+            "total_signals": 47,
+            "successful_signals": 32,
+            "failed_signals": 15,
+            "accuracy_percentage": 69,
+            "monthly_pnl": 113.14
+          },
+          {
+            "month": "2025-03",
+            "total_signals": 43,
+            "successful_signals": 30,
+            "failed_signals": 13,
+            "accuracy_percentage": 71,
+            "monthly_pnl": 141.03
+          },
+          {
+            "month": "2025-02",
+            "total_signals": 34,
+            "successful_signals": 24,
+            "failed_signals": 10,
+            "accuracy_percentage": 73,
+            "monthly_pnl": 75.85
+          },
+          {
+            "month": "2025-01",
+            "total_signals": 33,
+            "successful_signals": 19,
+            "failed_signals": 14,
+            "accuracy_percentage": 59,
+            "monthly_pnl": 81.26
+          },
+          {
+            "month": "2024-12",
+            "total_signals": 37,
+            "successful_signals": 28,
+            "failed_signals": 9,
+            "accuracy_percentage": 77,
+            "monthly_pnl": 81.37
+          },
+          {
+            "month": "2024-11",
+            "total_signals": 49,
+            "successful_signals": 34,
+            "failed_signals": 15,
+            "accuracy_percentage": 71,
+            "monthly_pnl": 204.25
+          },
+          {
+            "month": "2024-10",
+            "total_signals": 34,
+            "successful_signals": 22,
+            "failed_signals": 12,
+            "accuracy_percentage": 67,
+            "monthly_pnl": 53.61
+          },
+          {
+            "month": "2024-09",
+            "total_signals": 38,
+            "successful_signals": 23,
+            "failed_signals": 15,
+            "accuracy_percentage": 62,
+            "monthly_pnl": 134.05
+          }
+        ]
+      },
+      "binance_signals": {
+        "total_signals": 422,
+        "avg_accuracy": 75.58333333333333,
+        "total_pnl": 1217.57,
+        "monthly_breakdown": [
+          {
+            "month": "2025-08",
+            "total_signals": 35,
+            "successful_signals": 29,
+            "failed_signals": 6,
+            "accuracy_percentage": 85,
+            "monthly_pnl": 100.4
+          },
+          {
+            "month": "2025-07",
+            "total_signals": 45,
+            "successful_signals": 34,
+            "failed_signals": 11,
+            "accuracy_percentage": 77,
+            "monthly_pnl": 221.06
+          },
+          {
+            "month": "2025-06",
+            "total_signals": 39,
+            "successful_signals": 31,
+            "failed_signals": 8,
+            "accuracy_percentage": 81,
+            "monthly_pnl": 69.78
+          },
+          {
+            "month": "2025-05",
+            "total_signals": 29,
+            "successful_signals": 22,
+            "failed_signals": 7,
+            "accuracy_percentage": 79,
+            "monthly_pnl": 78.57
+          },
+          {
+            "month": "2025-04",
+            "total_signals": 44,
+            "successful_signals": 28,
+            "failed_signals": 16,
+            "accuracy_percentage": 65,
+            "monthly_pnl": 67.33
+          },
+          {
+            "month": "2025-03",
+            "total_signals": 29,
+            "successful_signals": 22,
+            "failed_signals": 7,
+            "accuracy_percentage": 79,
+            "monthly_pnl": 57.07
+          },
+          {
+            "month": "2025-02",
+            "total_signals": 32,
+            "successful_signals": 24,
+            "failed_signals": 8,
+            "accuracy_percentage": 78,
+            "monthly_pnl": 69.95
+          },
+          {
+            "month": "2025-01",
+            "total_signals": 38,
+            "successful_signals": 24,
+            "failed_signals": 14,
+            "accuracy_percentage": 65,
+            "monthly_pnl": 61.19
+          },
+          {
+            "month": "2024-12",
+            "total_signals": 40,
+            "successful_signals": 32,
+            "failed_signals": 8,
+            "accuracy_percentage": 82,
+            "monthly_pnl": 132.39
+          },
+          {
+            "month": "2024-11",
+            "total_signals": 31,
+            "successful_signals": 22,
+            "failed_signals": 9,
+            "accuracy_percentage": 72,
+            "monthly_pnl": 112.38
+          },
+          {
+            "month": "2024-10",
+            "total_signals": 30,
+            "successful_signals": 21,
+            "failed_signals": 9,
+            "accuracy_percentage": 72,
+            "monthly_pnl": 110.55
+          },
+          {
+            "month": "2024-09",
+            "total_signals": 30,
+            "successful_signals": 21,
+            "failed_signals": 9,
+            "accuracy_percentage": 72,
+            "monthly_pnl": 136.9
+          }
+        ]
+      },
+      "bitcoin_signals": {
+        "total_signals": 477,
+        "avg_accuracy": 74.58333333333333,
+        "total_pnl": 1295.68,
+        "monthly_breakdown": [
+          {
+            "month": "2025-08",
+            "total_signals": 48,
+            "successful_signals": 30,
+            "failed_signals": 18,
+            "accuracy_percentage": 64,
+            "monthly_pnl": 76.22
+          },
+          {
+            "month": "2025-07",
+            "total_signals": 44,
+            "successful_signals": 36,
+            "failed_signals": 8,
+            "accuracy_percentage": 84,
+            "monthly_pnl": 170.1
+          },
+          {
+            "month": "2025-06",
+            "total_signals": 31,
+            "successful_signals": 19,
+            "failed_signals": 12,
+            "accuracy_percentage": 63,
+            "monthly_pnl": 42.26
+          },
+          {
+            "month": "2025-05",
+            "total_signals": 42,
+            "successful_signals": 28,
+            "failed_signals": 14,
+            "accuracy_percentage": 69,
+            "monthly_pnl": 84.7
+          },
+          {
+            "month": "2025-04",
+            "total_signals": 37,
+            "successful_signals": 25,
+            "failed_signals": 12,
+            "accuracy_percentage": 69,
+            "monthly_pnl": 106.01
+          },
+          {
+            "month": "2025-03",
+            "total_signals": 34,
+            "successful_signals": 29,
+            "failed_signals": 5,
+            "accuracy_percentage": 87,
+            "monthly_pnl": 93.98
+          },
+          {
+            "month": "2025-02",
+            "total_signals": 42,
+            "successful_signals": 29,
+            "failed_signals": 13,
+            "accuracy_percentage": 71,
+            "monthly_pnl": 131.93
+          },
+          {
+            "month": "2025-01",
+            "total_signals": 48,
+            "successful_signals": 32,
+            "failed_signals": 16,
+            "accuracy_percentage": 68,
+            "monthly_pnl": 103.31
+          },
+          {
+            "month": "2024-12",
+            "total_signals": 33,
+            "successful_signals": 25,
+            "failed_signals": 8,
+            "accuracy_percentage": 78,
+            "monthly_pnl": 147.23
+          },
+          {
+            "month": "2024-11",
+            "total_signals": 45,
+            "successful_signals": 34,
+            "failed_signals": 11,
+            "accuracy_percentage": 77,
+            "monthly_pnl": 94.99
+          },
+          {
+            "month": "2024-10",
+            "total_signals": 41,
+            "successful_signals": 32,
+            "failed_signals": 9,
+            "accuracy_percentage": 79,
+            "monthly_pnl": 108.85
+          },
+          {
+            "month": "2024-09",
+            "total_signals": 32,
+            "successful_signals": 27,
+            "failed_signals": 5,
+            "accuracy_percentage": 86,
+            "monthly_pnl": 136.1
+          }
+        ]
+      },
+      "binance": {
+        "total_signals": 345,
+        "avg_accuracy": 72.5,
+        "total_pnl": 996.9,
+        "monthly_breakdown": [
+          {
+            "month": "2025-08",
+            "total_signals": 36,
+            "successful_signals": 28,
+            "failed_signals": 8,
+            "accuracy_percentage": 80,
+            "monthly_pnl": 132.53
+          },
+          {
+            "month": "2025-07",
+            "total_signals": 29,
+            "successful_signals": 20,
+            "failed_signals": 9,
+            "accuracy_percentage": 69,
+            "monthly_pnl": 41.06
+          },
+          {
+            "month": "2025-06",
+            "total_signals": 23,
+            "successful_signals": 15,
+            "failed_signals": 8,
+            "accuracy_percentage": 68,
+            "monthly_pnl": 57.03
+          },
+          {
+            "month": "2025-05",
+            "total_signals": 40,
+            "successful_signals": 34,
+            "failed_signals": 6,
+            "accuracy_percentage": 85,
+            "monthly_pnl": 179.31
+          },
+          {
+            "month": "2025-04",
+            "total_signals": 22,
+            "successful_signals": 17,
+            "failed_signals": 5,
+            "accuracy_percentage": 81,
+            "monthly_pnl": 93.35
+          },
+          {
+            "month": "2025-03",
+            "total_signals": 33,
+            "successful_signals": 27,
+            "failed_signals": 6,
+            "accuracy_percentage": 84,
+            "monthly_pnl": 87.02
+          },
+          {
+            "month": "2025-02",
+            "total_signals": 21,
+            "successful_signals": 17,
+            "failed_signals": 4,
+            "accuracy_percentage": 85,
+            "monthly_pnl": 65.46
+          },
+          {
+            "month": "2025-01",
+            "total_signals": 23,
+            "successful_signals": 15,
+            "failed_signals": 8,
+            "accuracy_percentage": 66,
+            "monthly_pnl": 28.03
+          },
+          {
+            "month": "2024-12",
+            "total_signals": 34,
+            "successful_signals": 16,
+            "failed_signals": 18,
+            "accuracy_percentage": 49,
+            "monthly_pnl": 6.7
+          },
+          {
+            "month": "2024-11",
+            "total_signals": 20,
+            "successful_signals": 12,
+            "failed_signals": 8,
+            "accuracy_percentage": 61,
+            "monthly_pnl": 25.01
+          },
+          {
+            "month": "2024-10",
+            "total_signals": 35,
+            "successful_signals": 24,
+            "failed_signals": 11,
+            "accuracy_percentage": 71,
+            "monthly_pnl": 158.59
+          },
+          {
+            "month": "2024-09",
+            "total_signals": 29,
+            "successful_signals": 20,
+            "failed_signals": 9,
+            "accuracy_percentage": 71,
+            "monthly_pnl": 122.81
+          }
+        ]
+      },
+      "CryptoCapoTG": {
+        "total_signals": 523,
+        "avg_accuracy": 79.41666666666667,
+        "total_pnl": 2097.44,
+        "monthly_breakdown": [
+          {
+            "month": "2025-08",
+            "total_signals": 40,
+            "successful_signals": 28,
+            "failed_signals": 12,
+            "accuracy_percentage": 72,
+            "monthly_pnl": 86.43
+          },
+          {
+            "month": "2025-07",
+            "total_signals": 50,
+            "successful_signals": 42,
+            "failed_signals": 8,
+            "accuracy_percentage": 84,
+            "monthly_pnl": 192.94
+          },
+          {
+            "month": "2025-06",
+            "total_signals": 39,
+            "successful_signals": 29,
+            "failed_signals": 10,
+            "accuracy_percentage": 75,
+            "monthly_pnl": 92.81
+          },
+          {
+            "month": "2025-05",
+            "total_signals": 42,
+            "successful_signals": 35,
+            "failed_signals": 7,
+            "accuracy_percentage": 85,
+            "monthly_pnl": 226.92
+          },
+          {
+            "month": "2025-04",
+            "total_signals": 54,
+            "successful_signals": 41,
+            "failed_signals": 13,
+            "accuracy_percentage": 77,
+            "monthly_pnl": 282.91
+          },
+          {
+            "month": "2025-03",
+            "total_signals": 35,
+            "successful_signals": 22,
+            "failed_signals": 13,
+            "accuracy_percentage": 63,
+            "monthly_pnl": 106.14
+          },
+          {
+            "month": "2025-02",
+            "total_signals": 55,
+            "successful_signals": 50,
+            "failed_signals": 5,
+            "accuracy_percentage": 91,
+            "monthly_pnl": 237.99
+          },
+          {
+            "month": "2025-01",
+            "total_signals": 43,
+            "successful_signals": 34,
+            "failed_signals": 9,
+            "accuracy_percentage": 81,
+            "monthly_pnl": 164.73
+          },
+          {
+            "month": "2024-12",
+            "total_signals": 38,
+            "successful_signals": 33,
+            "failed_signals": 5,
+            "accuracy_percentage": 88,
+            "monthly_pnl": 217.98
+          },
+          {
+            "month": "2024-11",
+            "total_signals": 51,
+            "successful_signals": 36,
+            "failed_signals": 15,
+            "accuracy_percentage": 71,
+            "monthly_pnl": 173.67
+          },
+          {
+            "month": "2024-10",
+            "total_signals": 40,
+            "successful_signals": 34,
+            "failed_signals": 6,
+            "accuracy_percentage": 87,
+            "monthly_pnl": 138.6
+          },
+          {
+            "month": "2024-09",
+            "total_signals": 36,
+            "successful_signals": 28,
+            "failed_signals": 8,
+            "accuracy_percentage": 79,
+            "monthly_pnl": 176.32
+          }
+        ]
+      },
+      "crypto": {
+        "total_signals": 373,
+        "avg_accuracy": 68.0,
+        "total_pnl": 1059.3,
+        "monthly_breakdown": [
+          {
+            "month": "2025-08",
+            "total_signals": 27,
+            "successful_signals": 13,
+            "failed_signals": 14,
+            "accuracy_percentage": 51,
+            "monthly_pnl": 18.18
+          },
+          {
+            "month": "2025-07",
+            "total_signals": 32,
+            "successful_signals": 16,
+            "failed_signals": 16,
+            "accuracy_percentage": 52,
+            "monthly_pnl": 67.25
+          },
+          {
+            "month": "2025-06",
+            "total_signals": 32,
+            "successful_signals": 25,
+            "failed_signals": 7,
+            "accuracy_percentage": 79,
+            "monthly_pnl": 43.9
+          },
+          {
+            "month": "2025-05",
+            "total_signals": 34,
+            "successful_signals": 27,
+            "failed_signals": 7,
+            "accuracy_percentage": 80,
+            "monthly_pnl": 183.52
+          },
+          {
+            "month": "2025-04",
+            "total_signals": 29,
+            "successful_signals": 23,
+            "failed_signals": 6,
+            "accuracy_percentage": 80,
+            "monthly_pnl": 111.09
+          },
+          {
+            "month": "2025-03",
+            "total_signals": 26,
+            "successful_signals": 17,
+            "failed_signals": 9,
+            "accuracy_percentage": 68,
+            "monthly_pnl": 45.38
+          },
+          {
+            "month": "2025-02",
+            "total_signals": 25,
+            "successful_signals": 14,
+            "failed_signals": 11,
+            "accuracy_percentage": 58,
+            "monthly_pnl": 66.67
+          },
+          {
+            "month": "2025-01",
+            "total_signals": 31,
+            "successful_signals": 21,
+            "failed_signals": 10,
+            "accuracy_percentage": 68,
+            "monthly_pnl": 112.85
+          },
+          {
+            "month": "2024-12",
+            "total_signals": 32,
+            "successful_signals": 23,
+            "failed_signals": 9,
+            "accuracy_percentage": 72,
+            "monthly_pnl": 72.65
+          },
+          {
+            "month": "2024-11",
+            "total_signals": 34,
+            "successful_signals": 21,
+            "failed_signals": 13,
+            "accuracy_percentage": 62,
+            "monthly_pnl": 106.14
+          },
+          {
+            "month": "2024-10",
+            "total_signals": 35,
+            "successful_signals": 24,
+            "failed_signals": 11,
+            "accuracy_percentage": 71,
+            "monthly_pnl": 90.39
+          },
+          {
+            "month": "2024-09",
+            "total_signals": 36,
+            "successful_signals": 27,
+            "failed_signals": 9,
+            "accuracy_percentage": 75,
+            "monthly_pnl": 141.28
+          }
+        ]
+      },
+      "price": {
+        "total_signals": 393,
+        "avg_accuracy": 62.583333333333336,
+        "total_pnl": 569.96,
+        "monthly_breakdown": [
+          {
+            "month": "2025-08",
+            "total_signals": 37,
+            "successful_signals": 18,
+            "failed_signals": 19,
+            "accuracy_percentage": 49,
+            "monthly_pnl": 15.23
+          },
+          {
+            "month": "2025-07",
+            "total_signals": 20,
+            "successful_signals": 11,
+            "failed_signals": 9,
+            "accuracy_percentage": 59,
+            "monthly_pnl": 26.47
+          },
+          {
+            "month": "2025-06",
+            "total_signals": 40,
+            "successful_signals": 31,
+            "failed_signals": 9,
+            "accuracy_percentage": 79,
+            "monthly_pnl": 73.16
+          },
+          {
+            "month": "2025-05",
+            "total_signals": 34,
+            "successful_signals": 26,
+            "failed_signals": 8,
+            "accuracy_percentage": 77,
+            "monthly_pnl": 74.27
+          },
+          {
+            "month": "2025-04",
+            "total_signals": 29,
+            "successful_signals": 15,
+            "failed_signals": 14,
+            "accuracy_percentage": 53,
+            "monthly_pnl": 73.07
+          },
+          {
+            "month": "2025-03",
+            "total_signals": 36,
+            "successful_signals": 19,
+            "failed_signals": 17,
+            "accuracy_percentage": 55,
+            "monthly_pnl": 12.16
+          },
+          {
+            "month": "2025-02",
+            "total_signals": 29,
+            "successful_signals": 21,
+            "failed_signals": 8,
+            "accuracy_percentage": 73,
+            "monthly_pnl": 67.34
+          },
+          {
+            "month": "2025-01",
+            "total_signals": 34,
+            "successful_signals": 20,
+            "failed_signals": 14,
+            "accuracy_percentage": 60,
+            "monthly_pnl": 28.85
+          },
+          {
+            "month": "2024-12",
+            "total_signals": 37,
+            "successful_signals": 25,
+            "failed_signals": 12,
+            "accuracy_percentage": 70,
+            "monthly_pnl": 115.96
+          },
+          {
+            "month": "2024-11",
+            "total_signals": 35,
+            "successful_signals": 16,
+            "failed_signals": 19,
+            "accuracy_percentage": 46,
+            "monthly_pnl": -14.88
+          },
+          {
+            "month": "2024-10",
+            "total_signals": 37,
+            "successful_signals": 25,
+            "failed_signals": 12,
+            "accuracy_percentage": 69,
+            "monthly_pnl": 78.9
+          },
+          {
+            "month": "2024-09",
+            "total_signals": 25,
+            "successful_signals": 15,
+            "failed_signals": 10,
+            "accuracy_percentage": 61,
+            "monthly_pnl": 19.43
+          }
+        ]
+      }
+    },
+    "current_signals_analysis": {
+      "cryptosignals": {
+        "total_signals": 8,
+        "text_signals": 8,
+        "ocr_signals": 0,
+        "assets": {
+          "UNKNOWN": 8
+        },
+        "directions": {
+          "BUY": 7,
+          "SELL": 1
+        },
+        "bybit_available": 0
+      },
+      "binance_signals": {
+        "total_signals": 1,
+        "text_signals": 1,
+        "ocr_signals": 0,
+        "assets": {
+          "SYS": 1
+        },
+        "directions": {
+          "LONG": 1
+        },
+        "bybit_available": 0
+      },
+      "bitcoin_signals": {
+        "total_signals": 1,
+        "text_signals": 1,
+        "ocr_signals": 0,
+        "assets": {
+          "SYS": 1
+        },
+        "directions": {
+          "LONG": 1
+        },
+        "bybit_available": 0
+      },
+      "binance": {
+        "total_signals": 3,
+        "text_signals": 0,
+        "ocr_signals": 3,
+        "assets": {
+          "UNKNOWN": 3
+        },
+        "directions": {
+          "LONG": 3
+        },
+        "bybit_available": 0
+      },
+      "CryptoCapoTG": {
+        "total_signals": 6,
+        "text_signals": 0,
+        "ocr_signals": 6,
+        "assets": {
+          "BTC": 3,
+          "ETH": 3
+        },
+        "directions": {
+          "LONG": 3,
+          "SHORT": 3
+        },
+        "bybit_available": 6
+      },
+      "crypto": {
+        "total_signals": 8,
+        "text_signals": 0,
+        "ocr_signals": 8,
+        "assets": {
+          "UNKNOWN": 8
+        },
+        "directions": {
+          "LONG": 8
+        },
+        "bybit_available": 0
+      },
+      "price": {
+        "total_signals": 3,
+        "text_signals": 0,
+        "ocr_signals": 3,
+        "assets": {
+          "UNKNOWN": 3
+        },
+        "directions": {
+          "LONG": 3
+        },
+        "bybit_available": 0
+      }
+    },
+    "overall_statistics": {}
+  }
+}

@@ -1,0 +1,172 @@
+[
+  {
+    "username": "signalsbitcoinandethereum",
+    "title": "Bitcoin & Ethereum Signals",
+    "description": "Professional crypto trading signals",
+    "subscribers_count": 50000,
+    "channel_type": "signal",
+    "content_quality": "medium",
+    "signal_frequency": 5.0,
+    "success_rate": 0.65,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-23T12:29:58.557373",
+    "is_subscribed": true,
+    "is_verified": false,
+    "priority_score": 7.5
+  },
+  {
+    "username": "CryptoCapoTG",
+    "title": "CryptoCapo",
+    "description": "Technical analysis and market insights",
+    "subscribers_count": 100000,
+    "channel_type": "analysis",
+    "content_quality": "high",
+    "signal_frequency": 2.0,
+    "success_rate": 0.75,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-23T12:29:58.557373",
+    "is_subscribed": true,
+    "is_verified": false,
+    "priority_score": 9.0
+  },
+  {
+    "username": "binancesignals",
+    "title": "Binance Trading Signals",
+    "description": "Official Binance trading signals",
+    "subscribers_count": 200000,
+    "channel_type": "signal",
+    "content_quality": "high",
+    "signal_frequency": 8.0,
+    "success_rate": 0.7,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-22T12:29:58.557373",
+    "is_subscribed": false,
+    "is_verified": false,
+    "priority_score": 8.5
+  },
+  {
+    "username": "crypto_signals_crypto signals",
+    "title": "Crypto Signals Crypto Signals",
+    "description": "Professional crypto signals trading signals",
+    "subscribers_count": 15000,
+    "channel_type": "signal",
+    "content_quality": "medium",
+    "signal_frequency": 6.0,
+    "success_rate": 0.6,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-23T12:29:58.564277",
+    "is_subscribed": false,
+    "is_verified": false,
+    "priority_score": 6.5
+  },
+  {
+    "username": "crypto_signals_trading signals",
+    "title": "Crypto Signals Trading Signals",
+    "description": "Professional trading signals trading signals",
+    "subscribers_count": 15000,
+    "channel_type": "signal",
+    "content_quality": "medium",
+    "signal_frequency": 6.0,
+    "success_rate": 0.6,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-23T12:29:58.564277",
+    "is_subscribed": false,
+    "is_verified": false,
+    "priority_score": 6.5
+  },
+  {
+    "username": "crypto_signals_bitcoin signals",
+    "title": "Crypto Signals Bitcoin Signals",
+    "description": "Professional bitcoin signals trading signals",
+    "subscribers_count": 15000,
+    "channel_type": "signal",
+    "content_quality": "medium",
+    "signal_frequency": 6.0,
+    "success_rate": 0.6,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-23T12:29:58.564277",
+    "is_subscribed": false,
+    "is_verified": false,
+    "priority_score": 6.5
+  },
+  {
+    "username": "crypto_analysis_crypto analysis",
+    "title": "Crypto Analysis Crypto Analysis",
+    "description": "Technical analysis and crypto analysis insights",
+    "subscribers_count": 25000,
+    "channel_type": "analysis",
+    "content_quality": "high",
+    "signal_frequency": 3.0,
+    "success_rate": 0.7,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-23T12:29:58.564277",
+    "is_subscribed": false,
+    "is_verified": false,
+    "priority_score": 7.5
+  },
+  {
+    "username": "crypto_signals_altcoin signals",
+    "title": "Crypto Signals Altcoin Signals",
+    "description": "Professional altcoin signals trading signals",
+    "subscribers_count": 15000,
+    "channel_type": "signal",
+    "content_quality": "medium",
+    "signal_frequency": 6.0,
+    "success_rate": 0.6,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-23T12:29:58.564277",
+    "is_subscribed": false,
+    "is_verified": false,
+    "priority_score": 6.5
+  },
+  {
+    "username": "crypto_signals_defi signals",
+    "title": "Crypto Signals Defi Signals",
+    "description": "Professional defi signals trading signals",
+    "subscribers_count": 15000,
+    "channel_type": "signal",
+    "content_quality": "medium",
+    "signal_frequency": 6.0,
+    "success_rate": 0.6,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-23T12:29:58.564277",
+    "is_subscribed": false,
+    "is_verified": false,
+    "priority_score": 6.5
+  },
+  {
+    "username": "crypto_signals_meme coin signals",
+    "title": "Crypto Signals Meme Coin Signals",
+    "description": "Professional meme coin signals trading signals",
+    "subscribers_count": 15000,
+    "channel_type": "signal",
+    "content_quality": "medium",
+    "signal_frequency": 6.0,
+    "success_rate": 0.6,
+    "languages": [
+      "en"
+    ],
+    "last_activity": "2025-08-23T12:29:58.564277",
+    "is_subscribed": false,
+    "is_verified": false,
+    "priority_score": 6.5
+  }
+]

@@ -21,7 +21,7 @@ try:
     from .api.endpoints import (
         channels, users, signals, subscriptions, 
         payments, ml_integration, telegram_integration, 
-        trading, ml_predictions, backtesting
+        trading, ml_predictions, backtesting, dashboard
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -34,7 +34,7 @@ except ImportError as e:
         from api.endpoints import (
             channels, users, signals, subscriptions,
             payments, ml_integration, telegram_integration,
-            trading, ml_predictions, backtesting
+            trading, ml_predictions, backtesting, dashboard
         )
         from core.middleware import SubscriptionLimitMiddleware
         from core.scheduler import TradingScheduler
@@ -185,7 +185,8 @@ routers_config = [
     ("telegram_integration", "/api/v1/telegram", "telegram"),
     ("trading", "/api/v1/trading", "trading"),
     ("ml_predictions", "/api/v1/predictions", "predictions"),
-    ("backtesting", "/api/v1/backtesting", "backtesting")
+    ("backtesting", "/api/v1/backtesting", "backtesting"),
+    ("dashboard", "/api/v1/dashboard", "dashboard")
 ]
 
 # Подключаем роутеры с обработкой ошибок
@@ -280,6 +281,92 @@ async def test_endpoint():
         "cors": "enabled",
         "timestamp": None
     }
+
+# Простой тестовый эндпоинт
+@app.get("/api/v1/test-simple")
+async def test_simple():
+    """Очень простой тестовый эндпоинт"""
+    return {"message": "API работает!", "data": "test", "timestamp": "2025-08-23"}
+
+# Простой эндпоинт для дашборда
+@app.get("/api/v1/test-signals")
+async def test_signals():
+    """Простой эндпоинт для получения сигналов для дашборда"""
+    try:
+        from sqlalchemy.orm import Session
+        from app.core.database import get_db
+        from app.models.signal import Signal
+        
+        # Создаем сессию базы данных
+        db = next(get_db())
+        
+        # Получаем сигналы
+        signals = db.query(Signal).order_by(Signal.created_at.desc()).limit(10).all()
+        
+        # Конвертируем в простой формат
+        result = []
+        for signal in signals:
+            signal_dict = {
+                "id": signal.id,
+                "asset": signal.asset,
+                "symbol": signal.symbol,
+                "direction": signal.direction,
+                "entry_price": float(signal.entry_price) if signal.entry_price else None,
+                "tp1_price": float(signal.tp1_price) if signal.tp1_price else None,
+                "stop_loss": float(signal.stop_loss) if signal.stop_loss else None,
+                "original_text": signal.original_text,
+                "status": signal.status,
+                "confidence_score": float(signal.confidence_score) if signal.confidence_score else None,
+                "created_at": signal.created_at.isoformat() if signal.created_at else None,
+                "channel_id": signal.channel_id,
+                "channel_name": f"Channel {signal.channel_id}" if signal.channel_id else "Unknown"
+            }
+            result.append(signal_dict)
+        
+        return result
+        
+    except Exception as e:
+        return {"error": str(e), "message": "Failed to get signals"}
+
+@app.get("/api/v1/dashboard/channels")
+async def dashboard_channels():
+    """Простой эндпоинт для получения каналов для дашборда"""
+    try:
+        from sqlalchemy.orm import Session
+        from app.core.database import get_db
+        from app.models.channel import Channel
+        
+        # Создаем сессию базы данных
+        db = next(get_db())
+        
+        # Получаем каналы
+        channels = db.query(Channel).order_by(Channel.created_at.desc()).limit(10).all()
+        
+        # Конвертируем в простой формат
+        result = []
+        for channel in channels:
+            channel_dict = {
+                "id": channel.id,
+                "name": channel.name,
+                "username": channel.username,
+                "description": channel.description,
+                "platform": channel.platform,
+                "is_active": channel.is_active,
+                "is_verified": channel.is_verified,
+                "subscribers_count": channel.subscribers_count,
+                "category": channel.category,
+                "priority": channel.priority,
+                "expected_accuracy": channel.expected_accuracy,
+                "status": channel.status,
+                "created_at": channel.created_at.isoformat() if channel.created_at else None,
+                "updated_at": channel.updated_at.isoformat() if channel.updated_at else None
+            }
+            result.append(channel_dict)
+        
+        return result
+        
+    except Exception as e:
+        return {"error": str(e), "message": "Failed to get channels"}
 
 # Заглушка для ML предсказаний если основной сервис недоступен
 @app.post("/api/v1/predictions/test")

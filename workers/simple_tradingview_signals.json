@@ -1,0 +1,90 @@
+{
+  "success": true,
+  "total_symbols": 8,
+  "successful_symbols": 8,
+  "total_signals": 0,
+  "all_signals": [],
+  "symbol_results": [
+    {
+      "success": true,
+      "symbol": "BTCUSDT",
+      "total_ideas": 1,
+      "processed_ideas": 1,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "signals": [],
+      "timestamp": "2025-08-24T18:57:57.541497"
+    },
+    {
+      "success": true,
+      "symbol": "ETHUSDT",
+      "total_ideas": 1,
+      "processed_ideas": 1,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "signals": [],
+      "timestamp": "2025-08-24T18:57:58.545898"
+    },
+    {
+      "success": true,
+      "symbol": "ADAUSDT",
+      "total_ideas": 1,
+      "processed_ideas": 1,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "signals": [],
+      "timestamp": "2025-08-24T18:57:59.550487"
+    },
+    {
+      "success": true,
+      "symbol": "SOLUSDT",
+      "total_ideas": 1,
+      "processed_ideas": 1,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "signals": [],
+      "timestamp": "2025-08-24T18:58:00.553229"
+    },
+    {
+      "success": true,
+      "symbol": "DOTUSDT",
+      "total_ideas": 1,
+      "processed_ideas": 1,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "signals": [],
+      "timestamp": "2025-08-24T18:58:01.556351"
+    },
+    {
+      "success": true,
+      "symbol": "LINKUSDT",
+      "total_ideas": 1,
+      "processed_ideas": 1,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "signals": [],
+      "timestamp": "2025-08-24T18:58:02.559233"
+    },
+    {
+      "success": true,
+      "symbol": "MATICUSDT",
+      "total_ideas": 1,
+      "processed_ideas": 1,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "signals": [],
+      "timestamp": "2025-08-24T18:58:03.562280"
+    },
+    {
+      "success": true,
+      "symbol": "AVAXUSDT",
+      "total_ideas": 1,
+      "processed_ideas": 1,
+      "total_signals": 0,
+      "filtered_signals": 0,
+      "signals": [],
+      "timestamp": "2025-08-24T18:58:04.565048"
+    }
+  ],
+  "timestamp": "2025-08-24T18:58:05.565679"
+}

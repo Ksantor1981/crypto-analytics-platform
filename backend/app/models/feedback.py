@@ -5,7 +5,7 @@ Feedback model for user questions and suggestions
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Enum
 from sqlalchemy.sql import func
 import enum
-from backend.app.core.database import BaseModel
+from .base import BaseModel
 
 class FeedbackType(enum.Enum):
     """Types of feedback"""

@@ -1,0 +1,79 @@
+{
+  "success": true,
+  "total_signals": 1,
+  "total_raw_signals": 1,
+  "signals": [
+    {
+      "id": "af64b1006f0a524e",
+      "asset": "BTC",
+      "direction": "SHORT",
+      "entry_price": null,
+      "target_price": null,
+      "stop_loss": null,
+      "leverage": null,
+      "timeframe": null,
+      "signal_quality": "poor",
+      "real_confidence": 50.0,
+      "calculated_confidence": 50.0,
+      "channel": "cryptosignals",
+      "message_id": "msg_5",
+      "original_text": "#BTCIf weekly candle closes below 114311 then BTC will look for Daily FVG (110532 - 109241) for a potential bounce however if fails to bounce then daily OB+ (103450 - 98455) But i think at some point of time BTC will test structure breaking WFVG 92880 - 86520 may be in september.In short BTC has a potential to bounce from 110532 for a relief@cryptosignals",
+      "cleaned_text": "#BTCIf weekly candle closes below 114311 then BTC will look for Daily FVG (110532 - 109241) for a potential bounce however if fails to bounce then daily OB+ (103450 - 98455) But i think at some point of time BTC will test structure breaking WFVG 92880 - 86520 may be in september.In short BTC has a potential to bounce from 110532 for a relief@cryptosignals",
+      "signal_type": "telegram",
+      "timestamp": "2025-08-24T15:02:39.113878",
+      "extraction_time": "2025-08-24T15:02:39.113880",
+      "bybit_available": true,
+      "is_valid": true,
+      "validation_errors": [],
+      "risk_reward_ratio": null,
+      "potential_profit": null,
+      "potential_loss": null
+    }
+  ],
+  "channel_stats": {
+    "CryptoCapoTG": {
+      "total_signals": 0,
+      "valid_signals": 0,
+      "avg_confidence": 0,
+      "quality_distribution": {}
+    },
+    "BinanceKillers_Free": {
+      "total_signals": 0,
+      "valid_signals": 0,
+      "avg_confidence": 0,
+      "quality_distribution": {}
+    },
+    "cryptosignals": {
+      "total_signals": 1,
+      "valid_signals": 1,
+      "avg_confidence": 50.0,
+      "quality_distribution": {
+        "poor": 1
+      }
+    },
+    "binance_signals": {
+      "total_signals": 0,
+      "valid_signals": 0,
+      "avg_confidence": 0,
+      "quality_distribution": {}
+    },
+    "bitcoin_signals": {
+      "total_signals": 0,
+      "valid_signals": 0,
+      "avg_confidence": 0,
+      "quality_distribution": {}
+    }
+  },
+  "quality_summary": {
+    "avg_confidence": 50.0,
+    "median_confidence": 50.0,
+    "min_confidence": 50.0,
+    "max_confidence": 50.0,
+    "quality_distribution": {
+      "poor": 1
+    },
+    "bybit_available_count": 1,
+    "high_confidence_count": 0
+  },
+  "timestamp": "2025-08-24T15:02:45.715359"
+}

@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-08-23T22:16:14.619694",
+  "summary": {
+    "total_signals": 30,
+    "avg_accuracy": 71.23333333333333,
+    "expected_net_result": 84.0,
+    "bybit_available": 6,
+    "channels_count": 7
+  },
+  "channel_performance": {
+    "cryptosignals": {
+      "signals": 8,
+      "accuracy": 70,
+      "historical_pnl": 271
+    },
+    "binance_signals": {
+      "signals": 1,
+      "accuracy": 73,
+      "historical_pnl": 37
+    },
+    "bitcoin_signals": {
+      "signals": 1,
+      "accuracy": 76,
+      "historical_pnl": 43
+    },
+    "binance": {
+      "signals": 3,
+      "accuracy": 71,
+      "historical_pnl": 105
+    },
+    "CryptoCapoTG": {
+      "signals": 6,
+      "accuracy": 78,
+      "historical_pnl": 256
+    },
+    "crypto": {
+      "signals": 8,
+      "accuracy": 69,
+      "historical_pnl": 262
+    },
+    "price": {
+      "signals": 3,
+      "accuracy": 65,
+      "historical_pnl": 86
+    }
+  }
+}

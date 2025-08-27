@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Analytics Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .header h1 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .container {
+            display: flex;
+            min-height: calc(100vh - 200px);
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #1a1a2e;
+            padding: 20px;
+            border-right: 1px solid #333;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+        }
+
+        .filter-section h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 8px;
+            background: #2a2a3e;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #fff;
+        }
+
+        .filter-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        .apply-filters {
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .apply-filters:hover {
+            background: #00b8e6;
+        }
+
+        .signals-table {
+            width: 100%;
+            background: #1a1a2e;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .signals-table th {
+            background: #2a2a3e;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #00d4ff;
+        }
+
+        .signals-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .signals-table tr:hover {
+            background: #2a2a3e;
+        }
+
+        .direction-long {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .direction-short {
+            color: #ff4757;
+            font-weight: bold;
+        }
+
+        .confidence-high {
+            color: #00ff88;
+        }
+
+        .confidence-medium {
+            color: #ffa502;
+        }
+
+        .confidence-low {
+            color: #ff4757;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: #00d4ff;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .action-btn:hover {
+            color: #00b8e6;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+
+        .signal-details {
+            margin-top: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .detail-value {
+            color: #fff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #888;
+        }
+
+        .error {
+            background: #ff4757;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .refresh-btn {
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .refresh-btn:hover {
+            background: #00b8e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+            <h1>Crypto Analytics Platform</h1>
+        <p>Реальные торговые сигналы с множественных источников</p>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalSignals">0</div>
+                <div class="stat-label">ВСЕГО СИГНАЛОВ</div>
+        </div>
+            <div class="stat-card">
+                <div class="stat-number" id="shownSignals">0</div>
+                <div class="stat-label">Показано из 50</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeChannels">0</div>
+                <div class="stat-label">АКТИВНЫХ КАНАЛОВ<br>Telegram + Reddit + TradingView</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgAccuracy">N/A</div>
+                <div class="stat-label">СРЕДНЯЯ ТОЧНОСТЬ<br>+0.0% за неделю</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="processedMessages">0</div>
+                <div class="stat-label">ОБРАБОТАНО СООБЩЕНИЙ<br>Из 5 платформ</div>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="loadDataFromAPI()">🔄 Обновить</button>
+        <button class="refresh-btn" onclick="exportData()">📊 Экспорт</button>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <h3>Фильтры и сортировка</h3>
+            
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label>Источник сигнала</label>
+                    <select id="sourceFilter">
+                        <option value="all">Все источники</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Направление</label>
+                    <select id="directionFilter">
+                        <option value="all">Все направления</option>
+                        <option value="LONG">LONG</option>
+                        <option value="SHORT">SHORT</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Уверенность</label>
+                    <select id="confidenceFilter">
+                        <option value="any">Любая</option>
+                        <option value="high">Высокая (80%+)</option>
+                        <option value="medium">Средняя (60-80%)</option>
+                        <option value="low">Низкая (<60%)</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Сортировка</label>
+                    <select id="sortFilter">
+                        <option value="confidence">По уверенности</option>
+                        <option value="time">По времени</option>
+                        <option value="asset">По активу</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>
+                        <input type="checkbox" id="validOnlyFilter">
+                        Только валидные (с уровнями, без аномалий, без UNKNOWN)
+                    </label>
+        </div>
+
+                <button class="apply-filters" onclick="applyFilters()">Применить фильтры</button>
+                </div>
+            </div>
+            
+        <div class="main-content">
+            <h2>Актуальные торговые сигналы</h2>
+            
+            <div id="loadingMessage" class="loading">Загрузка данных...</div>
+            <div id="errorMessage" class="error" style="display: none;"></div>
+            
+            <table class="signals-table" id="signalsTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Актив</th>
+                        <th>Направление</th>
+                        <th>Цена входа</th>
+                        <th>Цель</th>
+                        <th>Stop Loss</th>
+                        <th>Уверенность</th>
+                        <th>Источник</th>
+                        <th>Время</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="signalsTableBody">
+                </tbody>
+            </table>
+        </div>
+                </div>
+                
+    <!-- Модальное окно для деталей сигнала -->
+    <div id="signalModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Детали сигнала</h2>
+            <div id="signalDetails" class="signal-details">
+                <!-- Детали будут загружены динамически -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allSignals = [];
+        let filteredSignals = [];
+        let allChannels = [];
+
+        // Загрузка данных при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDataFromAPI();
+        });
+
+        async function loadDataFromAPI() {
+            try {
+                document.getElementById('loadingMessage').style.display = 'block';
+                document.getElementById('signalsTable').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'none';
+
+                // Загружаем сигналы
+                const signalsResponse = await fetch('http://localhost:8000/api/signals');
+                const signalsData = await signalsResponse.json();
+                allSignals = signalsData.signals || [];
+
+                // Загружаем каналы
+                const channelsResponse = await fetch('http://localhost:8000/api/channels');
+                const channelsData = await channelsResponse.json();
+                allChannels = channelsData.channels || [];
+
+                // Загружаем статистику
+                const statsResponse = await fetch('http://localhost:8000/api/stats');
+                const statsData = await statsResponse.json();
+
+                updateStats(statsData);
+                updateSourceFilter();
+                filteredSignals = [...allSignals];
+                updateSignalsTable();
+                updateFilteredStats();
+
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('signalsTable').style.display = 'table';
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Ошибка загрузки данных: ' + error.message;
+            }
+        }
+
+        function updateStats(stats) {
+            document.getElementById('totalSignals').textContent = stats.total_signals || 0;
+            document.getElementById('activeChannels').textContent = stats.active_channels || 0;
+            document.getElementById('avgAccuracy').textContent = stats.avg_accuracy ? stats.avg_accuracy + '%' : 'N/A';
+            document.getElementById('processedMessages').textContent = stats.processed_messages || 0;
+        }
+
+        function updateSourceFilter() {
+            const sourceFilter = document.getElementById('sourceFilter');
+            sourceFilter.innerHTML = '<option value="all">Все источники</option>';
+            
+            const channels = [...new Set(allSignals.map(s => s.channel))];
+            channels.forEach(channel => {
+                const option = document.createElement('option');
+                option.value = channel;
+                option.textContent = channel;
+                sourceFilter.appendChild(option);
+            });
+        }
+
+        function updateSignalsTable() {
+            const tbody = document.getElementById('signalsTableBody');
+            tbody.innerHTML = '';
+
+            filteredSignals.forEach(signal => {
+                const row = document.createElement('tr');
+                
+                const timeAgo = getTimeAgo(signal.timestamp);
+                const confidenceClass = getConfidenceClass(signal.real_confidence);
+                
+                row.innerHTML = `
+                    <td>${signal.asset || '—'}</td>
+                    <td class="direction-${signal.direction?.toLowerCase() || 'unknown'}">${signal.direction || '—'}</td>
+                    <td>${signal.entry_price ? '$' + signal.entry_price.toLocaleString() : '—'}</td>
+                    <td>${signal.target_price ? '$' + signal.target_price.toLocaleString() : '—'}</td>
+                    <td>${signal.stop_loss ? '$' + signal.stop_loss.toLocaleString() : '—'}</td>
+                    <td class="${confidenceClass}">${signal.real_confidence ? signal.real_confidence.toFixed(1) + '%' : '—'}</td>
+                    <td>${signal.channel || '—'}</td>
+                    <td>${timeAgo}</td>
+                    <td>
+                        <button class="action-btn" onclick="showSignalDetails('${signal.id}')" title="Детали">👁️</button>
+                        <button class="action-btn" onclick="executeSignal('${signal.id}')" title="Выполнить">⚡</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateFilteredStats() {
+            document.getElementById('shownSignals').textContent = filteredSignals.length;
+        }
+
+        function applyFilters() {
+            const sourceFilter = document.getElementById('sourceFilter').value;
+            const directionFilter = document.getElementById('directionFilter').value;
+            const confidenceFilter = document.getElementById('confidenceFilter').value;
+            const validOnlyFilter = document.getElementById('validOnlyFilter').checked;
+            const sortFilter = document.getElementById('sortFilter').value;
+
+            filteredSignals = allSignals.filter(signal => {
+                // Фильтр по источнику
+                if (sourceFilter !== 'all' && signal.channel !== sourceFilter) {
+                    return false;
+                }
+
+                // Фильтр по направлению
+                if (directionFilter !== 'all' && signal.direction !== directionFilter) {
+                    return false;
+                }
+
+                // Фильтр по уверенности
+                if (confidenceFilter !== 'any') {
+                    const confidence = signal.real_confidence || 0;
+                    if (confidenceFilter === 'high' && confidence < 80) return false;
+                    if (confidenceFilter === 'medium' && (confidence < 60 || confidence >= 80)) return false;
+                    if (confidenceFilter === 'low' && confidence >= 60) return false;
+                }
+
+                // Фильтр только валидные
+                if (validOnlyFilter) {
+                    if (!signal.is_valid || signal.asset === 'UNKNOWN' || 
+                        !signal.entry_price || !signal.target_price) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            // Сортировка
+            filteredSignals.sort((a, b) => {
+                switch (sortFilter) {
+                    case 'confidence':
+                        return (b.real_confidence || 0) - (a.real_confidence || 0);
+                    case 'time':
+                        return new Date(b.timestamp) - new Date(a.timestamp);
+                    case 'asset':
+                        return (a.asset || '').localeCompare(b.asset || '');
+                    default:
+                        return 0;
+                }
+            });
+
+            updateSignalsTable();
+            updateFilteredStats();
+        }
+
+        function getTimeAgo(timestamp) {
+            if (!timestamp) return '—';
+            
+            const now = new Date();
+            const signalTime = new Date(timestamp);
+            const diffMs = now - signalTime;
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMinutes = Math.floor(diffMs / (1000 * 60));
+            
+            if (diffHours > 0) {
+                return `${diffHours} ч назад`;
+            } else if (diffMinutes > 0) {
+                return `${diffMinutes} мин назад`;
+            } else {
+                return 'Только что';
+            }
+        }
+
+        function getConfidenceClass(confidence) {
+            if (!confidence) return '';
+            if (confidence >= 80) return 'confidence-high';
+            if (confidence >= 60) return 'confidence-medium';
+            return 'confidence-low';
+        }
+
+        function showSignalDetails(signalId) {
+            const signal = allSignals.find(s => s.id === signalId);
+            if (!signal) return;
+
+            const details = document.getElementById('signalDetails');
+            details.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">ID:</span>
+                    <span class="detail-value">${signal.id}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Актив:</span>
+                    <span class="detail-value">${signal.asset || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Направление:</span>
+                    <span class="detail-value">${signal.direction || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Цена входа:</span>
+                    <span class="detail-value">${signal.entry_price ? '$' + signal.entry_price.toLocaleString() : '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Цель:</span>
+                    <span class="detail-value">${signal.target_price ? '$' + signal.target_price.toLocaleString() : '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Stop Loss:</span>
+                    <span class="detail-value">${signal.stop_loss ? '$' + signal.stop_loss.toLocaleString() : '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Уверенность:</span>
+                    <span class="detail-value">${signal.real_confidence ? signal.real_confidence.toFixed(1) + '%' : '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Источник:</span>
+                    <span class="detail-value">${signal.channel || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Таймфрейм:</span>
+                    <span class="detail-value">${signal.timeframe || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Плечо:</span>
+                    <span class="detail-value">${signal.leverage || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Качество сигнала:</span>
+                    <span class="detail-value">${signal.signal_quality || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Время создания:</span>
+                    <span class="detail-value">${signal.timestamp ? new Date(signal.timestamp).toLocaleString() : '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Оригинальный текст:</span>
+                    <span class="detail-value">${signal.original_text || '—'}</span>
+                </div>
+            `;
+
+            document.getElementById('signalModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('signalModal').style.display = 'none';
+        }
+
+        function executeSignal(signalId) {
+            alert(`Выполнение сигнала ${signalId}...`);
+            // Здесь будет логика выполнения сигнала
+        }
+
+        function exportData() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "Актив,Направление,Цена входа,Цель,Stop Loss,Уверенность,Источник,Время\n"
+                + filteredSignals.map(signal => 
+                    `${signal.asset || ''},${signal.direction || ''},${signal.entry_price || ''},${signal.target_price || ''},${signal.stop_loss || ''},${signal.real_confidence || ''},${signal.channel || ''},${signal.timestamp || ''}`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "signals.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Закрытие модального окна при клике вне его
+        window.onclick = function(event) {
+            const modal = document.getElementById('signalModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

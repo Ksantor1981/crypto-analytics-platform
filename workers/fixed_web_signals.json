@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "total_signals": 0,
+  "signals": [],
+  "channel_stats": {
+    "CryptoCapoTG": {
+      "signals_found": 0,
+      "channel_name": "Crypto Capo"
+    },
+    "cryptosignals": {
+      "signals_found": 0,
+      "channel_name": "Crypto Signals"
+    },
+    "binance_signals": {
+      "signals_found": 0,
+      "channel_name": "Binance Signals"
+    }
+  },
+  "collection_time": "2025-08-23T19:39:21.667356",
+  "hours_back": 24
+}

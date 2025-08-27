@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>CryptoCapo TG – Telegram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible"
+     content="IE=edge" />
+    <meta name="MobileOptimized" content="176" />
+    <meta name="HandheldFriendly" content="True" />
+    
+<meta property="og:title" content="CryptoCapo TG">
+<meta property="og:image" content="https://cdn4.telesco.pe/file/KPo3GQqIbnu1LXfAM--QDpiw1OhrbojMIjn99eUNaiJT40j_NqwsNri-QfCoPKPoBbav1buRzz3jh8FbwM95c7Ai8b-P0IHvkszKywntVw-M0A2tnsWr_rOCeXjD0kR846GfKw63WUc3HeYg8W_C7qbDodEz_JlEYmh47uyYNKyVBeyjS8g04p4mSWgNoSjQCZZB48qoxnHlKA5c5LUudmM2nqqSwbaRbGSc3AJaGhrW-qPlT-as1yN6_nHXQz31pHheOfOpq6TssieWyf0t1n7Q9n7KDjRAmb2BrFiqYiNvrrucGeU0ogMVs74Ha0XK6tPeMYxNdGCB3_DYxakfJw.jpg">
+<meta property="og:site_name" content="Telegram">
+<meta property="og:description" content="Official and free Telegram channel of @CryptoCapo_ from Twitter.
+
+This is the only TG that I have. Beware of scammers. I will never DM you first.">
+
+<meta property="twitter:title" content="CryptoCapo TG">
+<meta property="twitter:image" content="https://cdn4.telesco.pe/file/KPo3GQqIbnu1LXfAM--QDpiw1OhrbojMIjn99eUNaiJT40j_NqwsNri-QfCoPKPoBbav1buRzz3jh8FbwM95c7Ai8b-P0IHvkszKywntVw-M0A2tnsWr_rOCeXjD0kR846GfKw63WUc3HeYg8W_C7qbDodEz_JlEYmh47uyYNKyVBeyjS8g04p4mSWgNoSjQCZZB48qoxnHlKA5c5LUudmM2nqqSwbaRbGSc3AJaGhrW-qPlT-as1yN6_nHXQz31pHheOfOpq6TssieWyf0t1n7Q9n7KDjRAmb2BrFiqYiNvrrucGeU0ogMVs74Ha0XK6tPeMYxNdGCB3_DYxakfJw.jpg">
+<meta property="twitter:site" content="@Telegram">
+
+<meta property="al:ios:app_store_id" content="686449807">
+<meta property="al:ios:app_name" content="Telegram Messenger">
+<meta property="al:ios:url" content="tg://resolve?domain=CryptoCapoTG">
+
+<meta property="al:android:url" content="tg://resolve?domain=CryptoCapoTG">
+<meta property="al:android:app_name" content="Telegram">
+<meta property="al:android:package" content="org.telegram.messenger">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@Telegram">
+<meta name="twitter:description" content="Official and free Telegram channel of @CryptoCapo_ from Twitter.
+
+This is the only TG that I have. Beware of scammers. I will never DM you first.
+">
+
+    <link rel="prev" href="/s/CryptoCapoTG?before=1294">
+<link rel="canonical" href="/s/CryptoCapoTG?before=1314">
+
+    <script>window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches&&document.documentElement&&document.documentElement.classList&&document.documentElement.classList.add('theme_dark');</script>
+    <link rel="icon" type="image/svg+xml" href="//telegram.org/img/website_icon.svg?4">
+<link rel="apple-touch-icon" sizes="180x180" href="//telegram.org/img/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="//telegram.org/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="//telegram.org/img/favicon-16x16.png">
+<link rel="alternate icon" href="//telegram.org/img/favicon.ico" type="image/x-icon" />
+    <link href="//telegram.org/css/font-roboto.css?1" rel="stylesheet" type="text/css">
+    <link href="//telegram.org/css/widget-frame.css?72" rel="stylesheet" media="screen">
+    <link href="//telegram.org/css/telegram-web.css?39" rel="stylesheet" media="screen">
+    <script>TBaseUrl='/';</script>
+    <style>        .user-color-12 {
+          --user-line-gradient: repeating-linear-gradient(-45deg, #3391d4 0px, #3391d4 5px, #7dd3f0 5px, #7dd3f0 10px);
+          --user-accent-color: #3391d4;
+          --user-background: #3391d41f;
+        }        .user-color-10 {
+          --user-line-gradient: repeating-linear-gradient(-45deg, #27a910 0px, #27a910 5px, #a7dc57 5px, #a7dc57 10px);
+          --user-accent-color: #27a910;
+          --user-background: #27a9101f;
+        }        .user-color-8 {
+          --user-line-gradient: repeating-linear-gradient(-45deg, #e0802b 0px, #e0802b 5px, #fac534 5px, #fac534 10px);
+          --user-accent-color: #e0802b;
+          --user-background: #e0802b1f;
+        }        .user-color-7 {
+          --user-line-gradient: repeating-linear-gradient(-45deg, #e15052 0px, #e15052 5px, #f9ae63 5px, #f9ae63 10px);
+          --user-accent-color: #e15052;
+          --user-background: #e150521f;
+        }        .user-color-9 {
+          --user-line-gradient: repeating-linear-gradient(-45deg, #a05ff3 0px, #a05ff3 5px, #f48fff 5px, #f48fff 10px);
+          --user-accent-color: #a05ff3;
+          --user-background: #a05ff31f;
+        }        .user-color-11 {
+          --user-line-gradient: repeating-linear-gradient(-45deg, #27acce 0px, #27acce 5px, #82e8d6 5px, #82e8d6 10px);
+          --user-accent-color: #27acce;
+          --user-background: #27acce1f;
+        }        .user-color-13 {
+          --user-line-gradient: repeating-linear-gradient(-45deg, #dd4371 0px, #dd4371 5px, #ffb

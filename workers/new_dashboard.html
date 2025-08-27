@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Analytics Platform - Темная тема</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #f8fafc;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+
+        /* Фильтры */
+        .filters {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+        }
+
+        .filters h3 {
+            color: #f8fafc;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #f8fafc;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        /* Сортировка */
+        .sorting {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+        }
+
+        .sorting h3 {
+            color: #f8fafc;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .sort-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .sort-button {
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .sort-button:hover {
+            background: #475569;
+            border-color: #3b82f6;
+        }
+
+        .sort-button.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: #3b82f6;
+        }
+
+        .stat-card h3 {
+            color: #94a3b8;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-value.positive {
+            color: #10b981;
+        }
+
+        .stat-value.negative {
+            color: #ef4444;
+        }
+
+        .stat-value.neutral {
+            color: #3b82f6;
+        }
+
+        .stat-description {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        .signals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .signal-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            position: relative;
+        }
+
+        .signal-card.long {
+            border-left: 4px solid #10b981;
+        }
+
+        .signal-card.short {
+            border-left: 4px solid #ef4444;
+        }
+
+        .signal-card.buy {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .signal-card.sell {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .signal-card:hover {
+            transform: translateY(-2px);
+            border-color: #3b82f6;
+        }
+
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .asset-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f8fafc;
+        }
+
+        .direction-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .direction-long {
+            background: #065f46;
+            color: #10b981;
+        }
+
+        .direction-short {
+            background: #7f1d1d;
+            color: #ef4444;
+        }
+
+        .direction-buy {
+            background: #1e3a8a;
+            color: #3b82f6;
+        }
+
+        .direction-sell {
+            background: #92400e;
+            color: #f59e0b;
+        }
+
+        .signal-details {
+            margin-bottom: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+
+        .detail-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .detail-value.target {
+            color: #10b981;
+        }
+
+        .detail-value.stop-loss {
+            color: #ef4444;
+        }
+
+        .signal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #334155;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: #92400e;
+            color: #f59e0b;
+        }
+
+        .accuracy-section {
+            text-align: right;
+        }
+
+        .accuracy-label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .accuracy-value {
+            font-weight: bold;
+            color: #f8fafc;
+            margin-bottom: 5px;
+        }
+
+        .accuracy-bar {
+            width: 60px;
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .accuracy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.3s ease;
+        }
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .no-signals {
+            text-align: center;
+            color: #94a3b8;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+
+        /* Кнопка экспорта */
+        .export-section {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+        }
+
+        .export-section h3 {
+            color: #f8fafc;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .export-button {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .export-button:active {
+            transform: translateY(0);
+        }
+
+        /* Аналитика по каналам */
+        .channels-analytics {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+        }
+
+        .channels-analytics h3 {
+            color: #f8fafc;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .channel-card {
+            background: #334155;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #475569;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .channel-card:hover {
+            transform: translateY(-2px);
+            border-color: #3b82f6;
+        }
+
+        .channel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .channel-name {
+            font-weight: bold;
+            color: #f8fafc;
+            font-size: 1.1rem;
+        }
+
+        .channel-accuracy {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .accuracy-high {
+            background: #065f46;
+            color: #10b981;
+        }
+
+        .accuracy-medium {
+            background: #92400e;
+            color: #f59e0b;
+        }
+
+        .accuracy-low {
+            background: #7f1d1d;
+            color: #ef4444;
+        }
+
+        .channel-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .channel-stat {
+            text-align: center;
+        }
+
+        .channel-stat-label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 3px;
+        }
+
+        .channel-stat-value {
+            font-weight: bold;
+            color: #f8fafc;
+            font-size: 1.1rem;
+        }
+
+        .channel-stat-value.positive {
+            color: #10b981;
+        }
+
+        .channel-stat-value.negative {
+            color: #ef4444;
+        }
+
+        /* Пагинация */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .pagination button {
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover {
+            background: #475569;
+            border-color: #3b82f6;
+        }
+
+        .pagination button.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .signals-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .channels-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 РЕАЛЬНЫЕ Telegram Сигналы</h1>
+            <p>📱 Парсинг из BinanceKillers_Free • CryptoCapoTG • cryptosignals • binance_signals</p>
+        </div>
+
+        <!-- Фильтры -->
+        <div class="filters">
+            <h3>Фильтры</h3>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>Актив</label>
+                    <select id="asset-filter">
+                        <option value="">Все активы</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Направление</label>
+                    <select id="direction-filter">
+                        <option value="">Все направления</option>
+                        <option value="LONG">LONG</option>
+                        <option value="SHORT">SHORT</option>
+                        <option value="BUY">BUY</option>
+                        <option value="SELL">SELL</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Канал</label>
+                    <select id="channel-filter">
+                        <option value="">Все каналы</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Минимальная точность</label>
+                    <input type="number" id="min-confidence" placeholder="0-100" min="0" max="100">
+                </div>
+                <div class="filter-group">
+                    <label>Срочность</label>
+                    <select id="urgency-filter">
+                        <option value="">Все</option>
+                        <option value="urgent">⏰ Срочные (сегодня)</option>
+                        <option value="warning">⚠️ Скоро (завтра)</option>
+                        <option value="normal">📅 Обычные (2+ дней)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сортировка -->
+        <div class="sorting">
+            <h3>Сортировка</h3>
+            <div class="sort-row">
+                <button class="sort-button active" data-sort="confidence" data-order="desc">📊 По точности (↓)</button>
+                <button class="sort-button" data-sort="confidence" data-order="asc">📊 По точности (↑)</button>
+                <button class="sort-button" data-sort="days_remaining" data-order="asc">⏰ По срочности</button>
+                <button class="sort-button" data-sort="asset" data-order="asc">🔤 По активу</button>
+                <button class="sort-button" data-sort="channel" data-order="asc">📱 По каналу</button>
+                <button class="sort-button" data-sort="signal_date" data-order="desc">📅 По дате (новые)</button>
+                <button class="sort-button" data-sort="signal_date" data-order="asc">📅 По дате (старые)</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Всего сигналов</h3>
+                <div class="stat-value neutral" id="total-signals">-</div>
+                <div class="stat-description">Загружается...</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Средняя точность</h3>
+                <div class="stat-value positive" id="avg-confidence">-</div>
+                <div class="stat-description">По всем каналам</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Лучший канал</h3>
+                <div class="stat-value positive" id="best-channel">-</div>
+                <div class="stat-description" id="best-channel-desc">-</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>⏰ Срочные сигналы</h3>
+                <div class="stat-value neutral" id="urgent-signals">-</div>
+                <div class="stat-description">Сегодня</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>⚠️ Скоро</h3>
+                <div class="stat-value neutral" id="warning-signals">-</div>
+                <div class="stat-description">Завтра</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>📅 Обычные</h3>
+                <div class="stat-value neutral" id="normal-signals">-</div>
+                <div class="stat-description">2+ дней</div>
+            </div>
+        </div>
+
+        <!-- Аналитика по каналам -->
+        <div class="channels-analytics">
+            <h3>📊 Аналитика по каналам</h3>
+            <div class="channels-grid" id="channels-container">
+                <!-- Аналитика каналов будет загружена динамически -->
+            </div>
+        </div>
+
+        <!-- Экспорт данных -->
+        <div class="export-section">
+            <h3>📥 Экспорт данных</h3>
+            <button class="export-button" onclick="exportToExcel()">
+                📊 Выгрузить все сигналы в Excel
+            </button>
+        </div>
+
+        <div class="signals-grid" id="signals-container">
+            <!-- Сигналы будут загружены динамически -->
+        </div>
+
+        <!-- Пагинация -->
+        <div class="pagination" id="pagination">
+            <!-- Пагинация будет создана динамически -->
+        </div>
+
+        <div class="footer">
+            <p>🎯 РЕАЛЬНЫЕ данные из Telegram каналов | comprehensive_signals_report.json | Обновлено: <span id="last-updated">-</span></p>
+        </div>
+    </div>
+
+    <script>
+        let allSignals = [];
+        let filteredSignals = [];
+        let currentData = null;
+        let currentSort = { field: 'confidence', order: 'desc' };
+        let currentPage = 1;
+        const signalsPerPage = 20;
+
+        // Загрузка данных из comprehensive_signals_report.json
+        async function loadSignals() {
+            try {
+                const response = await fetch('comprehensive_signals_report.json');
+                const data = await response.json();
+                currentData = data;
+                
+                // Получаем активные сигналы
+                allSignals = data.active_signals || [];
+                filteredSignals = [...allSignals];
+                
+                // Обновляем статистику
+                updateStats();
+                
+                // Обновляем фильтры
+                updateFilters();
+                
+                // Отображаем аналитику по каналам
+                displayChannelsAnalytics();
+                
+                // Сортируем и отображаем сигналы
+                sortAndDisplaySignals();
+                
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                document.getElementById('signals-container').innerHTML = 
+                    '<div class="no-signals">Ошибка загрузки данных</div>';
+            }
+        }
+
+        function updateStats() {
+            const total = allSignals.length;
+            const avgConfidence = total > 0 ? Math.round(allSignals.reduce((sum, s) => sum + s.confidence, 0) / total) : 0;
+            
+            // Подсчитываем сигналы по срочности
+            const urgent = allSignals.filter(s => s.days_remaining === 0).length;
+            const warning = allSignals.filter(s => s.days_remaining === 1).length;
+            const normal = allSignals.filter(s => s.days_remaining >= 2).length;
+            
+            // Находим лучший канал
+            const bestChannel = currentData.top_performing_channels?.[0];
+            
+            document.getElementById('total-signals').textContent = total;
+            document.getElementById('avg-confidence').textContent = avgConfidence + '%';
+            document.getElementById('urgent-signals').textContent = urgent;
+            document.getElementById('warning-signals').textContent = warning;
+            document.getElementById('normal-signals').textContent = normal;
+            
+            if (bestChannel) {
+                document.getElementById('best-channel').textContent = bestChannel.success_rate + '%';
+                document.getElementById('best-channel-desc').textContent = bestChannel.channel;
+            }
+            
+            document.getElementById('last-updated').textContent = new Date(currentData.report_time).toLocaleString('ru-RU');
+        }
+
+        function updateFilters() {
+            const assets = [...new Set(allSignals.map(s => s.asset))];
+            const channels = [...new Set(allSignals.map(s => s.channel))];
+            
+            const assetFilter = document.getElementById('asset-filter');
+            const channelFilter = document.getElementById('channel-filter');
+            
+            // Очищаем и заполняем фильтры
+            assetFilter.innerHTML = '<option value="">Все активы</option>';
+            channelFilter.innerHTML = '<option value="">Все каналы</option>';
+            
+            assets.forEach(asset => {
+                assetFilter.innerHTML += `<option value="${asset}">${asset}</option>`;
+            });
+            
+            channels.forEach(channel => {
+                channelFilter.innerHTML += `<option value="${channel}">${channel}</option>`;
+            });
+        }
+
+        function applyFilters() {
+            const assetFilter = document.getElementById('asset-filter').value;
+            const directionFilter = document.getElementById('direction-filter').value;
+            const channelFilter = document.getElementById('channel-filter').value;
+            const minConfidence = document.getElementById('min-confidence').value;
+            const urgencyFilter = document.getElementById('urgency-filter').value;
+            
+            filteredSignals = allSignals.filter(signal => {
+                if (assetFilter && signal.asset !== assetFilter) return false;
+                if (directionFilter && signal.direction !== directionFilter) return false;
+                if (channelFilter && signal.channel !== channelFilter) return false;
+                if (minConfidence && signal.confidence < parseInt(minConfidence)) return false;
+                
+                // Фильтр по срочности
+                if (urgencyFilter) {
+                    if (urgencyFilter === 'urgent' && signal.days_remaining !== 0) return false;
+                    if (urgencyFilter === 'warning' && signal.days_remaining !== 1) return false;
+                    if (urgencyFilter === 'normal' && signal.days_remaining < 2) return false;
+                }
+                
+                return true;
+            });
+            
+            currentPage = 1;
+            sortAndDisplaySignals();
+        }
+
+        function sortSignals() {
+            filteredSignals.sort((a, b) => {
+                let aVal = a[currentSort.field];
+                let bVal = b[currentSort.field];
+                
+                // Обработка специальных случаев
+                if (currentSort.field === 'signal_date' || currentSort.field === 'expected_date') {
+                    aVal = new Date(aVal || 0);
+                    bVal = new Date(bVal || 0);
+                }
+                
+                if (aVal < bVal) return currentSort.order === 'asc' ? -1 : 1;
+                if (aVal > bVal) return currentSort.order === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function sortAndDisplaySignals() {
+            sortSignals();
+            displaySignals();
+            updatePagination();
+        }
+
+        function displayChannelsAnalytics() {
+            const container = document.getElementById('channels-container');
+            
+            if (!currentData || !currentData.channel_accuracy) {
+                container.innerHTML = '<div class="no-signals">Нет данных по каналам</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            // Сортируем каналы по точности (от высокой к низкой)
+            const sortedChannels = Object.entries(currentData.channel_accuracy)
+                .sort(([,a], [,b]) => b.success_rate - a.success_rate);
+            
+            sortedChannels.forEach(([channelName, channelData]) => {
+                const card = createChannelCard(channelName, channelData);
+                container.appendChild(card);
+            });
+        }
+
+        function createChannelCard(channelName, channelData) {
+            const card = document.createElement('div');
+            card.className = 'channel-card';
+            
+            // Определяем класс точности
+            let accuracyClass = 'accuracy-low';
+            if (channelData.success_rate >= 75) {
+                accuracyClass = 'accuracy-high';
+            } else if (channelData.success_rate >= 65) {
+                accuracyClass = 'accuracy-medium';
+            }
+            
+            // Определяем цвет PnL
+            const pnlClass = channelData.avg_profit_loss >= 0 ? 'positive' : 'negative';
+            const pnlSign = channelData.avg_profit_loss >= 0 ? '+' : '';
+            
+            card.innerHTML = `
+                <div class="channel-header">
+                    <div class="channel-name">${channelName}</div>
+                    <span class="channel-accuracy ${accuracyClass}">${channelData.success_rate}%</span>
+                </div>
+                <div class="channel-stats">
+                    <div class="channel-stat">
+                        <div class="channel-stat-label">Средний PnL</div>
+                        <div class="channel-stat-value ${pnlClass}">${pnlSign}${channelData.avg_profit_loss}%</div>
+                    </div>
+                    <div class="channel-stat">
+                        <div class="channel-stat-label">Сигналов</div>
+                        <div class="channel-stat-value">${channelData.total_signals}</div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function displaySignals() {
+            const container = document.getElementById('signals-container');
+            
+            if (filteredSignals.length === 0) {
+                container.innerHTML = '<div class="no-signals">Нет сигналов, соответствующих фильтрам</div>';
+                return;
+            }
+            
+            // Пагинация
+            const startIndex = (currentPage - 1) * signalsPerPage;
+            const endIndex = startIndex + signalsPerPage;
+            const pageSignals = filteredSignals.slice(startIndex, endIndex);
+            
+            container.innerHTML = '';
+            pageSignals.forEach(signal => {
+                const card = createSignalCard(signal);
+                container.appendChild(card);
+            });
+        }
+
+        function createSignalCard(signal) {
+            const card = document.createElement('div');
+            card.className = `signal-card ${signal.direction.toLowerCase()}`;
+            
+            const targetPrice = signal.target_price ? `$${signal.target_price.toLocaleString()}` : 'N/A';
+            const stopLoss = signal.stop_loss ? `$${signal.stop_loss.toLocaleString()}` : 'N/A';
+            const entryPrice = signal.entry_price ? `$${signal.entry_price.toLocaleString()}` : 'N/A';
+            
+            // Определяем класс срочности
+            let urgencyClass = 'normal';
+            let urgencyText = `${signal.days_remaining} дн.`;
+            if (signal.days_remaining === 0) {
+                urgencyClass = 'urgent';
+                urgencyText = 'Сегодня';
+            } else if (signal.days_remaining === 1) {
+                urgencyClass = 'warning';
+                urgencyText = 'Завтра';
+            }
+            
+            card.innerHTML = `
+                <div class="signal-header">
+                    <div class="asset-name">${signal.asset}</div>
+                    <span class="direction-badge direction-${signal.direction.toLowerCase()}">${signal.direction}</span>
+                </div>
+                
+                <div class="signal-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Канал:</span>
+                        <span class="detail-value">${signal.channel}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Цена входа:</span>
+                        <span class="detail-value">${entryPrice}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Цель:</span>
+                        <span class="detail-value target">${targetPrice}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Stop Loss:</span>
+                        <span class="detail-value stop-loss">${stopLoss}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Плечо:</span>
+                        <span class="detail-value">${signal.leverage || '1x'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Таймфрейм:</span>
+                        <span class="detail-value">${signal.timeframe || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Дата сигнала:</span>
+                        <span class="detail-value">${formatDate(signal.signal_date)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Ожидаемая дата:</span>
+                        <span class="detail-value">${formatDate(signal.expected_date)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Дней осталось:</span>
+                        <span class="detail-value ${urgencyClass}">${urgencyText}</span>
+                    </div>
+                </div>
+                
+                <div class="signal-footer">
+                    <span class="status-badge">ОЖИДАЕТ</span>
+                    <div class="accuracy-section">
+                        <div class="accuracy-label">Точность:</div>
+                        <div class="accuracy-value">${signal.confidence}%</div>
+                        <div class="accuracy-bar">
+                            <div class="accuracy-fill" style="width: ${signal.confidence}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredSignals.length / signalsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // Кнопка "Предыдущая"
+            paginationHTML += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>← Предыдущая</button>`;
+            
+            // Номера страниц
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `<button onclick="changePage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+            }
+            
+            // Кнопка "Следующая"
+            paginationHTML += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Следующая →</button>`;
+            
+            pagination.innerHTML = paginationHTML;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredSignals.length / signalsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                displaySignals();
+                updatePagination();
+            }
+        }
+
+        // Обработчики событий для фильтров
+        document.getElementById('asset-filter').addEventListener('change', applyFilters);
+        document.getElementById('direction-filter').addEventListener('change', applyFilters);
+        document.getElementById('channel-filter').addEventListener('change', applyFilters);
+        document.getElementById('min-confidence').addEventListener('input', applyFilters);
+        document.getElementById('urgency-filter').addEventListener('change', applyFilters);
+
+        // Обработчики событий для сортировки
+        document.querySelectorAll('.sort-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Убираем активный класс у всех кнопок
+                document.querySelectorAll('.sort-button').forEach(btn => btn.classList.remove('active'));
+                
+                // Добавляем активный класс к нажатой кнопке
+                this.classList.add('active');
+                
+                // Обновляем сортировку
+                currentSort.field = this.dataset.sort;
+                currentSort.order = this.dataset.order;
+                
+                sortAndDisplaySignals();
+            });
+        });
+
+        // Функция форматирования даты
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Функция экспорта в Excel
+        function exportToExcel() {
+            if (!currentData || !currentData.active_signals) {
+                alert('Нет данных для экспорта');
+                return;
+            }
+
+            // Создаем заголовки для Excel
+            const headers = [
+                'ID сигнала',
+                'Актив',
+                'Направление',
+                'Цена входа ($)',
+                'Целевая цена ($)',
+                'Stop Loss ($)',
+                'Точность (%)',
+                'Канал',
+                'Плечо',
+                'Таймфрейм',
+                'Дата сигнала',
+                'Ожидаемая дата',
+                'Дней осталось',
+                'Точность канала (%)',
+                'Средний PnL канала (%)',
+                'Всего сигналов канала'
+            ];
+
+            // Подготавливаем данные
+            const excelData = currentData.active_signals.map(signal => {
+                const channelData = currentData.channel_accuracy[signal.channel] || {};
+                return [
+                    signal.id,
+                    signal.asset,
+                    signal.direction,
+                    signal.entry_price || 'N/A',
+                    signal.target_price || 'N/A',
+                    signal.stop_loss || 'N/A',
+                    signal.confidence,
+                    signal.channel,
+                    signal.leverage || '1x',
+                    signal.timeframe || 'N/A',
+                    formatDate(signal.signal_date),
+                    formatDate(signal.expected_date),
+                    signal.days_remaining || 'N/A',
+                    channelData.success_rate || 'N/A',
+                    channelData.avg_profit_loss || 'N/A',
+                    channelData.total_signals || 'N/A'
+                ];
+            });
+
+            // Создаем CSV контент
+            let csvContent = '\uFEFF'; // BOM для правильной кодировки
+            csvContent += headers.join(',') + '\n';
+            
+            excelData.forEach(row => {
+                csvContent += row.map(cell => {
+                    // Экранируем запятые и кавычки
+                    if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+                        return `"${cell.replace(/"/g, '""')}"`;
+                    }
+                    return cell;
+                }).join(',') + '\n';
+            });
+
+            // Создаем и скачиваем файл
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `crypto_signals_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadSignals);
+        
+        // Обновляем данные каждые 30 секунд
+        setInterval(loadSignals, 30000);
+    </script>
+</body>
+</html>
