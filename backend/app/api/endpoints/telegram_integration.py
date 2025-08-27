@@ -3159,6 +3159,44 @@ async def collect_binance_api_signals():
         logger.error(f"❌ Error collecting Binance signals: {e}")
         return []
 
+async def get_ml_prediction_for_signal(signal_data: dict) -> dict:
+    """
+    Получает ML предсказание для сигнала
+    """
+    try:
+        import aiohttp
+        
+        # Подготавливаем данные для ML
+        ml_request = {
+            "asset": signal_data.get('asset', 'BTC'),
+            "direction": signal_data.get('direction', 'LONG'),
+            "entry_price": signal_data.get('entry_price', 0),
+            "target_price": signal_data.get('target_price', 0),
+            "stop_loss": signal_data.get('stop_loss', 0),
+            "channel_id": signal_data.get('channel_id', 400),
+            "channel_accuracy": 0.7,  # Базовая точность канала
+            "confidence": signal_data.get('confidence', 0.8)
+        }
+        
+        # Отправляем запрос к ML service
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                'http://ml-service:8001/api/v1/predictions/signal',
+                json=ml_request,
+                timeout=10
+            ) as response:
+                if response.status == 200:
+                    prediction = await response.json()
+                    logger.info(f"✅ ML prediction for {signal_data.get('asset')}: {prediction.get('success_probability', 0):.2f}")
+                    return prediction
+                else:
+                    logger.warning(f"⚠️ ML service unavailable: {response.status}")
+                    return {"success_probability": 0.5, "confidence": 0.5, "recommendation": "ML unavailable"}
+                    
+    except Exception as e:
+        logger.error(f"❌ ML prediction error: {e}")
+        return {"success_probability": 0.5, "confidence": 0.5, "recommendation": "ML error"}
+
 @router.post("/collect-all-sources")
 async def collect_from_all_sources(db: Session = Depends(get_db)):
     """
@@ -3283,6 +3321,8 @@ async def collect_from_all_sources(db: Session = Depends(get_db)):
                         confidence_score=tg_signal.get('confidence', 0.8),
                         original_text=f"REAL Telegram {tg_signal.get('channel', '')}: {tg_signal.get('original_text', '')[:100]}",
                         status='PENDING',
+                        # Добавляем ML предсказание
+                        ml_prediction=await get_ml_prediction_for_signal(tg_signal),
                         expires_at=expected_completion,  # Ожидаемая дата выполнения
                         created_at=tg_signal.get('signal_date', datetime.now(timezone.utc) - timedelta(
                             hours=random.randint(1, 72),
@@ -3546,4 +3586,71 @@ def create_demo_signals_for_channel(channel: str) -> List[Dict]:
         
         signals.append(signal)
     
-    return signals 
+    return signals
+
+@router.post("/track-prediction-accuracy")
+async def track_prediction_accuracy(db: Session = Depends(get_db)):
+    """
+    Отслеживает точность ML предсказаний
+    """
+    try:
+        from datetime import datetime, timezone
+        logger.info("📊 TRACKING PREDICTION ACCURACY...")
+        
+        # Получаем сигналы с предсказаниями
+        signals_with_predictions = db.query(Signal).filter(
+            Signal.ml_prediction.isnot(None)
+        ).all()
+        
+        accuracy_stats = {
+            "total_signals": len(signals_with_predictions),
+            "high_confidence_predictions": 0,
+            "low_confidence_predictions": 0,
+            "average_confidence": 0.0,
+            "prediction_distribution": {}
+        }
+        
+        total_confidence = 0.0
+        
+        for signal in signals_with_predictions:
+            if hasattr(signal, 'ml_prediction') and signal.ml_prediction:
+                try:
+                    prediction_data = signal.ml_prediction
+                    if isinstance(prediction_data, str):
+                        import json
+                        prediction_data = json.loads(prediction_data)
+                    
+                    confidence = prediction_data.get('confidence', 0.5)
+                    success_prob = prediction_data.get('success_probability', 0.5)
+                    
+                    total_confidence += confidence
+                    
+                    if confidence > 0.7:
+                        accuracy_stats["high_confidence_predictions"] += 1
+                    else:
+                        accuracy_stats["low_confidence_predictions"] += 1
+                    
+                    # Распределение предсказаний
+                    prob_range = f"{int(success_prob * 10) * 10}-{(int(success_prob * 10) + 1) * 10}%"
+                    accuracy_stats["prediction_distribution"][prob_range] = \
+                        accuracy_stats["prediction_distribution"].get(prob_range, 0) + 1
+                        
+                except Exception as e:
+                    logger.warning(f"Error parsing prediction for signal {signal.id}: {e}")
+                    continue
+        
+        if accuracy_stats["total_signals"] > 0:
+            accuracy_stats["average_confidence"] = total_confidence / accuracy_stats["total_signals"]
+        
+        logger.info(f"✅ Accuracy tracking completed: {accuracy_stats}")
+        
+        return {
+            "success": True,
+            "message": "Accuracy tracking completed",
+            "accuracy_stats": accuracy_stats,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Accuracy tracking error: {e}")
+        return {"success": False, "message": f"Ошибка: {str(e)}"} 
