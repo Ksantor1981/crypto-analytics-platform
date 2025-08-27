@@ -6,6 +6,10 @@ from app import models, schemas
 from app.core import auth
 from app.core.database import get_db
 from app.models.user import UserRole
+from app.models.channel import Channel
+from app.schemas.channel import ChannelResponse, ChannelCreate, ChannelUpdate
+from app.services.channel_service import ChannelService
+from app.core.auth import get_current_user
 # from app.services.telegram_service import TelegramService  # Временно отключено
 # from app.services.signal_validation_service import SignalValidationService  # Временно отключено
 from datetime import datetime
@@ -227,3 +231,41 @@ async def get_channel_statistics(channel_id: int):
             "roi": 14.5,
         },
     } 
+
+@router.get("/dashboard/", response_model=List[dict])
+def get_channels_dashboard(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """Get channels without complex JOIN - simple version for dashboard."""
+    query = db.query(Channel)
+    
+    # Get total count
+    total = query.count()
+    
+    # Apply pagination
+    channels = query.order_by(Channel.created_at.desc()).offset(skip).limit(limit).all()
+    
+    # Convert to simple dict format
+    result = []
+    for channel in channels:
+        channel_dict = {
+            "id": channel.id,
+            "name": channel.name,
+            "username": channel.username,
+            "description": channel.description,
+            "platform": channel.platform,
+            "is_active": channel.is_active,
+            "is_verified": channel.is_verified,
+            "subscribers_count": channel.subscribers_count,
+            "category": channel.category,
+            "priority": channel.priority,
+            "expected_accuracy": channel.expected_accuracy,
+            "status": channel.status,
+            "created_at": channel.created_at.isoformat() if channel.created_at else None,
+            "updated_at": channel.updated_at.isoformat() if channel.updated_at else None
+        }
+        result.append(channel_dict)
+    
+    return result 

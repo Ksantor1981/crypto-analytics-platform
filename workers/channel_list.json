@@ -1,0 +1,49 @@
+{
+  "current_channels": [
+    {
+      "username": "signalsbitcoinandethereum",
+      "name": "Bitcoin & Ethereum Signals",
+      "status": "Проверить"
+    },
+    {
+      "username": "CryptoCapoTG",
+      "name": "Crypto Capo",
+      "status": "Проверить"
+    },
+    {
+      "username": "cryptosignals",
+      "name": "Crypto Signals",
+      "status": "Проверить"
+    },
+    {
+      "username": "binance_signals",
+      "name": "Binance Signals",
+      "status": "Проверить"
+    },
+    {
+      "username": "crypto_analytics",
+      "name": "Crypto Analytics",
+      "status": "Проверить"
+    }
+  ],
+  "alternative_channels": [
+    "binance_signals_official",
+    "coinbase_signals",
+    "kraken_signals",
+    "crypto_signals_daily",
+    "bitcoin_signals",
+    "ethereum_signals_daily",
+    "altcoin_signals_pro",
+    "defi_signals_daily",
+    "trading_signals_24_7",
+    "crypto_analytics_pro",
+    "market_signals",
+    "price_alerts",
+    "crypto_news_signals",
+    "technical_analysis_signals",
+    "fundamental_analysis_signals"
+  ],
+  "check_time": "2025-08-23T19:28:59.961062",
+  "total_current": 5,
+  "total_alternatives": 15
+}

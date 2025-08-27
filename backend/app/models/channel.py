@@ -2,9 +2,10 @@
 Channel model for storing Telegram channel information
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from backend.app.core.database import BaseModel
+from .base import BaseModel
 
 
 class Channel(BaseModel):
@@ -13,6 +14,7 @@ class Channel(BaseModel):
     __tablename__ = "channels"
     
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     username = Column(String(100), unique=True, index=True, nullable=False)
     name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
@@ -26,6 +28,11 @@ class Channel(BaseModel):
     status = Column(String(50), default="active", nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    owner = relationship("User", back_populates="channels")
+    signals = relationship("Signal", back_populates="channel", cascade="all, delete-orphan")
+    performance_metrics = relationship("PerformanceMetric", back_populates="channel", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Channel(username='{self.username}', name='{self.name}', platform='{self.platform}')>" 

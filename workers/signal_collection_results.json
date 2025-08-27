@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-08-16T23:44:24.323272",
+  "timestamp": "2025-08-23T13:06:47.459560",
   "total_signals": 2,
   "valid_signals": 2,
   "channels_processed": 3,
@@ -33,7 +33,7 @@
       "confidence": 0.8,
       "source": "signalsbitcoinandethereum",
       "quality_score": 0.65,
-      "timestamp": "2025-08-16T23:44:24.318527"
+      "timestamp": "2025-08-23T13:06:47.457044"
     },
     {
       "trading_pair": "BTC/USDT",
@@ -44,7 +44,7 @@
       "confidence": 0.8,
       "source": "cryptosignals",
       "quality_score": 0.6,
-      "timestamp": "2025-08-16T23:44:24.323272"
+      "timestamp": "2025-08-23T13:06:47.459560"
     }
   ]
 }

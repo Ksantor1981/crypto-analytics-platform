@@ -1,0 +1,256 @@
+{
+  "signals": [
+    {
+      "id": "telegram_CryptoCapoTG_1",
+      "asset": "BTC",
+      "direction": "LONG",
+      "entry_price": 110500.0,
+      "target_price": 116025.0,
+      "stop_loss": 107185.0,
+      "confidence": 78,
+      "channel": "CryptoCapoTG",
+      "source_type": "telegram",
+      "bybit_available": true,
+      "signal_date": "2025-08-23T10:00:00",
+      "expected_date": "2025-08-30T10:00:00",
+      "days_remaining": 7
+    },
+    {
+      "id": "telegram_binance_signals_official_1",
+      "asset": "ETH",
+      "direction": "SHORT",
+      "entry_price": 3200.0,
+      "target_price": 3040.0,
+      "stop_loss": 3280.0,
+      "confidence": 73,
+      "channel": "binance_signals_official",
+      "source_type": "telegram",
+      "bybit_available": true,
+      "signal_date": "2025-08-23T11:00:00",
+      "expected_date": "2025-08-28T11:00:00",
+      "days_remaining": 5
+    },
+    {
+      "id": "reddit_cryptocurrency_1",
+      "asset": "SOL",
+      "direction": "LONG",
+      "entry_price": 95.50,
+      "target_price": 102.00,
+      "stop_loss": 91.00,
+      "confidence": 65,
+      "channel": "r/cryptocurrency",
+      "source_type": "reddit",
+      "bybit_available": true,
+      "signal_date": "2025-08-23T12:00:00",
+      "expected_date": "2025-08-29T12:00:00",
+      "days_remaining": 6
+    },
+    {
+      "id": "reddit_cryptomarkets_1",
+      "asset": "ADA",
+      "direction": "SHORT",
+      "entry_price": 0.45,
+      "target_price": 0.42,
+      "stop_loss": 0.48,
+      "confidence": 62,
+      "channel": "r/cryptomarkets",
+      "source_type": "reddit",
+      "bybit_available": true,
+      "signal_date": "2025-08-23T13:00:00",
+      "expected_date": "2025-08-27T13:00:00",
+      "days_remaining": 4
+    },
+    {
+      "id": "reddit_bitcoin_1",
+      "asset": "BTC",
+      "direction": "LONG",
+      "entry_price": 110200.0,
+      "target_price": 115000.0,
+      "stop_loss": 108000.0,
+      "confidence": 70,
+      "channel": "r/bitcoin",
+      "source_type": "reddit",
+      "bybit_available": true,
+      "signal_date": "2025-08-23T14:00:00",
+      "expected_date": "2025-08-31T14:00:00",
+      "days_remaining": 8
+    },
+    {
+      "id": "twitter_crypto_analyst_1",
+      "asset": "MATIC",
+      "direction": "LONG",
+      "entry_price": 0.85,
+      "target_price": 0.92,
+      "stop_loss": 0.81,
+      "confidence": 68,
+      "channel": "@crypto_analyst",
+      "source_type": "twitter",
+      "bybit_available": true,
+      "signal_date": "2025-08-23T15:00:00",
+      "expected_date": "2025-08-26T15:00:00",
+      "days_remaining": 3
+    },
+    {
+      "id": "tradingview_ideas_1",
+      "asset": "DOT",
+      "direction": "SHORT",
+      "entry_price": 4.16,
+      "target_price": 3.95,
+      "stop_loss": 4.35,
+      "confidence": 75,
+      "channel": "TradingView Ideas",
+      "source_type": "tradingview",
+      "bybit_available": true,
+      "signal_date": "2025-08-23T16:00:00",
+      "expected_date": "2025-08-25T16:00:00",
+      "days_remaining": 2
+    },
+    {
+      "id": "reddit_defi_1",
+      "asset": "AVAX",
+      "direction": "LONG",
+      "entry_price": 28.50,
+      "target_price": 31.00,
+      "stop_loss": 27.00,
+      "confidence": 58,
+      "channel": "r/defi",
+      "source_type": "reddit",
+      "bybit_available": false,
+      "signal_date": "2025-08-23T17:00:00",
+      "expected_date": "2025-09-02T17:00:00",
+      "days_remaining": 10
+    },
+    {
+      "id": "twitter_trading_signals_1",
+      "asset": "LINK",
+      "direction": "SHORT",
+      "entry_price": 12.80,
+      "target_price": 12.00,
+      "stop_loss": 13.20,
+      "confidence": 72,
+      "channel": "@trading_signals",
+      "source_type": "twitter",
+      "bybit_available": false,
+      "signal_date": "2025-08-23T18:00:00",
+      "expected_date": "2025-08-25T18:00:00",
+      "days_remaining": 2
+    },
+    {
+      "id": "reddit_cryptosignals_1",
+      "asset": "UNI",
+      "direction": "BUY",
+      "entry_price": 8.45,
+      "target_price": 9.20,
+      "stop_loss": 8.00,
+      "confidence": 55,
+      "channel": "r/cryptosignals",
+      "source_type": "reddit",
+      "bybit_available": true,
+      "signal_date": "2025-08-23T19:00:00",
+      "expected_date": "2025-08-30T19:00:00",
+      "days_remaining": 7
+    }
+  ],
+  "total_count": 10,
+  "last_updated": "2025-08-23T22:30:00",
+  "statistics": {
+    "total_signals": 10,
+    "telegram_signals": 2,
+    "reddit_signals": 5,
+    "twitter_signals": 2,
+    "tradingview_signals": 1,
+    "long_signals": 7,
+    "short_signals": 2,
+    "buy_signals": 1,
+    "sell_signals": 0,
+    "bybit_available": 7,
+    "bybit_unavailable": 3,
+    "average_confidence": 66.2,
+    "expected_result": 78.5,
+    "active_channels": 8
+  },
+  "channel_performance": {
+    "CryptoCapoTG": {
+      "accuracy": 78,
+      "pnl_12_months": 252,
+      "total_signals": 1,
+      "source": "telegram"
+    },
+    "binance_signals_official": {
+      "accuracy": 73,
+      "pnl_12_months": 30,
+      "total_signals": 1,
+      "source": "telegram"
+    },
+    "r/cryptocurrency": {
+      "accuracy": 65,
+      "pnl_12_months": 45,
+      "total_signals": 1,
+      "source": "reddit"
+    },
+    "r/cryptomarkets": {
+      "accuracy": 62,
+      "pnl_12_months": 28,
+      "total_signals": 1,
+      "source": "reddit"
+    },
+    "r/bitcoin": {
+      "accuracy": 70,
+      "pnl_12_months": 180,
+      "total_signals": 1,
+      "source": "reddit"
+    },
+    "@crypto_analyst": {
+      "accuracy": 68,
+      "pnl_12_months": 95,
+      "total_signals": 1,
+      "source": "twitter"
+    },
+    "TradingView Ideas": {
+      "accuracy": 75,
+      "pnl_12_months": 120,
+      "total_signals": 1,
+      "source": "tradingview"
+    },
+    "r/defi": {
+      "accuracy": 58,
+      "pnl_12_months": 35,
+      "total_signals": 1,
+      "source": "reddit"
+    },
+    "@trading_signals": {
+      "accuracy": 72,
+      "pnl_12_months": 85,
+      "total_signals": 1,
+      "source": "twitter"
+    },
+    "r/cryptosignals": {
+      "accuracy": 55,
+      "pnl_12_months": 15,
+      "total_signals": 1,
+      "source": "reddit"
+    }
+  },
+  "source_breakdown": {
+    "telegram": {
+      "total_signals": 2,
+      "average_confidence": 75.5,
+      "success_rate": 0.72
+    },
+    "reddit": {
+      "total_signals": 5,
+      "average_confidence": 62.0,
+      "success_rate": 0.58
+    },
+    "twitter": {
+      "total_signals": 2,
+      "average_confidence": 70.0,
+      "success_rate": 0.65
+    },
+    "tradingview": {
+      "total_signals": 1,
+      "average_confidence": 75.0,
+      "success_rate": 0.75
+    }
+  }
+}

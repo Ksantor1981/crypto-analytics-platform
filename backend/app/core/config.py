@@ -67,10 +67,10 @@ class Settings(BaseSettings):
     
     # Database - Поддержка PostgreSQL и SQLite
     DATABASE_URL: str = Field(
-        default="postgresql://postgres:CHANGE_THIS_PASSWORD_IN_PRODUCTION@localhost:5432/crypto_analytics",
+        default="postgresql://postgres:password@localhost:5433/crypto_analytics",
         description="Database connection URL"
     )
-    USE_SQLITE: bool = True  # Переключаемся на SQLite для стабильной локальной разработки
+    USE_SQLITE: bool = True  # Используем SQLite для простоты
     
     @property
     def database_url(self) -> str:
@@ -95,7 +95,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str = "redis://localhost:6380/0"
     
     # External APIs
     TELEGRAM_API_ID: Optional[str] = None
@@ -127,6 +127,12 @@ class Settings(BaseSettings):
     
     # JWT Refresh tokens
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    
+    # Trading Encryption
+    TRADING_ENCRYPTION_KEY: str = Field(
+        default="YourSecretKey32BytesLongForDevOnly123",
+        description="32-byte encryption key for trading API credentials"
+    )
     
     # Rate Limiting
     RATE_LIMIT_REQUESTS: int = 100
