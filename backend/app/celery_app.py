@@ -37,37 +37,65 @@ celery_app.conf.update(
 
 # Beat schedule for periodic tasks
 celery_app.conf.beat_schedule = {
-    # Сбор сигналов каждый час
-    'collect_telegram_signals_hourly': {
-        'task': 'collect_telegram_signals',
+    # ОСНОВНЫЕ ЗАДАЧИ ОБНОВЛЕНИЯ (каждый час)
+    'collect_all_signals_hourly': {
+        'task': 'collect_all_signals_hourly',
         'schedule': 3600.0,  # 1 hour
     },
     
-    # Обновление статистики каждые 6 часов
-    'update_channel_statistics_6h': {
-        'task': 'update_channel_statistics',
-        'schedule': 21600.0,  # 6 hours
+    'recalculate_statistics_hourly': {
+        'task': 'recalculate_statistics_hourly', 
+        'schedule': 3600.0,  # 1 hour
     },
     
-    # Проверка результатов сигналов каждые 15 минут
+    'analyze_channels_quality_hourly': {
+        'task': 'analyze_channels_quality_hourly',
+        'schedule': 3600.0,  # 1 hour
+    },
+    
+    # БЫСТРЫЕ ПРОВЕРКИ
     'check_signal_results_15min': {
         'task': 'check_signal_results',
         'schedule': 900.0,  # 15 minutes
     },
     
-    # Получение ML-предсказаний каждые 30 минут
-    'get_ml_predictions_30min': {
-        'task': 'get_ml_predictions',
-        'schedule': 1800.0,  # 30 minutes
-    },
-    
-    # Мониторинг цен каждые 5 минут
     'monitor_prices_5min': {
         'task': 'monitor_prices',
         'schedule': 300.0,  # 5 minutes
     },
     
-    # Статистика Telegram интеграции каждые 2 часа
+    'get_ml_predictions_30min': {
+        'task': 'get_ml_predictions',
+        'schedule': 1800.0,  # 30 minutes
+    },
+    
+    # РАСШИРЕННАЯ АНАЛИТИКА (реже)
+    'deep_historical_analysis_6h': {
+        'task': 'deep_historical_analysis',
+        'schedule': 21600.0,  # 6 hours
+    },
+    
+    'update_channel_ratings_daily': {
+        'task': 'update_channel_ratings_daily',
+        'schedule': 86400.0,  # 24 hours
+    },
+    
+    'cleanup_old_signals_daily': {
+        'task': 'cleanup_old_signals',
+        'schedule': 86400.0,  # 24 hours
+    },
+    
+    # LEGACY ЗАДАЧИ (сохраняем для совместимости)
+    'collect_telegram_signals_hourly': {
+        'task': 'collect_telegram_signals',
+        'schedule': 3600.0,  # 1 hour
+    },
+    
+    'update_channel_statistics_6h': {
+        'task': 'update_channel_statistics',
+        'schedule': 21600.0,  # 6 hours
+    },
+    
     'get_telegram_stats_2h': {
         'task': 'get_telegram_stats',
         'schedule': 7200.0,  # 2 hours

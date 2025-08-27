@@ -21,7 +21,8 @@ try:
     from .api.endpoints import (
         channels, users, signals, subscriptions, 
         payments, ml_integration, telegram_integration, 
-        trading, ml_predictions, backtesting, dashboard
+        trading, ml_predictions, backtesting, dashboard,
+        user_sources
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -183,6 +184,7 @@ routers_config = [
     ("payments", "/api/v1/payments", "payments"),
     ("ml_integration", "/api/v1/ml", "ml"),
     ("telegram_integration", "/api/v1/telegram", "telegram"),
+    ("user_sources", "/api/v1", "user_sources"),
     ("trading", "/api/v1/trading", "trading"),
     ("ml_predictions", "/api/v1/predictions", "predictions"),
     ("backtesting", "/api/v1/backtesting", "backtesting"),

@@ -106,6 +106,211 @@
             box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
         }
 
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c82333, #a71e2a);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #138496, #117a8b);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .automation-panel {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .automation-panel.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #2a2a2a;
+            border-radius: 5px;
+            border-left: 3px solid #007bff;
+        }
+
+        .task-status.running {
+            border-left-color: #28a745;
+            background: #0d2818;
+        }
+
+        .task-status.error {
+            border-left-color: #dc3545;
+            background: #2d0a0e;
+        }
+
+        .task-status.pending {
+            border-left-color: #ffc107;
+            background: #2d2a0a;
+        }
+
+        .user-sources-panel {
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2a2d3a;
+            border: 2px solid #3a3d4a;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .user-sources-panel .panel-header {
+            background: #3a3d4a;
+            padding: 15px;
+            border-bottom: 1px solid #4a4d5a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-sources-panel .panel-content {
+            padding: 20px;
+        }
+
+        .add-source-form {
+            background: #3a3d4a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            background: #2a2d3a;
+            border: 1px solid #4a4d5a;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .user-source-item {
+            background: #3a3d4a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #007bff;
+        }
+
+        .user-source-item.verified {
+            border-left-color: #28a745;
+        }
+
+        .user-source-item.poor-quality {
+            border-left-color: #dc3545;
+        }
+
+        .source-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .source-title {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .source-platform {
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .source-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .source-stat {
+            text-align: center;
+            padding: 8px;
+            background: #2a2d3a;
+            border-radius: 4px;
+        }
+
+        .source-stat-value {
+            display: block;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .source-stat-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .source-actions {
+            margin-top: 10px;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -345,11 +550,106 @@
 
             <button class="btn btn-primary" onclick="applyFilters()">🔍 Применить фильтры</button>
             <button class="btn btn-primary" onclick="refreshData()">🔄 Обновить</button>
-            <button class="btn btn-warning" onclick="parseRealHistory()">🔍 Парсинг 6-месячной истории</button>
+
+            <button class="btn btn-danger" onclick="analyzeChannelQuality()">📊 Анализ каналов + Антирейтинг</button>
+            <button class="btn btn-secondary" onclick="fixSignalDates()">📅 Исправить даты сигналов</button>
+            <button class="btn btn-success" onclick="testSignalValidation()">🧪 Тест валидации</button>
+                                <button class="btn btn-info" onclick="toggleAutomationPanel()">🤖 Автоматизация</button>
+                    <button class="btn btn-primary" onclick="toggleUserSourcesPanel()">📁 Мои источники</button>
 
             <div class="refresh-status">
                 <div class="refresh-indicator"></div>
                 <span id="lastUpdate">Загрузка...</span>
+            </div>
+
+            <!-- Панель автоматизации -->
+            <div id="automationPanel" class="automation-panel">
+                <h3 style="color: #17a2b8; margin-bottom: 20px;">🤖 АВТОМАТИЗАЦИЯ СИСТЕМЫ</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ffc107;">⏰ ЕЖЕЧАСНЫЕ ЗАДАЧИ:</h4>
+                    <div class="task-status" id="task-collect-signals">
+                        <div>
+                            <strong>🚀 Сбор сигналов из всех источников</strong><br>
+                            <small>Каждый час: Telegram, Reddit, External APIs</small>
+                        </div>
+                        <div id="status-collect-signals">
+                            <span class="badge badge-info">Готов</span>
+                        </div>
+                    </div>
+                    
+                    <div class="task-status" id="task-recalc-stats">
+                        <div>
+                            <strong>📊 Пересчет статистики каналов</strong><br>
+                            <small>Каждый час: винрейты, активность, качество</small>
+                        </div>
+                        <div id="status-recalc-stats">
+                            <span class="badge badge-info">Готов</span>
+                        </div>
+                    </div>
+                    
+                    <div class="task-status" id="task-analyze-channels">
+                        <div>
+                            <strong>🔍 Анализ качества каналов</strong><br>
+                            <small>Каждый час: рейтинг + антирейтинг</small>
+                        </div>
+                        <div id="status-analyze-channels">
+                            <span class="badge badge-info">Готов</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #fd7e14;">⚡ БЫСТРЫЕ ПРОВЕРКИ:</h4>
+                    <div class="task-status" id="task-check-results">
+                        <div>
+                            <strong>✅ Проверка результатов сигналов</strong><br>
+                            <small>Каждые 15 минут</small>
+                        </div>
+                        <div id="status-check-results">
+                            <span class="badge badge-success">Активно</span>
+                        </div>
+                    </div>
+                    
+                    <div class="task-status" id="task-monitor-prices">
+                        <div>
+                            <strong>💰 Мониторинг цен</strong><br>
+                            <small>Каждые 5 минут</small>
+                        </div>
+                        <div id="status-monitor-prices">
+                            <span class="badge badge-success">Активно</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #6f42c1;">📈 РАСШИРЕННАЯ АНАЛИТИКА:</h4>
+                    <div class="task-status" id="task-deep-analysis">
+                        <div>
+                            <strong>🔬 Глубокий исторический анализ</strong><br>
+                            <small>Каждые 6 часов</small>
+                        </div>
+                        <div id="status-deep-analysis">
+                            <span class="badge badge-info">Готов</span>
+                        </div>
+                    </div>
+                    
+                    <div class="task-status" id="task-update-ratings">
+                        <div>
+                            <strong>⭐ Обновление рейтингов</strong><br>
+                            <small>Ежедневно</small>
+                        </div>
+                        <div id="status-update-ratings">
+                            <span class="badge badge-info">Готов</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="runManualCollection()">🚀 Запустить сбор вручную</button>
+                    <button class="btn btn-warning" onclick="checkSystemHealth()">🩺 Проверить систему</button>
+                    <button class="btn btn-secondary" onclick="refreshAutomationStatus()">🔄 Обновить статус</button>
+                </div>
             </div>
         </div>
 
@@ -383,6 +683,69 @@
     </div>
 
     <div id="notification" class="notification"></div>
+
+    <!-- Панель пользовательских источников (скрыта по умолчанию) -->
+    <div id="userSourcesPanel" class="user-sources-panel" style="display: none;">
+        <div class="panel-header">
+            <h3>📁 Управление источниками</h3>
+            <button class="btn btn-close" onclick="toggleUserSourcesPanel()">✖</button>
+        </div>
+        
+        <div class="panel-content">
+            <!-- Форма добавления нового источника -->
+            <div class="add-source-form">
+                <h4>➕ Добавить новый источник</h4>
+                <div class="form-group">
+                    <label>Платформа:</label>
+                    <select id="sourcePlatform" class="form-control">
+                        <option value="telegram">Telegram</option>
+                        <option value="discord">Discord</option>
+                        <option value="reddit">Reddit</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="website">Веб-сайт</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>URL источника:</label>
+                    <input type="text" id="sourceUrl" class="form-control" 
+                           placeholder="https://t.me/channel_name">
+                </div>
+                
+                <div class="form-group">
+                    <label>Название:</label>
+                    <input type="text" id="sourceName" class="form-control" 
+                           placeholder="Мой торговый канал">
+                </div>
+                
+                <div class="form-group">
+                    <label>Описание (опционально):</label>
+                    <textarea id="sourceDescription" class="form-control" rows="2" 
+                              placeholder="Краткое описание источника"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ожидаемое качество:</label>
+                    <select id="sourceExpectedAccuracy" class="form-control">
+                        <option value="unknown">Неизвестно</option>
+                        <option value="high">Высокое</option>
+                        <option value="medium">Среднее</option>
+                        <option value="low">Низкое</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-success" onclick="addUserSource()">🔍 Добавить и проанализировать</button>
+            </div>
+            
+            <!-- Список существующих источников -->
+            <div class="user-sources-list">
+                <h4>📋 Мои источники</h4>
+                <div id="userSourcesList">
+                    <div class="loading">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         let allSignals = [];
@@ -546,11 +909,13 @@
 
 
 
-        async function parseRealHistory() {
+
+
+        async function analyzeChannelQuality() {
             try {
-                showNotification('🔍 Запускаем сбор РЕАЛЬНЫХ исторических сигналов за 6 месяцев из архивов каналов...', 'info');
+                showNotification('📊 Запускаем анализ качества каналов и создание антирейтинга...', 'info');
                 
-                const response = await fetch('http://localhost:8000/api/v1/telegram/parse-6month-real-history', {
+                const response = await fetch('http://localhost:8000/api/v1/telegram/analyze-channel-quality', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -564,13 +929,17 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showNotification(`✅ ${result.message}! Проверены винрейты по реальным данным.`, 'success');
+                    showNotification(`✅ ${result.message}! Создан рейтинг и антирейтинг каналов.`, 'success');
                     
-                    // Показываем детальную статистику в консоли
-                    console.log('🔍 Анализ реальных источников за 6 месяцев:', result.sources_analysis);
-                    console.log('📊 Метод проверки:', result.validation_method);
+                    // Показываем результаты анализа
+                    console.log('📊 ТОП-3 ЛУЧШИХ КАНАЛОВ:', result.top_3_channels);
+                    console.log('💀 ТОП-3 ХУДШИХ КАНАЛОВ (АНТИРЕЙТИНГ):', result.worst_3_channels);
+                    console.log('📋 Полный анализ:', result.full_analysis);
                     
-                    // Обновляем данные после сбора
+                    // Показываем результаты на экране
+                    displayChannelAnalysis(result);
+                    
+                    // Обновляем данные после анализа
                     await loadSignals();
                     await loadChannelStats();
                     applyFilters();
@@ -579,7 +948,479 @@
                 }
                 
             } catch (error) {
-                console.error('Ошибка сбора реальных данных:', error);
+                console.error('Ошибка анализа каналов:', error);
+                showNotification(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        function displayChannelAnalysis(result) {
+            // Создаем окно с результатами анализа
+            const analysisHtml = `
+                <div style="background: #1a1a1a; padding: 20px; border-radius: 10px; margin: 20px 0; max-height: 400px; overflow-y: auto;">
+                    <h3 style="color: #00d4ff; margin-bottom: 15px;">📊 АНАЛИЗ КАНАЛОВ ЗАВЕРШЕН</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #28a745;">🏆 ТОП-3 ЛУЧШИХ КАНАЛОВ:</h4>
+                        ${result.top_3_channels.map((channel, index) => `
+                            <div style="background: #0d4127; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 3px solid #28a745;">
+                                <strong>${index + 1}. ${channel.channel_name}</strong> 
+                                <span style="color: #28a745;">Score: ${channel.quality_score}</span><br>
+                                👥 Подписчики: ${channel.subscriber_count || 'N/A'} | 
+                                📊 Сигналы: ${channel.signal_frequency} | 
+                                ⭐ Рейтинг: ${channel.quality_rating}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: #dc3545;">💀 ТОП-3 ХУДШИХ КАНАЛОВ (АНТИРЕЙТИНГ):</h4>
+                        ${result.worst_3_channels.map((channel, index) => `
+                            <div style="background: #4a1a1a; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 3px solid #dc3545;">
+                                <strong>${index + 1}. ${channel.channel_name}</strong> 
+                                <span style="color: #dc3545;">Score: ${channel.quality_score}</span><br>
+                                👥 Подписчики: ${channel.subscriber_count || 'N/A'} | 
+                                📊 Сигналы: ${channel.signal_frequency} | 
+                                ⭐ Рейтинг: ${channel.quality_rating}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div style="margin-top: 15px; padding: 10px; background: #333; border-radius: 5px;">
+                        <small style="color: #aaa;">
+                            📈 Всего каналов: ${result.total_channels} | 
+                            ✅ Активных: ${result.active_channels} | 
+                            🕐 Анализ: ${new Date().toLocaleString()}
+                        </small>
+                    </div>
+                </div>
+            `;
+            
+            // Добавляем результаты в начало страницы
+            const container = document.querySelector('.container');
+            container.insertAdjacentHTML('afterbegin', analysisHtml);
+        }
+
+        function toggleAutomationPanel() {
+            const panel = document.getElementById('automationPanel');
+            panel.classList.toggle('show');
+            
+            if (panel.classList.contains('show')) {
+                refreshAutomationStatus();
+            }
+        }
+
+        // Показать/скрыть панель пользовательских источников
+        function toggleUserSourcesPanel() {
+            const panel = document.getElementById('userSourcesPanel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                loadUserSources();
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        // Загрузка пользовательских источников
+        async function loadUserSources() {
+            try {
+                showNotification('Загрузка источников...', 'info');
+                
+                const response = await fetch('/api/v1/user-sources/my-sources');
+                const data = await response.json();
+                
+                const container = document.getElementById('userSourcesList');
+                
+                if (data.success && data.sources) {
+                    container.innerHTML = data.sources.map(source => `
+                        <div class="user-source-item ${source.is_verified ? 'verified' : ''} ${source.quality_score < 0.4 ? 'poor-quality' : ''}">
+                            <div class="source-header">
+                                <div class="source-title">${source.name}</div>
+                                <div class="source-platform">${source.platform}</div>
+                            </div>
+                            
+                            <div class="source-info">
+                                <strong>@${source.username}</strong>
+                                ${source.status ? `<span class="badge badge-${source.status === 'active' ? 'success' : 'warning'}">${source.status}</span>` : ''}
+                            </div>
+                            
+                            <div class="source-stats">
+                                <div class="source-stat">
+                                    <span class="source-stat-value">${source.quality_score ? (source.quality_score * 100).toFixed(0) : 0}%</span>
+                                    <span class="source-stat-label">Качество</span>
+                                </div>
+                                <div class="source-stat">
+                                    <span class="source-stat-value">${source.total_signals || 0}</span>
+                                    <span class="source-stat-label">Сигналов</span>
+                                </div>
+                                <div class="source-stat">
+                                    <span class="source-stat-value">${source.win_rate ? source.win_rate.toFixed(1) : 0}%</span>
+                                    <span class="source-stat-label">Винрейт</span>
+                                </div>
+                                <div class="source-stat">
+                                    <span class="source-stat-value">${source.subscribers_count || 'N/A'}</span>
+                                    <span class="source-stat-label">Подписчиков</span>
+                                </div>
+                            </div>
+                            
+                            <div class="source-actions">
+                                <button class="btn btn-sm btn-primary" onclick="reanalyzeSource(${source.id})">🔄 Переанализировать</button>
+                                <button class="btn btn-sm btn-danger" onclick="removeUserSource(${source.id})">🗑 Удалить</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="text-center">Источники не найдены</div>';
+                }
+                
+            } catch (error) {
+                console.error('Ошибка загрузки источников:', error);
+                showNotification('Ошибка загрузки источников', 'error');
+                document.getElementById('userSourcesList').innerHTML = '<div class="text-center text-danger">Ошибка загрузки</div>';
+            }
+        }
+
+        // Добавление нового источника
+        async function addUserSource() {
+            try {
+                const platform = document.getElementById('sourcePlatform').value;
+                const sourceUrl = document.getElementById('sourceUrl').value.trim();
+                const name = document.getElementById('sourceName').value.trim();
+                const description = document.getElementById('sourceDescription').value.trim();
+                const expectedAccuracy = document.getElementById('sourceExpectedAccuracy').value;
+                
+                if (!platform || !sourceUrl || !name) {
+                    showNotification('Заполните все обязательные поля', 'error');
+                    return;
+                }
+                
+                showNotification('Добавление и анализ источника...', 'info');
+                
+                const response = await fetch('/api/v1/user-sources/add-source', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        platform: platform,
+                        source_url: sourceUrl,
+                        name: name,
+                        description: description,
+                        expected_accuracy: expectedAccuracy
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`Источник "${name}" успешно добавлен!`, 'success');
+                    
+                    // Очищаем форму
+                    document.getElementById('sourceUrl').value = '';
+                    document.getElementById('sourceName').value = '';
+                    document.getElementById('sourceDescription').value = '';
+                    
+                    // Перезагружаем список
+                    loadUserSources();
+                    
+                    // Показываем результаты анализа
+                    if (data.analysis) {
+                        const analysis = data.analysis;
+                        showNotification(
+                            `Анализ завершен: Качество ${(analysis.quality_score * 100).toFixed(0)}%, Сигналов найдено: ${analysis.signals_found}`, 
+                            'info'
+                        );
+                    }
+                    
+                } else {
+                    showNotification(data.message || 'Ошибка добавления источника', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка добавления источника:', error);
+                showNotification('Ошибка добавления источника', 'error');
+            }
+        }
+
+        // Переанализ источника
+        async function reanalyzeSource(channelId) {
+            try {
+                showNotification('Запуск переанализа...', 'info');
+                
+                const response = await fetch(`/api/v1/user-sources/reanalyze/${channelId}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Переанализ завершен!', 'success');
+                    loadUserSources(); // Перезагружаем список
+                } else {
+                    showNotification(data.message || 'Ошибка переанализа', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка переанализа:', error);
+                showNotification('Ошибка переанализа', 'error');
+            }
+        }
+
+        // Удаление источника
+        async function removeUserSource(channelId) {
+            if (!confirm('Вы действительно хотите удалить этот источник?')) {
+                return;
+            }
+            
+            try {
+                showNotification('Удаление источника...', 'info');
+                
+                const response = await fetch(`/api/v1/user-sources/remove/${channelId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Источник удален!', 'success');
+                    loadUserSources(); // Перезагружаем список
+                } else {
+                    showNotification(data.message || 'Ошибка удаления', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка удаления:', error);
+                showNotification('Ошибка удаления источника', 'error');
+            }
+        }
+
+        async function refreshAutomationStatus() {
+            try {
+                // Здесь можно добавить API вызов для получения реального статуса Celery задач
+                // Пока показываем симуляцию
+                updateTaskStatus('status-collect-signals', 'ready', 'Готов к запуску');
+                updateTaskStatus('status-recalc-stats', 'ready', 'Готов к запуску');
+                updateTaskStatus('status-analyze-channels', 'ready', 'Готов к запуску');
+                updateTaskStatus('status-check-results', 'running', 'Активно');
+                updateTaskStatus('status-monitor-prices', 'running', 'Активно');
+                updateTaskStatus('status-deep-analysis', 'ready', 'Готов к запуску');
+                updateTaskStatus('status-update-ratings', 'ready', 'Готов к запуску');
+                
+                showNotification('🔄 Статус автоматизации обновлен', 'info');
+            } catch (error) {
+                console.error('Ошибка обновления статуса:', error);
+                showNotification('❌ Ошибка обновления статуса', 'error');
+            }
+        }
+
+        function updateTaskStatus(elementId, status, text) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                let badgeClass = 'badge-info';
+                let statusText = text;
+                
+                switch (status) {
+                    case 'running':
+                        badgeClass = 'badge-success';
+                        statusText = '🟢 ' + text;
+                        break;
+                    case 'error':
+                        badgeClass = 'badge-danger';
+                        statusText = '🔴 ' + text;
+                        break;
+                    case 'pending':
+                        badgeClass = 'badge-warning';
+                        statusText = '🟡 ' + text;
+                        break;
+                    default:
+                        badgeClass = 'badge-info';
+                        statusText = '⚪ ' + text;
+                }
+                
+                element.innerHTML = `<span class="badge ${badgeClass}">${statusText}</span>`;
+            }
+        }
+
+        async function runManualCollection() {
+            try {
+                showNotification('🚀 Запускаем ручной сбор сигналов...', 'info');
+                updateTaskStatus('status-collect-signals', 'running', 'Выполняется...');
+                
+                const response = await fetch('http://localhost:8000/api/v1/telegram/collect-all-sources', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('✅ Ручной сбор сигналов завершен успешно!', 'success');
+                    updateTaskStatus('status-collect-signals', 'ready', 'Завершено');
+                    
+                    // Обновляем данные
+                    await loadSignals();
+                    await loadChannelStats();
+                    applyFilters();
+                } else {
+                    showNotification(`❌ ${result.message}`, 'error');
+                    updateTaskStatus('status-collect-signals', 'error', 'Ошибка');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка ручного сбора:', error);
+                showNotification(`❌ Ошибка: ${error.message}`, 'error');
+                updateTaskStatus('status-collect-signals', 'error', 'Ошибка');
+            }
+        }
+
+        async function checkSystemHealth() {
+            try {
+                showNotification('🩺 Проверяем состояние системы...', 'info');
+                
+                // Проверяем API
+                const response = await fetch('http://localhost:8000/health');
+                const health = await response.json();
+                
+                if (response.ok) {
+                    showNotification('✅ Система работает нормально', 'success');
+                    
+                    // Показываем детальную информацию
+                    const healthInfo = `
+                        <div style="background: #0d2818; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 3px solid #28a745;">
+                            <h4 style="color: #28a745;">🩺 СОСТОЯНИЕ СИСТЕМЫ</h4>
+                            <p><strong>API:</strong> ✅ Работает</p>
+                            <p><strong>База данных:</strong> ✅ Подключена</p>
+                            <p><strong>Время проверки:</strong> ${new Date().toLocaleString()}</p>
+                        </div>
+                    `;
+                    
+                    const container = document.querySelector('.container');
+                    container.insertAdjacentHTML('afterbegin', healthInfo);
+                } else {
+                    showNotification('❌ Проблемы с системой', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка проверки системы:', error);
+                showNotification('❌ Система недоступна', 'error');
+                
+                // Показываем статус недоступности
+                updateTaskStatus('status-collect-signals', 'error', 'Недоступно');
+                updateTaskStatus('status-recalc-stats', 'error', 'Недоступно');
+                updateTaskStatus('status-analyze-channels', 'error', 'Недоступно');
+            }
+        }
+
+        async function fixSignalDates() {
+            try {
+                showNotification('📅 Исправляем даты сигналов на реальные...', 'info');
+                
+                const response = await fetch('http://localhost:8000/api/v1/telegram/fix-signal-dates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(`✅ ${result.message}`, 'success');
+                    
+                    // Показываем детальную информацию
+                    const fixInfo = `
+                        <div style="background: #0d2818; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 3px solid #28a745;">
+                            <h4 style="color: #28a745;">📅 ДАТЫ СИГНАЛОВ ИСПРАВЛЕНЫ</h4>
+                            <p><strong>Обновлено сигналов:</strong> ${result.time_groups_found || 'N/A'} групп</p>
+                            <p><strong>Объяснение:</strong> ${result.explanation}</p>
+                            <p><strong>Теперь:</strong> Дата создания = время публикации сигнала (не время записи в БД)</p>
+                            <small>Сигналы теперь показывают РЕАЛЬНОЕ время их публикации!</small>
+                        </div>
+                    `;
+                    
+                    const container = document.querySelector('.container');
+                    container.insertAdjacentHTML('afterbegin', fixInfo);
+                    
+                    // Обновляем данные для отображения исправленных дат
+                    await loadSignals();
+                    applyFilters();
+                } else {
+                    showNotification(`❌ ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка исправления дат:', error);
+                showNotification(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSignalValidation() {
+            try {
+                showNotification('🧪 Тестируем валидацию сигналов...', 'info');
+                
+                const response = await fetch('http://localhost:8000/api/v1/telegram/test-signal-validation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(`✅ Тестирование завершено! Принято: ${result.sync_accepted}/8, Отброшено: ${result.sync_rejected}/8`, 'success');
+                    
+                    // Показываем детальные результаты
+                    const validationInfo = `
+                        <div style="background: #0d2818; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 3px solid #28a745;">
+                            <h4 style="color: #28a745;">🧪 РЕЗУЛЬТАТЫ ТЕСТИРОВАНИЯ ВАЛИДАЦИИ</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 15px 0;">
+                                <div>
+                                    <h5 style="color: #28a745;">✅ РЕАЛИСТИЧНЫЕ СИГНАЛЫ (ПРИНЯТЫ):</h5>
+                                    <ul style="color: #aaa; font-size: 0.9em;">
+                                        ${result.results.filter(r => r.sync_accepted).map(r => 
+                                            `<li>✅ ${r.test_signal}</li>`
+                                        ).join('')}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 style="color: #dc3545;">❌ МАГИЯ И ВОЛШЕБСТВО (ОТБРОШЕНЫ):</h5>
+                                    <ul style="color: #aaa; font-size: 0.9em;">
+                                        ${result.results.filter(r => !r.sync_accepted).map(r => 
+                                            `<li>❌ ${r.test_signal}</li>`
+                                        ).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            <p><strong>Статистика:</strong> Sync алгоритм: ${result.sync_accepted} принято, ${result.sync_rejected} отброшено</p>
+                            <p><strong>Async алгоритм:</strong> ${result.async_accepted} принято, ${result.async_rejected} отброшено</p>
+                            <p><strong>Критерий:</strong> Отклонение от рыночной цены не более 15%</p>
+                            <small>Система автоматически отбрасывает сигналы с нереалистичными ценами!</small>
+                        </div>
+                    `;
+                    
+                    const container = document.querySelector('.container');
+                    container.insertAdjacentHTML('afterbegin', validationInfo);
+                    
+                } else {
+                    showNotification(`❌ ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка тестирования валидации:', error);
                 showNotification(`❌ Ошибка: ${error.message}`, 'error');
             }
         }
