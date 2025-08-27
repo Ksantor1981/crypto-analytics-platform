@@ -556,6 +556,7 @@
             <button class="btn btn-success" onclick="testSignalValidation()">🧪 Тест валидации</button>
                                 <button class="btn btn-info" onclick="toggleAutomationPanel()">🤖 Автоматизация</button>
                     <button class="btn btn-primary" onclick="toggleUserSourcesPanel()">📁 Мои источники</button>
+                    <button class="btn btn-warning" onclick="trackPredictionAccuracy()">📊 Мониторинг ML</button>
 
             <div class="refresh-status">
                 <div class="refresh-indicator"></div>
@@ -1519,6 +1520,137 @@
         document.getElementById('statusFilter').addEventListener('change', applyFilters);
         document.getElementById('sourceFilter').addEventListener('change', applyFilters);
         document.getElementById('limitFilter').addEventListener('change', applyFilters);
+
+        async function trackPredictionAccuracy() {
+            try {
+                console.log("📊 Tracking ML prediction accuracy...");
+                
+                const response = await fetch('/api/v1/telegram/track-prediction-accuracy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const stats = result.accuracy_stats;
+                    
+                    // Показываем результаты в модальном окне
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.innerHTML = `
+                        <div class="modal-content">
+                            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                            <h2>📊 Мониторинг ML Предсказаний</h2>
+                            <div class="accuracy-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Всего сигналов:</span>
+                                    <span class="stat-value">${stats.total_signals}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Высокая уверенность:</span>
+                                    <span class="stat-value">${stats.high_confidence_predictions}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Низкая уверенность:</span>
+                                    <span class="stat-value">${stats.low_confidence_predictions}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Средняя уверенность:</span>
+                                    <span class="stat-value">${(stats.average_confidence * 100).toFixed(1)}%</span>
+                                </div>
+                            </div>
+                            <div class="prediction-distribution">
+                                <h3>Распределение предсказаний:</h3>
+                                ${Object.entries(stats.prediction_distribution).map(([range, count]) => 
+                                    `<div class="dist-item">
+                                        <span class="dist-range">${range}</span>
+                                        <span class="dist-count">${count} сигналов</span>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                            <div class="timestamp">
+                                <small>Обновлено: ${new Date(result.timestamp).toLocaleString()}</small>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(modal);
+                    
+                    // Добавляем стили для модального окна
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .modal {
+                            display: block;
+                            position: fixed;
+                            z-index: 1000;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(0,0,0,0.5);
+                        }
+                        .modal-content {
+                            background-color: #1a1a1a;
+                            margin: 15% auto;
+                            padding: 20px;
+                            border: 1px solid #333;
+                            border-radius: 8px;
+                            width: 80%;
+                            max-width: 600px;
+                            color: white;
+                        }
+                        .close {
+                            color: #aaa;
+                            float: right;
+                            font-size: 28px;
+                            font-weight: bold;
+                            cursor: pointer;
+                        }
+                        .close:hover {
+                            color: white;
+                        }
+                        .accuracy-stats {
+                            margin: 20px 0;
+                        }
+                        .stat-item {
+                            display: flex;
+                            justify-content: space-between;
+                            margin: 10px 0;
+                            padding: 10px;
+                            background-color: #2a2a2a;
+                            border-radius: 4px;
+                        }
+                        .prediction-distribution {
+                            margin: 20px 0;
+                        }
+                        .dist-item {
+                            display: flex;
+                            justify-content: space-between;
+                            margin: 5px 0;
+                            padding: 5px;
+                            background-color: #2a2a2a;
+                            border-radius: 4px;
+                        }
+                        .timestamp {
+                            text-align: center;
+                            margin-top: 20px;
+                            color: #888;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    
+                } else {
+                    alert(`❌ Ошибка: ${result.message}`);
+                }
+                
+            } catch (error) {
+                console.error("❌ Error tracking accuracy:", error);
+                alert("❌ Ошибка при мониторинге точности ML");
+            }
+        }
     </script>
 </body>
 </html>

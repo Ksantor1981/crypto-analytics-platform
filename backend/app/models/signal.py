@@ -86,6 +86,7 @@ class Signal(BaseModel):
     ml_success_probability = Column(Numeric(5, 4), nullable=True)  # 0.0 to 1.0
     ml_predicted_roi = Column(Numeric(10, 4), nullable=True)
     is_ml_prediction_correct = Column(Boolean, nullable=True)
+    ml_prediction = Column(JSON, nullable=True)  # Full ML prediction data
     
     # Signal quality indicators
     confidence_score = Column(Numeric(5, 2), nullable=True)  # 0-100 quality score
