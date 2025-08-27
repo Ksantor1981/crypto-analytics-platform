@@ -3653,4 +3653,198 @@ async def track_prediction_accuracy(db: Session = Depends(get_db)):
         
     except Exception as e:
         logger.error(f"❌ Accuracy tracking error: {e}")
+        return {"success": False, "message": f"Ошибка: {str(e)}"}
+
+@router.post("/start-trading-experiment")
+async def start_trading_experiment(db: Session = Depends(get_db)):
+    """
+    Запускает торговый эксперимент: 100 USDT на каждый качественный сигнал
+    """
+    try:
+        from datetime import datetime, timezone
+        logger.info("🎯 STARTING TRADING EXPERIMENT: 100 USDT per signal")
+        
+        # Получаем все активные сигналы
+        active_signals = db.query(Signal).filter(
+            Signal.status == 'PENDING',
+            Signal.expires_at > datetime.now(timezone.utc)
+        ).order_by(Signal.confidence_score.desc()).limit(10).all()
+        
+        experiment_signals = []
+        total_investment = 0
+        
+        for signal in active_signals:
+            # Рассчитываем потенциальную прибыль/убыток
+            entry_price = float(signal.entry_price)
+            tp1_price = float(signal.tp1_price) if signal.tp1_price else entry_price * 1.05
+            stop_loss = float(signal.stop_loss) if signal.stop_loss else entry_price * 0.95
+            
+            # Расчеты для 100 USDT
+            investment = 100.0
+            position_size = investment / entry_price
+            
+            potential_profit = (tp1_price - entry_price) * position_size
+            potential_loss = (entry_price - stop_loss) * position_size
+            
+            experiment_signal = {
+                "signal_id": signal.id,
+                "asset": signal.asset,
+                "entry_price": entry_price,
+                "tp1_price": tp1_price,
+                "stop_loss": stop_loss,
+                "investment": investment,
+                "position_size": position_size,
+                "potential_profit": potential_profit,
+                "potential_loss": potential_loss,
+                "risk_reward_ratio": abs(potential_profit / potential_loss) if potential_loss > 0 else 0,
+                "confidence_score": float(signal.confidence_score),
+                "channel_name": signal.channel.name if signal.channel else "Unknown",
+                "created_at": signal.created_at.isoformat(),
+                "expires_at": signal.expires_at.isoformat() if signal.expires_at else None,
+                "status": "ACTIVE"
+            }
+            
+            experiment_signals.append(experiment_signal)
+            total_investment += investment
+        
+        # Сохраняем эксперимент в базу
+        experiment_data = {
+            "experiment_id": f"exp_{int(datetime.now(timezone.utc).timestamp())}",
+            "start_time": datetime.now(timezone.utc).isoformat(),
+            "total_signals": len(experiment_signals),
+            "total_investment": total_investment,
+            "signals": experiment_signals,
+            "status": "ACTIVE"
+        }
+        
+        # Сохраняем в Redis для отслеживания
+        import json
+        import redis
+        r = redis.Redis(host='redis', port=6379, db=0)
+        r.setex(f"trading_experiment_{experiment_data['experiment_id']}", 86400, json.dumps(experiment_data))
+        
+        logger.info(f"✅ Trading experiment started: {len(experiment_signals)} signals, ${total_investment} total")
+        
+        return {
+            "success": True,
+            "message": f"Торговый эксперимент запущен! {len(experiment_signals)} сигналов, ${total_investment} инвестиций",
+            "experiment": experiment_data
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Trading experiment error: {e}")
+        return {"success": False, "message": f"Ошибка: {str(e)}"}
+
+@router.get("/check-trading-results")
+async def check_trading_results(db: Session = Depends(get_db)):
+    """
+    Проверяет результаты торгового эксперимента
+    """
+    try:
+        logger.info("📊 CHECKING TRADING EXPERIMENT RESULTS")
+        
+        # Получаем эксперимент из Redis
+        import json
+        import redis
+        r = redis.Redis(host='redis', port=6379, db=0)
+        
+        # Ищем активный эксперимент
+        experiment_keys = r.keys("trading_experiment_*")
+        if not experiment_keys:
+            return {"success": False, "message": "Активный эксперимент не найден"}
+        
+        experiment_key = experiment_keys[0]
+        experiment_data = json.loads(r.get(experiment_key))
+        
+        results = {
+            "experiment_id": experiment_data["experiment_id"],
+            "start_time": experiment_data["start_time"],
+            "total_signals": experiment_data["total_signals"],
+            "total_investment": experiment_data["total_investment"],
+            "current_results": [],
+            "summary": {}
+        }
+        
+        total_profit = 0
+        total_loss = 0
+        successful_trades = 0
+        failed_trades = 0
+        
+        for signal_data in experiment_data["signals"]:
+            signal_id = signal_data["signal_id"]
+            signal = db.query(Signal).filter(Signal.id == signal_id).first()
+            
+            if not signal:
+                continue
+            
+            # Получаем текущую цену (симуляция)
+            current_price = await get_coingecko_price(signal.asset)
+            if not current_price:
+                current_price = float(signal.entry_price)  # Fallback
+            
+            entry_price = float(signal.entry_price)
+            tp1_price = float(signal.tp1_price) if signal.tp1_price else entry_price * 1.05
+            stop_loss = float(signal.stop_loss) if signal.stop_loss else entry_price * 0.95
+            investment = signal_data["investment"]
+            position_size = investment / entry_price
+            
+            # Определяем результат
+            if current_price >= tp1_price:
+                result = "TP1_HIT"
+                profit = (tp1_price - entry_price) * position_size
+                total_profit += profit
+                successful_trades += 1
+            elif current_price <= stop_loss:
+                result = "SL_HIT"
+                loss = (entry_price - stop_loss) * position_size
+                total_loss += loss
+                failed_trades += 1
+            else:
+                result = "PENDING"
+                profit = (current_price - entry_price) * position_size
+                if profit > 0:
+                    total_profit += profit
+                else:
+                    total_loss += abs(profit)
+            
+            signal_result = {
+                "signal_id": signal_id,
+                "asset": signal.asset,
+                "entry_price": entry_price,
+                "current_price": current_price,
+                "tp1_price": tp1_price,
+                "stop_loss": stop_loss,
+                "investment": investment,
+                "result": result,
+                "profit_loss": profit if result == "TP1_HIT" else (-loss if result == "SL_HIT" else profit),
+                "roi_percent": ((profit if result == "TP1_HIT" else (-loss if result == "SL_HIT" else profit)) / investment) * 100
+            }
+            
+            results["current_results"].append(signal_result)
+        
+        # Итоговая статистика
+        net_profit = total_profit - total_loss
+        total_trades = successful_trades + failed_trades
+        win_rate = (successful_trades / total_trades * 100) if total_trades > 0 else 0
+        
+        results["summary"] = {
+            "total_profit": round(total_profit, 2),
+            "total_loss": round(total_loss, 2),
+            "net_profit": round(net_profit, 2),
+            "successful_trades": successful_trades,
+            "failed_trades": failed_trades,
+            "win_rate": round(win_rate, 1),
+            "total_roi_percent": round((net_profit / experiment_data["total_investment"]) * 100, 2)
+        }
+        
+        logger.info(f"✅ Trading results: ${net_profit} net profit, {win_rate}% win rate")
+        
+        return {
+            "success": True,
+            "message": f"Результаты торгового эксперимента: ${net_profit} чистая прибыль",
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Check trading results error: {e}")
         return {"success": False, "message": f"Ошибка: {str(e)}"} 
