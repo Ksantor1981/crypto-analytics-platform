@@ -556,7 +556,9 @@
             <button class="btn btn-success" onclick="testSignalValidation()">🧪 Тест валидации</button>
                                 <button class="btn btn-info" onclick="toggleAutomationPanel()">🤖 Автоматизация</button>
                     <button class="btn btn-primary" onclick="toggleUserSourcesPanel()">📁 Мои источники</button>
-                    <button class="btn btn-warning" onclick="trackPredictionAccuracy()">📊 Мониторинг ML</button>
+                                         <button class="btn btn-warning" onclick="trackPredictionAccuracy()">📊 Мониторинг ML</button>
+                     <button class="btn btn-success" onclick="startTradingExperiment()">🎯 Торговый эксперимент</button>
+                     <button class="btn btn-info" onclick="checkTradingResults()">💰 Результаты торговли</button>
 
             <div class="refresh-status">
                 <div class="refresh-indicator"></div>
@@ -1650,7 +1652,175 @@
                 console.error("❌ Error tracking accuracy:", error);
                 alert("❌ Ошибка при мониторинге точности ML");
             }
-        }
-    </script>
-</body>
-</html>
+                 }
+
+         async function startTradingExperiment() {
+             try {
+                 showNotification('🎯 Запускаем торговый эксперимент...', 'info');
+                 
+                 const response = await fetch('/api/v1/telegram/start-trading-experiment', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     }
+                 });
+                 
+                 const result = await response.json();
+                 
+                 if (result.success) {
+                     showNotification(`✅ ${result.message}`, 'success');
+                     
+                     // Показываем детали эксперимента
+                     const experiment = result.experiment;
+                     const modal = document.createElement('div');
+                     modal.className = 'modal';
+                     modal.innerHTML = `
+                         <div class="modal-content">
+                             <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                             <h2>🎯 Торговый эксперимент запущен!</h2>
+                             <div class="experiment-stats">
+                                 <div class="stat-item">
+                                     <span class="stat-label">ID эксперимента:</span>
+                                     <span class="stat-value">${experiment.experiment_id}</span>
+                                 </div>
+                                 <div class="stat-item">
+                                     <span class="stat-label">Всего сигналов:</span>
+                                     <span class="stat-value">${experiment.total_signals}</span>
+                                 </div>
+                                 <div class="stat-item">
+                                     <span class="stat-label">Общая инвестиция:</span>
+                                     <span class="stat-value">$${experiment.total_investment}</span>
+                                 </div>
+                                 <div class="stat-item">
+                                     <span class="stat-label">Время запуска:</span>
+                                     <span class="stat-value">${new Date(experiment.start_time).toLocaleString()}</span>
+                                 </div>
+                             </div>
+                             <div class="signals-list">
+                                 <h3>Выбранные сигналы:</h3>
+                                 ${experiment.signals.map(signal => `
+                                     <div class="signal-item">
+                                         <strong>${signal.asset}</strong> - $${signal.investment}
+                                         <br><small>Вход: $${signal.entry_price} | Цель: $${signal.tp1_price} | Стоп: $${signal.stop_loss}</small>
+                                         <br><small>Confidence: ${(signal.confidence_score * 100).toFixed(0)}% | R/R: ${signal.risk_reward_ratio.toFixed(2)}</small>
+                                     </div>
+                                 `).join('')}
+                             </div>
+                             <div class="timestamp">
+                                 <small>Эксперимент активен до завтра 21:00</small>
+                             </div>
+                         </div>
+                     `;
+                     
+                     document.body.appendChild(modal);
+                     
+                 } else {
+                     showNotification(`❌ ${result.message}`, 'error');
+                 }
+                 
+             } catch (error) {
+                 console.error("❌ Error starting experiment:", error);
+                 showNotification("❌ Ошибка запуска эксперимента", 'error');
+             }
+         }
+
+         async function checkTradingResults() {
+             try {
+                 showNotification('💰 Проверяем результаты торговли...', 'info');
+                 
+                 const response = await fetch('/api/v1/telegram/check-trading-results');
+                 const result = await response.json();
+                 
+                 if (result.success) {
+                     const results = result.results;
+                     const summary = results.summary;
+                     
+                     showNotification(`💰 ${result.message}`, 'success');
+                     
+                     // Показываем результаты в модальном окне
+                     const modal = document.createElement('div');
+                     modal.className = 'modal';
+                     modal.innerHTML = `
+                         <div class="modal-content">
+                             <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                             <h2>💰 Результаты торгового эксперимента</h2>
+                             
+                             <div class="summary-stats">
+                                 <div class="stat-item ${summary.net_profit >= 0 ? 'profit' : 'loss'}">
+                                     <span class="stat-label">Чистая прибыль:</span>
+                                     <span class="stat-value">$${summary.net_profit}</span>
+                                 </div>
+                                 <div class="stat-item">
+                                     <span class="stat-label">Общая прибыль:</span>
+                                     <span class="stat-value">$${summary.total_profit}</span>
+                                 </div>
+                                 <div class="stat-item">
+                                     <span class="stat-label">Общие убытки:</span>
+                                     <span class="stat-value">$${summary.total_loss}</span>
+                                 </div>
+                                 <div class="stat-item">
+                                     <span class="stat-label">Винрейт:</span>
+                                     <span class="stat-value">${summary.win_rate}%</span>
+                                 </div>
+                                 <div class="stat-item">
+                                     <span class="stat-label">ROI:</span>
+                                     <span class="stat-value">${summary.total_roi_percent}%</span>
+                                 </div>
+                                 <div class="stat-item">
+                                     <span class="stat-label">Успешных сделок:</span>
+                                     <span class="stat-value">${summary.successful_trades}</span>
+                                 </div>
+                                 <div class="stat-item">
+                                     <span class="stat-label">Неудачных сделок:</span>
+                                     <span class="stat-value">${summary.failed_trades}</span>
+                                 </div>
+                             </div>
+                             
+                             <div class="signals-results">
+                                 <h3>Детали по сигналам:</h3>
+                                 ${results.current_results.map(signal => `
+                                     <div class="signal-result ${signal.result === 'TP1_HIT' ? 'success' : signal.result === 'SL_HIT' ? 'failure' : 'pending'}">
+                                         <strong>${signal.asset}</strong> - $${signal.investment}
+                                         <br><small>Вход: $${signal.entry_price} | Текущая: $${signal.current_price}</small>
+                                         <br><small>Результат: ${signal.result} | P/L: $${signal.profit_loss.toFixed(2)} (${signal.roi_percent.toFixed(1)}%)</small>
+                                     </div>
+                                 `).join('')}
+                             </div>
+                             
+                             <div class="timestamp">
+                                 <small>Обновлено: ${new Date().toLocaleString()}</small>
+                             </div>
+                         </div>
+                     `;
+                     
+                     document.body.appendChild(modal);
+                     
+                     // Добавляем стили для результатов
+                     const style = document.createElement('style');
+                     style.textContent += `
+                         .summary-stats .stat-item.profit .stat-value { color: #00ff88; }
+                         .summary-stats .stat-item.loss .stat-value { color: #ff4444; }
+                         .signal-result.success { border-left-color: #00ff88; background: #0d2818; }
+                         .signal-result.failure { border-left-color: #ff4444; background: #2d0a0e; }
+                         .signal-result.pending { border-left-color: #ffc107; background: #2d2a0a; }
+                         .experiment-stats, .summary-stats { margin: 20px 0; }
+                         .signals-list, .signals-results { margin: 20px 0; max-height: 300px; overflow-y: auto; }
+                         .signal-item, .signal-result { 
+                             background: #2a2a2a; padding: 10px; margin: 5px 0; border-radius: 4px; 
+                             border-left: 3px solid #007bff;
+                         }
+                     `;
+                     document.head.appendChild(style);
+                     
+                 } else {
+                     showNotification(`❌ ${result.message}`, 'error');
+                 }
+                 
+             } catch (error) {
+                 console.error("❌ Error checking results:", error);
+                 showNotification("❌ Ошибка проверки результатов", 'error');
+             }
+         }
+     </script>
+ </body>
+ </html>
