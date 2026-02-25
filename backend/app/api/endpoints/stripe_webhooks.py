@@ -8,11 +8,20 @@ from fastapi import APIRouter, Request, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from ...database import get_db
-from ...core.config import settings
-from ...models.user import User, SubscriptionPlan, SubscriptionStatus
-from ...models.subscription import Subscription, Payment
-from ...services.email_service import email_service
+from app.core.database import get_db
+from app.core.config import get_settings
+from app.models.user import User
+try:
+    from app.models.subscription import Subscription, Payment
+except ImportError:
+    Subscription = None
+    Payment = None
+try:
+    from app.services.email_service import email_service
+except ImportError:
+    email_service = None
+
+settings = get_settings()
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

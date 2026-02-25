@@ -8,11 +8,18 @@ from fastapi import APIRouter, Depends, Query, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from ...database import get_db
-from ...models.user import User
-from ...core.auth import get_current_user
-from ...services.export_service import export_service
-from ...middleware.rbac_middleware import require_subscription_plan, SubscriptionPlan
+from app.core.database import get_db
+from app.models.user import User
+from app.core.auth import get_current_user
+try:
+    from app.services.export_service import export_service
+except ImportError:
+    export_service = None
+try:
+    from app.middleware.rbac_middleware import require_subscription_plan, SubscriptionPlan
+except ImportError:
+    require_subscription_plan = None
+    SubscriptionPlan = None
 
 router = APIRouter()
 
