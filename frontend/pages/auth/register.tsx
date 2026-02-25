@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { apiClient } from '@/lib/api';
 
 function RegisterContent() {
   const router = useRouter();
@@ -67,21 +68,26 @@ function RegisterContent() {
     }
 
     setIsLoading(true);
+    setErrors({});
     
-    // Имитация регистрации
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await apiClient.register({
+        email: formData.email,
+        password: formData.password,
+        first_name: formData.name.split(' ')[0] || formData.name,
+        last_name: formData.name.split(' ').slice(1).join(' ') || '',
+      });
+      await apiClient.login(formData.email, formData.password);
       router.push('/dashboard');
-    }, 1000);
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Ошибка регистрации';
+      setErrors({ email: errorMsg });
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleRegister = () => {
-    setIsLoading(true);
-    // Имитация регистрации через Google
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push('/dashboard');
-    }, 1000);
+    setErrors({ email: 'Google авторизация пока недоступна' });
   };
 
   return (
