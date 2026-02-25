@@ -368,53 +368,32 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button
-                    className="h-20 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
+                    onClick={() => router.push('/channels')}>
                     <Plus className="h-6 w-6 mb-2" />
                     Добавить канал
                   </Button>
-                  <Button
-                    className="h-20 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
+                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
+                    onClick={() => router.push('/ratings')}>
                     <BarChart3 className="h-6 w-6 mb-2" />
-                    Посмотреть рейтинги
+                    Рейтинги
                   </Button>
-                  <Button
-                    className="h-20 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
+                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
+                    onClick={() => router.push('/signals')}>
+                    <TrendingUp className="h-6 w-6 mb-2" />
+                    Все сигналы
+                  </Button>
+                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
+                    onClick={() => router.push('/alerts')}>
                     <AlertTriangle className="h-6 w-6 mb-2" />
-                    Антирейтинг каналов
+                    Алерты
                   </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Demo Notice */}
-          <div className="mt-8">
-            <Card className="border-yellow-200 bg-yellow-50">
-              <CardContent className="p-6">
-                <div className="flex items-start">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-yellow-800">
-                      Демо-режим
-                    </h4>
-                    <p className="text-yellow-700 text-sm mt-1">
-                      Это демонстрационная версия. Данные не являются реальными.
-                      Для получения доступа к актуальной аналитике
-                      зарегистрируйтесь или войдите в систему.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </>
