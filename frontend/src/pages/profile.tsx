@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { User as UserType } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Card,
   CardContent,
@@ -93,14 +94,25 @@ const planFeatures = {
 };
 
 export default function ProfilePage() {
+  const { user: authUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [user, setUser] = useState(mockUser);
   const [showEmail, setShowEmail] = useState(false);
 
+  useEffect(() => {
+    if (authUser) {
+      setUser(prev => ({
+        ...prev,
+        name: authUser.name || prev.name,
+        email: authUser.email || prev.email,
+        username: authUser.username || prev.username,
+      }));
+    }
+  }, [authUser]);
+
   const handleSave = () => {
     setIsEditing(false);
-    // Здесь будет сохранение данных
   };
 
   const tabs = [
