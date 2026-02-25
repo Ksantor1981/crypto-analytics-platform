@@ -131,9 +131,14 @@ class SignalResponse(SignalBase):
 class SignalInDB(SignalResponse):
     pass
 
+# Extended response with channel info
+class SignalWithChannel(SignalResponse):
+    channel_name: Optional[str] = None
+    channel_username: Optional[str] = None
+
 # Схема для списка сигналов с пагинацией
 class SignalListResponse(BaseModel):
-    signals: List[SignalResponse]
+    signals: List[SignalWithChannel]
     total: int
     page: int
     size: int
@@ -151,11 +156,6 @@ class TopSignal(BaseModel):
     channel_name: Optional[str] = None
     message_timestamp: datetime
     best_target_hit: str = "NONE"
-
-# Extended response with channel info
-class SignalWithChannel(SignalResponse):
-    channel_name: Optional[str] = None
-    channel_username: Optional[str] = None
 
 # Схема для фильтрации сигналов
 class SignalFilterParams(BaseModel):
