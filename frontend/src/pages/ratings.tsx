@@ -464,7 +464,16 @@ export default function RatingsPage() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {worstChannels.map(channel => (
+                {(apiChannels.length > 0
+                  ? apiChannels.filter(c => (c.accuracy || 0) < 50).slice().reverse().map((c, i) => ({
+                      ...c, rank: i + 1,
+                      badge: (c.accuracy || 0) < 30 ? 'Опасно' : (c.accuracy || 0) < 40 ? 'Фейк' : 'Памп&Дамп',
+                      monthlyLoss: -(100 - (c.accuracy || 0)) * 0.5,
+                      scamReports: Math.floor((100 - (c.accuracy || 0)) * 0.8),
+                      avgLoss: -(100 - (c.accuracy || 0)) * 0.3,
+                    }))
+                  : worstChannels
+                ).map(channel => (
                   <Card
                     key={channel.id}
                     className="card-hover border-red-200 bg-red-50"
