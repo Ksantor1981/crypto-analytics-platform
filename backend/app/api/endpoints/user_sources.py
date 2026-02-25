@@ -18,7 +18,7 @@ from ...models.signal import Signal
 from ...models.performance_metric import PerformanceMetric
 from .telegram_integration import get_coingecko_price, analyze_channel_metrics
 
-router = APIRouter(prefix="/user-sources", tags=["User Sources"])
+router = APIRouter(tags=["User Sources"])
 logger = logging.getLogger(__name__)
 
 @router.post("/init-db")

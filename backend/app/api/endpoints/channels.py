@@ -15,7 +15,6 @@ from app.core.auth import get_current_user
 from datetime import datetime
 
 router = APIRouter(
-    prefix="/channels",
     tags=["channels"],
     responses={404: {"description": "Not found"}},
 )
@@ -46,7 +45,15 @@ def create_channel(
             detail=f"Channel with URL '{channel_in.url}' already exists."
         )
 
-    db_channel = models.Channel(**channel_in.dict(), owner_id=current_user.id)
+    channel_data = channel_in.dict()
+    if not channel_data.get('username'):
+        import re
+        url = channel_data.get('url', '')
+        name = channel_data.get('name', '')
+        username = re.sub(r'[^a-zA-Z0-9_]', '_', url.split('/')[-1] or name)[:100] or f"channel_{current_user.id}"
+        channel_data['username'] = username
+
+    db_channel = models.Channel(**channel_data, owner_id=current_user.id)
     db.add(db_channel)
     db.commit()
     db.refresh(db_channel)
