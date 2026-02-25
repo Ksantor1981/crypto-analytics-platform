@@ -7,14 +7,14 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
-from backend.app.core.database import get_db
-from backend.app.models.feedback import Feedback, FeedbackType, FeedbackStatus
-from backend.app.schemas.feedback import (
+from app.core.database import get_db
+from app.models.feedback import Feedback, FeedbackType, FeedbackStatus
+from app.schemas.feedback import (
     FeedbackCreate, FeedbackRead, FeedbackUpdate, FeedbackResponse,
     FeedbackList, FeedbackStats
 )
-from backend.app.core.auth import get_current_user_optional
-from backend.app.models.user import User
+from app.core.auth import get_optional_current_user as get_current_user_optional
+from app.models.user import User
 
 router = APIRouter()
 
