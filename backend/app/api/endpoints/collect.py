@@ -13,6 +13,7 @@ from app.models.channel import Channel
 from app.models.signal import Signal
 from app.models.user import User
 from app.services.telegram_scraper import collect_signals_from_channel
+from app.services.metrics_calculator import recalculate_all_channels, recalculate_channel_metrics
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -143,7 +144,22 @@ async def collect_all_channels(
             })
 
     db.commit()
+    recalculate_all_channels(db)
+
     return {
         "channels_processed": len(results),
         "results": results,
+    }
+
+
+@router.post("/recalculate-metrics")
+async def recalculate_metrics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Recalculate accuracy and ROI for all channels."""
+    results = recalculate_all_channels(db)
+    return {
+        "channels_updated": len(results),
+        "results": [r for r in results if r.get("total_signals", 0) > 0],
     }
