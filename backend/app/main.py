@@ -22,7 +22,7 @@ try:
         channels, users, signals, subscriptions, 
         payments, ml_integration, telegram_integration, 
         trading, ml_predictions, backtesting, dashboard,
-        user_sources, feedback, analytics
+        user_sources, feedback, analytics, collect
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -83,85 +83,47 @@ def _seed_demo_data(db_engine):
                 return
             demo_channels = [
                 Channel(
-                    username="cryptomaster", name="CryptoMaster",
-                    url="https://t.me/cryptomaster", platform="telegram",
-                    description="Leading crypto signals channel with high accuracy",
-                    category="premium", signals_count=342, successful_signals=268,
-                    accuracy=78.5, average_roi=15.3, subscribers_count=12500,
-                    is_active=True, is_verified=True, status="active",
+                    username="Crypto_robotics", name="Crypto Robotics",
+                    url="https://t.me/Crypto_robotics", platform="telegram",
+                    description="Крипто-сигналы и аналитика рынка",
+                    category="signals", signals_count=0,
+                    is_active=True, status="active",
                 ),
                 Channel(
-                    username="binancekillers", name="BinanceKillers",
-                    url="https://t.me/binancekillers", platform="telegram",
-                    description="Professional crypto trading signals",
-                    category="premium", signals_count=256, successful_signals=210,
-                    accuracy=82.1, average_roi=22.7, subscribers_count=8900,
-                    is_active=True, is_verified=True, status="active",
+                    username="CryptoVIPsignalss", name="Crypto VIP Signals",
+                    url="https://t.me/CryptoVIPsignalss", platform="telegram",
+                    description="VIP крипто-сигналы для трейдинга",
+                    category="signals", signals_count=0,
+                    is_active=True, status="active",
                 ),
                 Channel(
-                    username="cryptosignals", name="CryptoSignals",
-                    url="https://t.me/cryptosignals", platform="telegram",
-                    description="Daily crypto signals and market analysis",
-                    category="general", signals_count=189, successful_signals=124,
-                    accuracy=65.6, average_roi=8.4, subscribers_count=5200,
-                    is_active=True, is_verified=False, status="active",
+                    username="WhalePumpSignals", name="Whale Pump Signals",
+                    url="https://t.me/WhalePumpSignals", platform="telegram",
+                    description="Whale pump signals and market analysis",
+                    category="signals", signals_count=0,
+                    is_active=True, status="active",
                 ),
                 Channel(
-                    username="r_cryptocurrency", name="r/CryptoCurrency",
-                    url="https://reddit.com/r/CryptoCurrency", platform="reddit",
-                    description="Reddit's largest crypto community",
-                    category="community", signals_count=95, successful_signals=61,
-                    accuracy=64.2, average_roi=5.1, subscribers_count=6700000,
-                    is_active=True, is_verified=False, status="active",
+                    username="binaborat", name="Бинаборат",
+                    url="https://t.me/binaborat", platform="telegram",
+                    description="Крипто сигналы и разборы рынка",
+                    category="signals", signals_count=0,
+                    is_active=True, status="active",
                 ),
                 Channel(
-                    username="whale_alert", name="Whale Alert",
-                    url="https://t.me/whale_alert_io", platform="telegram",
-                    description="Tracking large crypto transactions",
-                    category="analytics", signals_count=520, successful_signals=312,
-                    accuracy=60.0, average_roi=3.2, subscribers_count=45000,
-                    is_active=True, is_verified=True, status="active",
+                    username="crypto_futures_signals_free", name="Crypto Futures Free",
+                    url="https://t.me/crypto_futures_signals_free", platform="telegram",
+                    description="Free crypto futures trading signals",
+                    category="signals", signals_count=0,
+                    is_active=True, status="active",
                 ),
             ]
             for ch in demo_channels:
                 session.add(ch)
             session.commit()
 
-            channels = session.query(Channel).all()
-            demo_signals = [
-                Signal(channel_id=channels[0].id, asset="BTC/USDT", symbol="BTCUSDT",
-                       direction="LONG", entry_price=43250.0, tp1_price=45000.0,
-                       stop_loss=42000.0, status="TP1_HIT", confidence_score=0.85,
-                       original_text="BTC long entry 43250, TP 45000, SL 42000",
-                       profit_loss_absolute=4.05),
-                Signal(channel_id=channels[0].id, asset="ETH/USDT", symbol="ETHUSDT",
-                       direction="LONG", entry_price=2680.0, tp1_price=2850.0,
-                       stop_loss=2600.0, status="PENDING", confidence_score=0.72,
-                       original_text="ETH long 2680, target 2850"),
-                Signal(channel_id=channels[1].id, asset="BTC/USDT", symbol="BTCUSDT",
-                       direction="SHORT", entry_price=44500.0, tp1_price=42000.0,
-                       stop_loss=45500.0, status="SL_HIT", confidence_score=0.68,
-                       original_text="BTC short from 44500",
-                       profit_loss_absolute=-2.25),
-                Signal(channel_id=channels[1].id, asset="SOL/USDT", symbol="SOLUSDT",
-                       direction="LONG", entry_price=98.5, tp1_price=115.0,
-                       stop_loss=92.0, status="TP2_HIT", confidence_score=0.91,
-                       original_text="SOL breakout long 98.5",
-                       profit_loss_absolute=16.75),
-                Signal(channel_id=channels[2].id, asset="BNB/USDT", symbol="BNBUSDT",
-                       direction="LONG", entry_price=315.0, tp1_price=340.0,
-                       stop_loss=305.0, status="ENTRY_HIT", confidence_score=0.65,
-                       original_text="BNB long entry 315"),
-                Signal(channel_id=channels[3].id, asset="ADA/USDT", symbol="ADAUSDT",
-                       direction="LONG", entry_price=0.45, tp1_price=0.55,
-                       stop_loss=0.40, status="TP1_HIT", confidence_score=0.78,
-                       original_text="ADA looks bullish, entry 0.45",
-                       profit_loss_absolute=22.22),
-            ]
-            for sig in demo_signals:
-                session.add(sig)
             session.commit()
-            logger.info(f"Seeded {len(demo_channels)} channels and {len(demo_signals)} signals")
+            logger.info(f"Seeded {len(demo_channels)} real Telegram channels")
     except Exception as e:
         logger.warning(f"Seed data error (non-critical): {e}")
 
@@ -287,6 +249,7 @@ routers_config = [
     ("dashboard", "/api/v1/dashboard", "dashboard"),
     ("feedback", "/api/v1/feedback", "feedback"),
     ("analytics", "/api/v1/analytics", "analytics"),
+    ("collect", "/api/v1/collect", "collect"),
 ]
 
 # Подключаем роутеры с обработкой ошибок
