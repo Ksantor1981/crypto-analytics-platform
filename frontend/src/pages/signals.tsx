@@ -24,7 +24,8 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
     setIsLoading(true);
     try {
       const response = await apiClient.getSignals();
-      setSignals(response || []);
+      const data = Array.isArray(response) ? response : (response?.signals || []);
+      setSignals(data);
     } catch (error) {
       console.error('Error fetching signals:', error);
     } finally {

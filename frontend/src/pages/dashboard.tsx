@@ -78,8 +78,9 @@ export default function DashboardPage() {
         }
 
         try {
-          const signalsData = await apiClient.getSignals();
-          if (Array.isArray(signalsData)) {
+          const signalsRaw = await apiClient.getSignals();
+          const signalsData = Array.isArray(signalsRaw) ? signalsRaw : (signalsRaw?.signals || []);
+          if (signalsData.length > 0) {
             setRecentSignals(signalsData.slice(0, 5).map((s: Record<string, unknown>) => ({
               id: s.id as number,
               channel: (s.channel_name || `Channel ${s.channel_id}`) as string,

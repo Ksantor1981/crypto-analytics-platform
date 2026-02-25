@@ -1,55 +1,77 @@
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { apiClient } from '@/lib/api';
 
-// 1. Типы данных для канала (на основе моковых данных)
-interface ChannelSignal {
+export interface ChannelSignal {
   id: number;
   symbol: string;
   type: 'LONG' | 'SHORT';
   entry_price: number;
   target_price?: number;
   stop_loss?: number;
-  status: 'open' | 'closed' | 'failed';
+  status: string;
   timestamp: string;
-  current_price?: number;
-  exit_price?: number;
   pnl?: number;
 }
 
 export interface ChannelDetails {
   id: number;
   name: string;
+  username?: string;
   description: string;
-  platform: string; // Добавляем platform
+  platform: string;
   category: string;
+  url?: string;
   accuracy: number;
   roi: number;
   subscribers: number;
-  signals_count: number; // Добавляем signals_count
+  signals_count: number;
+  successful_signals: number;
+  average_roi: number;
   rating: number;
   avatar: string;
-  status: 'active' | 'pending' | 'error';
+  status: string;
   isFollowing: boolean;
-  lastSignal: string;
-  priceRange: string;
-  riskLevel: 'low' | 'medium' | 'high' | 'extreme';
-  joinedDate: string;
+  riskLevel: string;
   totalTrades: number;
   winRate: number;
   avgReturn: number;
   maxDrawdown: number;
   sharpeRatio: number;
   monthlyGrowth: number[];
-  recent_signals: ChannelSignal[]; // Переименовываем в recent_signals
+  recent_signals: ChannelSignal[];
 }
 
-// 2. Функция для загрузки данных с API
 const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
-  const { data } = await axios.get(`/api/v1/channels/${channelId}`);
-  return data;
+  const raw = await apiClient.getChannel(channelId);
+  return {
+    id: raw.id,
+    name: raw.name || 'Unknown',
+    username: raw.username,
+    description: raw.description || '',
+    platform: raw.platform || 'telegram',
+    category: raw.category || 'general',
+    url: raw.url,
+    accuracy: raw.accuracy || 0,
+    roi: raw.average_roi || 0,
+    subscribers: raw.subscribers_count || 0,
+    signals_count: raw.signals_count || 0,
+    successful_signals: raw.successful_signals || 0,
+    average_roi: raw.average_roi || 0,
+    rating: Math.min(5, (raw.accuracy || 0) / 20),
+    avatar: raw.platform === 'reddit' ? '🔴' : '📡',
+    status: raw.status || 'active',
+    isFollowing: false,
+    riskLevel: (raw.accuracy || 0) > 70 ? 'low' : (raw.accuracy || 0) > 50 ? 'medium' : 'high',
+    totalTrades: raw.signals_count || 0,
+    winRate: raw.accuracy || 0,
+    avgReturn: raw.average_roi || 0,
+    maxDrawdown: 0,
+    sharpeRatio: 0,
+    monthlyGrowth: [],
+    recent_signals: [],
+  };
 };
 
-// 3. Кастомный хук для использования в компонентах
 export const useChannel = (channelId: string | undefined) => {
   return useQuery<ChannelDetails, Error>({
     queryKey: ['channel', channelId],
