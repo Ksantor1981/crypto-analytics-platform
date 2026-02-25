@@ -114,46 +114,20 @@ async def get_telegram_channels(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Failed to get channels: {str(e)}")
 
 @router.get("/channels-simple")
-async def get_telegram_channels_simple():
-    """
-    Get list of configured Telegram channels (simple version without DB)
-    """
+async def get_telegram_channels_simple(db: Session = Depends(get_db)):
+    """Get list of Telegram channels from database."""
     try:
-        # Return mock data for testing
-        mock_channels = [
-            {
-                "id": 1,
-                "name": "Crypto Signals Pro",
-                "url": "https://t.me/crypto_signals_pro",
-                "description": "Professional crypto trading signals",
-                "category": "trading",
-                "is_active": True,
-                "signals_count": 150,
-                "accuracy": 85.5,
-                "created_at": "2024-01-01T00:00:00Z",
-                "updated_at": "2024-01-15T12:00:00Z"
-            },
-            {
-                "id": 2,
-                "name": "Binance Signals",
-                "url": "https://t.me/binance_signals",
-                "description": "Binance exchange signals",
-                "category": "exchange",
-                "is_active": True,
-                "signals_count": 89,
-                "accuracy": 78.2,
-                "created_at": "2024-01-05T00:00:00Z",
-                "updated_at": "2024-01-14T18:30:00Z"
-            }
-        ]
-        
-        return {
-            "success": True,
-            "data": mock_channels,
-            "total_channels": len(mock_channels),
-            "message": "Telegram channels retrieved (mock data)"
-        }
-        
+        channels = db.query(Channel).filter(
+            Channel.platform == "telegram", Channel.is_active == True
+        ).all()
+        data = [{
+            "id": ch.id, "name": ch.name, "url": ch.url,
+            "description": ch.description, "category": ch.category,
+            "is_active": ch.is_active, "signals_count": ch.signals_count or 0,
+            "accuracy": ch.accuracy,
+            "created_at": ch.created_at.isoformat() if ch.created_at else None,
+        } for ch in channels]
+        return {"success": True, "data": data, "total_channels": len(data), "message": "Telegram channels from database"}
     except Exception as e:
         logger.error(f"Error getting Telegram channels: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get channels: {str(e)}")

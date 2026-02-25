@@ -27,8 +27,8 @@ CRYPTO_PAIRS = {
     "SXP": 0.01, "BAT": 0.01, "QSP": 0.001, "1INCH": 0.01,
 }
 
-LONG_KW = re.compile(r'\b(long|buy|лонг|покупка|купить|бай)\b|📈|🟢|🚀', re.I)
-SHORT_KW = re.compile(r'\b(short|sell|шорт|продажа|продать|сел)\b|📉|🔴', re.I)
+LONG_KW = re.compile(r'\b(long|buy|buyy|лонг|покупка|купить|бай|adding\s+more)\b|📈|🟢|🚀', re.I)
+SHORT_KW = re.compile(r'\b(short|sell|selll|шорт|продажа|продать|сел)\b|📉|🔴', re.I)
 
 
 @dataclass

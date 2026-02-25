@@ -193,6 +193,14 @@ async def lifespan(app: FastAPI):
                 logger.warning(f"Auto-collection failed: {e}")
         asyncio.create_task(_auto_collect())
 
+        # Start periodic collection scheduler (every 15 min)
+        try:
+            from app.tasks.scheduler import periodic_collection
+            asyncio.create_task(periodic_collection())
+            logger.info("Periodic collection scheduler started (every 15 min)")
+        except Exception as sched_err:
+            logger.warning(f"Scheduler not started: {sched_err}")
+
         logger.info("Application startup completed")
         yield
         

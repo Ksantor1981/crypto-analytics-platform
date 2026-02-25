@@ -39,42 +39,25 @@ import {
   Info,
 } from 'lucide-react';
 
-// Mock user data
-const mockUser: UserType = {
-  id: '1', // Изменил на string
-  name: 'Алексей Иванов',
-  username: '@crypto_trader_alex',
-  email: 'aleksey.ivanov@email.com',
-  avatar: '👨‍💼',
-  joinDate: '2023-01-15',
-  role: 'user', // Добавил роль
-  
-  subscription: {
-    plan: 'Premium',
-    status: 'active',
-    price: 999
-  },
-  
+const defaultUser: UserType = {
+  id: '0',
+  name: '',
+  username: '',
+  email: '',
+  avatar: '👤',
+  joinDate: new Date().toISOString().split('T')[0],
+  role: 'user',
+  subscription: { plan: 'Free', status: 'active', price: 0 },
   stats: {
-    channelsFollowed: 23,
-    successRate: 87.5,
-    profit: 15420,
-    totalProfit: 42.3,
-    totalSignals: 1247,
-    winRate: 73.2,
-    totalReturn: 156.8,
-    daysActive: 247
+    channelsFollowed: 0, successRate: 0, profit: 0,
+    totalProfit: 0, totalSignals: 0, winRate: 0,
+    totalReturn: 0, daysActive: 0,
   },
-  
   settings: {
-    emailNotifications: true,
-    pushNotifications: true,
-    telegramAlerts: false,
-    weeklyReports: true,
-    darkMode: false,
-    language: 'ru',
-    timezone: 'Europe/Moscow'
-  }
+    emailNotifications: true, pushNotifications: true,
+    telegramAlerts: false, weeklyReports: false,
+    darkMode: false, language: 'ru', timezone: 'Europe/Moscow',
+  },
 };
 
 const planFeatures = {
@@ -98,7 +81,7 @@ export default function ProfilePage() {
   const { user: authUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
-  const [user, setUser] = useState(mockUser);
+  const [user, setUser] = useState(defaultUser);
   const [showEmail, setShowEmail] = useState(false);
 
   useEffect(() => {
