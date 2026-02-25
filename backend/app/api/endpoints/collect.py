@@ -14,6 +14,7 @@ from app.models.signal import Signal
 from app.models.user import User
 from app.services.telegram_scraper import collect_signals_from_channel
 from app.services.metrics_calculator import recalculate_all_channels, recalculate_channel_metrics
+from app.services.price_validator import validate_signal_price
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -162,4 +163,23 @@ async def recalculate_metrics(
     return {
         "channels_updated": len(results),
         "results": [r for r in results if r.get("total_signals", 0) > 0],
+    }
+
+
+@router.get("/validate-signal/{signal_id}")
+async def validate_signal(
+    signal_id: int,
+    db: Session = Depends(get_db),
+):
+    """Validate a signal's price against current market data."""
+    signal = db.query(Signal).filter(Signal.id == signal_id).first()
+    if not signal:
+        raise HTTPException(status_code=404, detail="Signal not found")
+
+    result = await validate_signal_price(signal.asset, float(signal.entry_price))
+    return {
+        "signal_id": signal.id,
+        "asset": signal.asset,
+        "entry_price": float(signal.entry_price),
+        "validation": result,
     }
