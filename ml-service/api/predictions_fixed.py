@@ -11,15 +11,16 @@ import requests
 import random
 from datetime import datetime
 
-# Используем простой предиктор
+# Используем обученную модель с fallback на SimplePredictor
 from models.simple_predictor import SimplePredictor
+from models.trained_predictor import predict_signal_success, _load_model
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/predictions", tags=["predictions"])
 
-# Инициализируем модель
 predictor = SimplePredictor()
+_load_model()  # Pre-load trained model on startup
 
 # Pydantic модели
 class SignalPredictionRequest(BaseModel):
@@ -341,13 +342,43 @@ async def get_model_info():
 
 @router.get("/health")
 async def health_check():
-    """
-    Health check для predictions API
-    """
     return {
         "status": "healthy",
         "service": "predictions",
         "timestamp": datetime.now().isoformat(),
-        "model_status": "ready",
-        "data_sources": ["coingecko", "binance", "mock_fallback"]
-    } 
+        "model_status": "trained" if _load_model() is not None else "rule_based",
+        "data_sources": ["coingecko", "binance", "mock_fallback"],
+    }
+
+
+@router.post("/ml-predict")
+async def ml_predict(request: PredictionRequest):
+    """Predict signal success using trained XGBoost model."""
+    market = get_real_market_data(request.asset)
+    price_dev = abs(request.entry_price - market["price"]) / market["price"] if market["price"] else 0.05
+    rr = 2.0
+    if request.target_price and request.stop_loss and request.entry_price:
+        if request.direction == "LONG":
+            rr = abs(request.target_price - request.entry_price) / max(abs(request.entry_price - request.stop_loss), 0.01)
+        else:
+            rr = abs(request.entry_price - request.target_price) / max(abs(request.stop_loss - request.entry_price), 0.01)
+
+    result = predict_signal_success(
+        confidence_score=0.7,
+        risk_reward_ratio=rr,
+        price_deviation=price_dev,
+        direction=request.direction,
+        rsi=market.get("rsi", 50),
+        macd=market.get("macd", 0),
+        channel_accuracy=70.0,
+        channel_signal_count=100,
+    )
+
+    return {
+        "asset": request.asset,
+        "direction": request.direction,
+        "entry_price": request.entry_price,
+        "prediction": result,
+        "market_data": market,
+        "timestamp": datetime.now().isoformat(),
+    }
