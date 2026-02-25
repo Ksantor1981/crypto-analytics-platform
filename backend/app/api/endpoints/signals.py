@@ -204,34 +204,3 @@ def handle_telegram_signal(
     telegram_signal = telegram_signal_service.create_signal(signal_in)
     return telegram_signal
 
-@router.get("/", response_model=List[SignalResponse])
-def get_signals(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=100),
-    channel_id: Optional[int] = None,
-    asset: Optional[str] = None,
-    direction: Optional[str] = None,
-    status: Optional[str] = None,
-    date_from: Optional[datetime] = None,
-    date_to: Optional[datetime] = None,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    """Get signals with filtering and pagination."""
-    filters = SignalFilterParams(
-        channel_id=channel_id,
-        asset=asset,
-        direction=direction,
-        status=status,
-        date_from=date_from,
-        date_to=date_to
-    )
-    
-    signal_service = SignalService(db)
-    signals, total = signal_service.get_signals(
-        skip=skip,
-        limit=limit,
-        filters=filters
-    )
-    
-    return signals

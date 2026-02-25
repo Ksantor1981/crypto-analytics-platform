@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     
     # JWT
     SECRET_KEY: str = Field(
-        default="CHANGE_THIS_SECRET_KEY_IN_PRODUCTION_USE_OPENSSL_RAND_HEX_32",
+        default="",
         description="Secret key for JWT tokens. Generate with: openssl rand -hex 32"
     )
     JWT_ALGORITHM: str = "HS256"
@@ -130,7 +130,7 @@ class Settings(BaseSettings):
     
     # Trading Encryption
     TRADING_ENCRYPTION_KEY: str = Field(
-        default="YourSecretKey32BytesLongForDevOnly123",
+        default="",
         description="32-byte encryption key for trading API credentials"
     )
     

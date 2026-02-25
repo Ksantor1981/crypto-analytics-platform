@@ -6,9 +6,9 @@ import os
 # ВАЖНО: Для сбора сигналов из каналов нужен ПОЛЬЗОВАТЕЛЬСКИЙ аккаунт, а не bot
 # Bot может только отправлять сообщения, но не читать историю каналов
 # Приоритет: переменные окружения -> hardcoded значения (для разработки)
-TELEGRAM_API_ID = int(os.getenv('TELEGRAM_API_ID', '21073808'))
-TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '2e3adb8940912dd295fe20c1d2ce5368')
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7926974097:AAEsGt_YQxp_o7TdbkyYUjQo2hCHw3DPSAw')
+TELEGRAM_API_ID = int(os.getenv('TELEGRAM_API_ID', '0'))
+TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
 
 # Для реального сбора сигналов нужен пользовательский аккаунт:
 # 1. Получить API_ID и API_HASH на https://my.telegram.org
@@ -17,15 +17,15 @@ TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7926974097:AAEsGt_YQxp_o7T
 
 # Reddit API Configuration  
 # Приоритет: переменные окружения -> hardcoded значения (для разработки)
-REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID', 'unyb6-1Dn5-Z_ZPZasRtaw')
-REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET', 'kJz3lMVPlnpzRzsxBvcoq2zzOF03w')
+REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID', '')
+REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET', '')
 REDDIT_REDIRECT_URI = os.getenv('REDDIT_REDIRECT_URI', 'http://localhost:8000')
-REDDIT_USER_AGENT = os.getenv('REDDIT_USER_AGENT', 'crypto app by /u/Ksantor1981')
+REDDIT_USER_AGENT = os.getenv('REDDIT_USER_AGENT', 'crypto-analytics/1.0')
 
 # Bybit API Configuration
 # Приоритет: переменные окружения -> hardcoded значения (для разработки)
-BYBIT_API_KEY = os.getenv('BYBIT_API_KEY', 'PfKXE4pNT9CGTAFqoa')
-BYBIT_API_SECRET = os.getenv('BYBIT_API_SECRET', 'WqBEwhiRWT1rL1URKxfRc60EWr9c88vPxNkP')
+BYBIT_API_KEY = os.getenv('BYBIT_API_KEY', '')
+BYBIT_API_SECRET = os.getenv('BYBIT_API_SECRET', '')
 
 # Database Configuration
 DATABASE_URL = "sqlite+aiosqlite:///crypto_forecasts.db"
