@@ -15,6 +15,7 @@ from app.models.user import User
 from app.services.telegram_scraper import collect_signals_from_channel
 from app.services.metrics_calculator import recalculate_all_channels, recalculate_channel_metrics
 from app.services.price_validator import validate_signal_price
+from app.services.signal_checker import check_pending_signals
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -183,3 +184,13 @@ async def validate_signal(
         "entry_price": float(signal.entry_price),
         "validation": result,
     }
+
+
+@router.post("/check-signals")
+async def check_signals(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Check pending signals against current market prices. Updates TP/SL hit status."""
+    result = await check_pending_signals(db)
+    return result
