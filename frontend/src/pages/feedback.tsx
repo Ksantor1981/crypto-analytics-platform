@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container, Typography, Box, Card, CardContent, Alert } from '@mui/material';
 import Head from 'next/head';
-import FeedbackForm from '../components/FeedbackForm';
+import FeedbackForm from '@/components/FeedbackForm';
 
 const FeedbackPage: React.FC = () => {
   return (
