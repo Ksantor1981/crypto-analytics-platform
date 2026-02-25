@@ -132,33 +132,57 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
     if not direction:
         return None
 
+    def extract_prices(text_block: str) -> List[float]:
+        """Extract all price-like numbers from text."""
+        nums = re.findall(r'(?<!\w)\$?([\d]{1,10}(?:\.[\d]{1,8})?)\b', text_block)
+        prices = []
+        for n in nums:
+            try:
+                val = float(n)
+                if 0.0001 < val < 1000000:
+                    prices.append(val)
+            except ValueError:
+                pass
+        return prices
+
     def extract_price(patterns: List[str]) -> Optional[float]:
         for pat in patterns:
-            match = re.search(pat, text, re.IGNORECASE)
+            match = re.search(pat, text, re.IGNORECASE | re.MULTILINE)
             if match:
                 try:
-                    return float(match.group(1).replace(",", ""))
-                except ValueError:
+                    val = float(match.group(1).replace(",", ""))
+                    if 0.0001 < val < 1000000:
+                        return val
+                except (ValueError, IndexError):
                     pass
         return None
 
     entry_price = extract_price([
-        r'(?:entry|вход|enter|price|цена)[:\s]*\$?([\d]+\.?\d*)',
+        r'(?:entry|вход|enter|price|цена)\s*(?:price|zone|зона)?[:\s]*\$?([\d]+\.?\d*)',
         r'(?:buy|купить|покупка|лонг|long)\s*(?:at|по|@|zone|зона)?[:\s]*\$?([\d]+\.?\d*)',
         r'(?:sell|продать|шорт|short)\s*(?:at|по|@)?[:\s]*\$?([\d]+\.?\d*)',
-        r'(?:entry\s*(?:price|zone))[:\s]*\$?([\d]+\.?\d*)',
-        r'(?:CP|current\s*price)[:\s]*\$?([\d]+\.?\d*)',
+        r'\bCP\b[:\s)]*\$?([\d]+\.?\d*)',
+        r'(?:вход|entry)[:\s]*([\d]+\.?\d*)\s*[-–]\s*[\d]+\.?\d*',
     ])
 
     take_profit = extract_price([
-        r'(?:tp|take\s*profit|тейк|цель|target)\s*\d?[:\s]*\$?([\d]+\.?\d*)',
+        r'(?:tp|take\s*profit|тейк|цель)\s*\d?[:\s]*\$?([\d]+\.?\d*)',
         r'(?:tp1|тп1|tp\s*1)[:\s]*\$?([\d]+\.?\d*)',
-        r'(?:targets?)[:\s]*\$?([\d]+\.?\d*)',
+        r'(?:targets?|цели)[:\s]*\$?([\d]+\.?\d*)',
     ])
 
     stop_loss = extract_price([
         r'(?:sl|stop\s*loss|стоп|стоп.лосс|stoploss)[:\s]*\$?([\d]+\.?\d*)',
     ])
+
+    if not entry_price:
+        all_prices = extract_prices(text)
+        if len(all_prices) >= 2 and direction:
+            entry_price = all_prices[0]
+            if not take_profit and len(all_prices) >= 2:
+                take_profit = all_prices[1]
+            if not stop_loss and len(all_prices) >= 3:
+                stop_loss = all_prices[-1]
 
     confidence = 0.5
     if entry_price and take_profit and stop_loss:
