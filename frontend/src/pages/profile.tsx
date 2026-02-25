@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { User as UserType } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/lib/api';
 import {
   Card,
   CardContent,
@@ -109,6 +110,28 @@ export default function ProfilePage() {
         username: authUser.username || prev.username,
       }));
     }
+    async function loadStats() {
+      try {
+        const channels = await apiClient.getChannels();
+        const channelList = Array.isArray(channels) ? channels : [];
+        const signalsRaw = await apiClient.getSignals();
+        const signalCount = signalsRaw?.total || (Array.isArray(signalsRaw) ? signalsRaw.length : 0);
+        const avgAccuracy = channelList.length > 0
+          ? channelList.reduce((s: number, c: Record<string, number>) => s + (c.accuracy || 0), 0) / channelList.length
+          : 0;
+        setUser(prev => ({
+          ...prev,
+          stats: {
+            ...prev.stats,
+            channelsFollowed: channelList.length,
+            totalSignals: signalCount,
+            successRate: Math.round(avgAccuracy * 10) / 10,
+            winRate: Math.round(avgAccuracy * 10) / 10,
+          },
+        }));
+      } catch { /* fallback to mock stats */ }
+    }
+    loadStats();
   }, [authUser]);
 
   const handleSave = () => {

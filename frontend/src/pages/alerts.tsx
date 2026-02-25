@@ -1,161 +1,114 @@
 import { NextPage } from 'next';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import AlertSystem from '@/components/notifications/AlertSystem';
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
+import { apiClient } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bell, AlertTriangle, TrendingUp, Settings } from 'lucide-react';
+import { Bell, AlertTriangle, TrendingUp, Settings, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 const AlertsPage: NextPage = () => {
+  const [signals, setSignals] = useState<Record<string, unknown>[]>([]);
+  const [channelCount, setChannelCount] = useState(0);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const raw = await apiClient.getSignals();
+        const data = Array.isArray(raw) ? raw : (raw?.signals || []);
+        setSignals(data);
+        const ch = await apiClient.getChannels();
+        setChannelCount(Array.isArray(ch) ? ch.length : 0);
+      } catch {}
+    }
+    load();
+  }, []);
+
+  const pending = signals.filter(s => s.status === 'PENDING').length;
+  const resolved = signals.filter(s => (s.status as string || '').includes('HIT')).length;
+
   return (
-    <DashboardLayout title="Алерты и уведомления">
-      <div className="space-y-6">
-        {/* Заголовок страницы */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                <Bell className="h-8 w-8 text-blue-600 mr-3" />
-                Система алертов
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Настройте уведомления для получения важной информации о рынке и
-                ваших сигналах
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Статус системы</div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-600">
-                    Активна
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+    <>
+      <Head><title>Алерты - CryptoAnalytics</title></Head>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Bell className="h-6 w-6 text-blue-600" />
+            Последние сигналы и алерты
+          </h1>
+          <p className="text-gray-600 mt-1">Сигналы собранные из {channelCount} каналов</p>
         </div>
 
-        {/* Быстрая статистика */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Bell className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    Активных алертов
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">12</p>
-                </div>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg"><Bell className="h-5 w-5 text-blue-600" /></div>
+              <div>
+                <p className="text-sm text-gray-600">Всего сигналов</p>
+                <p className="text-xl font-bold">{signals.length}</p>
               </div>
             </CardContent>
           </Card>
-
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <AlertTriangle className="h-6 w-6 text-yellow-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    Сработало сегодня
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">5</p>
-                </div>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-yellow-100 rounded-lg"><AlertTriangle className="h-5 w-5 text-yellow-600" /></div>
+              <div>
+                <p className="text-sm text-gray-600">Ожидают</p>
+                <p className="text-xl font-bold">{pending}</p>
               </div>
             </CardContent>
           </Card>
-
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    Успешных алертов
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">89%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Settings className="h-6 w-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    Настроенных
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">18</p>
-                </div>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg"><TrendingUp className="h-5 w-5 text-green-600" /></div>
+              <div>
+                <p className="text-sm text-gray-600">Исполнены</p>
+                <p className="text-xl font-bold">{resolved}</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Компонент системы алертов */}
-        <AlertSystem />
-
-        {/* Информация и помощь */}
         <Card>
-          <CardHeader>
-            <CardTitle>💡 Советы по использованию алертов</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Последние сигналы</CardTitle></CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">
-                  Ценовые алерты
-                </h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>
-                    • Устанавливайте алерты на ключевых уровнях
-                    поддержки/сопротивления
-                  </li>
-                  <li>
-                    • Используйте алерты для фиксации прибыли на целевых уровнях
-                  </li>
-                  <li>
-                    • Настраивайте уведомления о приближении к стоп-лоссам
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">
-                  Сигнальные алерты
-                </h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>
-                    • Фильтруйте сигналы по уровню уверенности (confidence)
-                  </li>
-                  <li>• Получайте уведомления только от проверенных каналов</li>
-                  <li>• Настройте алерты на определенные криптопары</li>
-                </ul>
-              </div>
+            <div className="space-y-3">
+              {signals.length === 0 && <p className="text-gray-500 text-center py-4">Нет сигналов</p>}
+              {signals.map((s, i) => (
+                <div key={i} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    {(s.direction as string) === 'LONG' ?
+                      <ArrowUpRight className="h-5 w-5 text-green-600" /> :
+                      <ArrowDownRight className="h-5 w-5 text-red-600" />
+                    }
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{s.asset as string}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                          (s.direction as string) === 'LONG' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>{s.direction as string}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                          (s.status as string) === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
+                        }`}>{s.status as string}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5 max-w-md truncate">
+                        {(s.original_text as string || '').slice(0, 80)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">${Number(s.entry_price || 0).toLocaleString()}</p>
+                    {s.tp1_price && <p className="text-xs text-green-600">TP: ${Number(s.tp1_price).toLocaleString()}</p>}
+                    {s.stop_loss && <p className="text-xs text-red-600">SL: ${Number(s.stop_loss).toLocaleString()}</p>}
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+
+    </>
   );
 };
-
-// Отключаем SSG для этой страницы
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}
 
 export default AlertsPage;
 
