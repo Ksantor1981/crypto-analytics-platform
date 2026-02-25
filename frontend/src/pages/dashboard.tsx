@@ -133,54 +133,6 @@ export default function DashboardPage() {
       </Head>
 
       <div className="min-h-screen bg-gray-50">
-        {/* Navigation */}
-        <nav className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <Link href="/" className="flex items-center">
-                  <TrendingUp className="h-8 w-8 text-blue-600" />
-                  <span className="ml-2 text-xl font-bold gradient-text">
-                    CryptoAnalytics
-                  </span>
-                </Link>
-                <div className="ml-8 flex space-x-4">
-                  <Link
-                    href="/dashboard"
-                    className="text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Панель
-                  </Link>
-                  <Link
-                    href="/channels"
-                    className="text-gray-500 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Каналы
-                  </Link>
-                  <Link
-                    href="/ratings"
-                    className="text-gray-500 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Рейтинги
-                  </Link>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
-                  Привет, {authUser?.name || authUser?.email || 'Гость'}!
-                </span>
-                <Link href="/profile">
-                  <Button variant="ghost" size="sm">Профиль</Button>
-                </Link>
-                <Button variant="ghost" size="sm" onClick={() => { logout(); router.push('/'); }}>
-                  <LogOut className="h-4 w-4 mr-1" />
-                  Выйти
-                </Button>
-              </div>
-            </div>
-          </div>
-        </nav>
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8 dashboard-header">
