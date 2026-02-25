@@ -81,42 +81,38 @@ def _seed_demo_data(db_engine):
             from app.models.signal import Signal
             if session.query(Channel).count() > 0:
                 return
+            channels_data = [
+                ("Wolf_of_Trading_singals", "Wolf of Trading Signals", "premium", "Premium trading signals"),
+                ("CryptoCapoTG", "Crypto Capo", "premium", "Technical analysis & signals"),
+                ("bitcoin_signals", "Bitcoin Signals", "signals", "Bitcoin trading signals"),
+                ("binance_signals", "Binance Signals", "signals", "Binance trading signals"),
+                ("cryptosignals", "Crypto Signals", "signals", "Daily crypto signals"),
+                ("crypto", "Crypto", "general", "General crypto channel"),
+                ("price", "Price", "analysis", "Price analysis & alerts"),
+                ("UniversalCryptoSignals", "Universal Crypto Signals", "signals", "Universal crypto trading signals"),
+                ("CryptoSignalsWorld", "Crypto Signals World", "signals", "Worldwide crypto signals"),
+                ("CryptoClassics", "Crypto Classics", "analysis", "Classic technical analysis"),
+                ("binancekillers", "Binance Killers", "signals", "Trading signals for Binance"),
+                ("Crypto_Futures_Signals", "Crypto Futures Signals", "signals", "Futures trading signals"),
+                ("TradingViewIdeas", "TradingView Ideas", "analysis", "Trading ideas & analysis"),
+                ("Crypto_Inner_Circler", "Crypto Inner Circle", "signals", "Trading insights & signals"),
+                ("io_altsignals", "Altsignals.io", "signals", "Altcoin signals"),
+                ("fatpigsignals", "Fat Pig Signals", "signals", "Trading signals"),
+                ("learn2trade", "Learn2Trade", "signals", "Education & signals"),
+                ("Signals_BTC_ETH", "Signals BTC & ETH", "signals", "Bitcoin & Ethereum signals"),
+                ("TTcoin_crypto", "TTcoin Cryptocurrency", "analysis", "Crypto analysis"),
+                ("WhaleCharts", "WhaleCharts", "analysis", "Whale tracking & charts"),
+                ("signalsbitcoinandethereum", "Bitcoin & Ethereum Signals", "signals", "BTC & ETH signals"),
+                ("crypto_analytics", "Crypto Analytics", "analysis", "Crypto analytics channel"),
+            ]
             demo_channels = [
                 Channel(
-                    username="Crypto_robotics", name="Crypto Robotics",
-                    url="https://t.me/Crypto_robotics", platform="telegram",
-                    description="Крипто-сигналы и аналитика рынка",
-                    category="signals", signals_count=0,
-                    is_active=True, status="active",
-                ),
-                Channel(
-                    username="CryptoVIPsignalss", name="Crypto VIP Signals",
-                    url="https://t.me/CryptoVIPsignalss", platform="telegram",
-                    description="VIP крипто-сигналы для трейдинга",
-                    category="signals", signals_count=0,
-                    is_active=True, status="active",
-                ),
-                Channel(
-                    username="WhalePumpSignals", name="Whale Pump Signals",
-                    url="https://t.me/WhalePumpSignals", platform="telegram",
-                    description="Whale pump signals and market analysis",
-                    category="signals", signals_count=0,
-                    is_active=True, status="active",
-                ),
-                Channel(
-                    username="binaborat", name="Бинаборат",
-                    url="https://t.me/binaborat", platform="telegram",
-                    description="Крипто сигналы и разборы рынка",
-                    category="signals", signals_count=0,
-                    is_active=True, status="active",
-                ),
-                Channel(
-                    username="crypto_futures_signals_free", name="Crypto Futures Free",
-                    url="https://t.me/crypto_futures_signals_free", platform="telegram",
-                    description="Free crypto futures trading signals",
-                    category="signals", signals_count=0,
-                    is_active=True, status="active",
-                ),
+                    username=uname, name=name,
+                    url=f"https://t.me/{uname}", platform="telegram",
+                    description=desc, category=cat,
+                    signals_count=0, is_active=True, status="active",
+                )
+                for uname, name, cat, desc in channels_data
             ]
             for ch in demo_channels:
                 session.add(ch)
