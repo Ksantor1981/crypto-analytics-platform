@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { apiClient } from '@/lib/api';
 
 function LoginContent() {
   const router = useRouter();
@@ -12,25 +13,24 @@ function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Имитация входа
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await apiClient.login(email, password);
       router.push('/dashboard');
-    }, 1000);
+    } catch (err) {
+      setError('Неверный email или пароль');
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleLogin = () => {
-    setIsLoading(true);
-    // Имитация входа через Google
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push('/dashboard');
-    }, 1000);
+    setError('Google авторизация пока недоступна');
   };
 
   return (
@@ -65,6 +65,11 @@ function LoginContent() {
           <Card className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <CardContent className="space-y-6">
               <form onSubmit={handleLogin} className="space-y-6">
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                    {error}
+                  </div>
+                )}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                     Email
