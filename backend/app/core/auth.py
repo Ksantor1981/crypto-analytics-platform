@@ -11,6 +11,7 @@ from app.services.user_service import UserService
 
 # Security scheme for JWT tokens
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
@@ -89,7 +90,7 @@ def get_current_admin_user(
 
 
 def get_optional_current_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
     db: Session = Depends(get_db)
 ) -> Optional[User]:
     """Get current user if authenticated, otherwise return None."""
