@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 
 export default function App({ Component, pageProps }: AppProps) {
   const [queryClient] = useState(
@@ -25,7 +26,9 @@ export default function App({ Component, pageProps }: AppProps) {
       <ThemeProvider>
         <AuthProvider>
           <ToastProvider>
-            <Component {...pageProps} />
+            <NotificationProvider>
+              <Component {...pageProps} />
+            </NotificationProvider>
           </ToastProvider>
         </AuthProvider>
       </ThemeProvider>
