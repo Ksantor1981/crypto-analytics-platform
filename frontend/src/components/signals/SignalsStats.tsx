@@ -10,13 +10,14 @@ interface SignalsStatsProps {
 }
 
 export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
+  const safeSignals = Array.isArray(signals) ? signals : [];
   const stats = React.useMemo(() => {
-    const total = signals.length;
-    const active = signals.filter(s => s.status === 'active').length;
-    const completed = signals.filter(s => s.status === 'completed').length;
-    const failed = signals.filter(s => s.status === 'failed').length;
+    const total = safeSignals.length;
+    const active = safeSignals.filter(s => s.status === 'active').length;
+    const completed = safeSignals.filter(s => s.status === 'completed').length;
+    const failed = safeSignals.filter(s => s.status === 'failed').length;
 
-    const signalsWithPnl = signals.filter(s => s.pnl !== undefined);
+    const signalsWithPnl = safeSignals.filter(s => s.pnl !== undefined);
     const profitable = signalsWithPnl.filter(s => s.pnl! > 0).length;
     const unprofitable = signalsWithPnl.filter(s => s.pnl! < 0).length;
 
@@ -43,8 +44,8 @@ export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
     );
 
     // Direction stats
-    const longSignals = signals.filter(s => s.direction === 'long').length;
-    const shortSignals = signals.filter(s => s.direction === 'short').length;
+    const longSignals = safeSignals.filter(s => s.direction === 'long').length;
+    const shortSignals = safeSignals.filter(s => s.direction === 'short').length;
 
     return {
       total,
@@ -61,7 +62,7 @@ export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
       longSignals,
       shortSignals,
     };
-  }, [signals]);
+  }, [safeSignals]);
 
   const getStatCard = (
     title: string,
