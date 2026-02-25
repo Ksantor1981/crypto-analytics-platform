@@ -22,7 +22,7 @@ try:
         channels, users, signals, subscriptions, 
         payments, ml_integration, telegram_integration, 
         trading, ml_predictions, backtesting, dashboard,
-        user_sources
+        user_sources, feedback, analytics
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -188,7 +188,9 @@ routers_config = [
     ("trading", "/api/v1/trading", "trading"),
     ("ml_predictions", "/api/v1/predictions", "predictions"),
     ("backtesting", "/api/v1/backtesting", "backtesting"),
-    ("dashboard", "/api/v1/dashboard", "dashboard")
+    ("dashboard", "/api/v1/dashboard", "dashboard"),
+    ("feedback", "/api/v1/feedback", "feedback"),
+    ("analytics", "/api/v1/analytics", "analytics"),
 ]
 
 # Подключаем роутеры с обработкой ошибок
