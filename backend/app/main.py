@@ -41,21 +41,7 @@ except ImportError as e:
         from core.scheduler import TradingScheduler
     except ImportError as fallback_error:
         logging.error(f"Fallback import failed: {fallback_error}")
-        # Создаем заглушки для критически важных компонентов
-        class MockSettings:
-            PROJECT_NAME = "Crypto Analytics Platform"
-            VERSION = "1.0.0"
-            BACKEND_CORS_ORIGINS = ["http://localhost:3000", "http://frontend:3000"]
-            ENVIRONMENT = "development"
-            DEBUG = True
-        
-        def get_settings():
-            return MockSettings()
-            
-        engine = None
-        Base = None
-        TradingScheduler = None
-        SubscriptionLimitMiddleware = None
+        raise RuntimeError(f"Cannot start: {fallback_error}")
 
 # Настройка логирования
 logging.basicConfig(
@@ -489,13 +475,20 @@ async def dashboard_channels():
 # Заглушка для ML предсказаний если основной сервис недоступен
 @app.post("/api/v1/predictions/test")
 async def test_prediction():
-    """Тестовое ML предсказание"""
-    return {
-        "prediction": "LONG",
-        "confidence": 0.75,
-        "message": "Test prediction - ML service integration",
-        "features_analyzed": 42
-    }
+    """ML prediction via ML Service API"""
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.post(
+                f"{settings.ML_SERVICE_URL}/api/v1/predictions/ml-predict",
+                json={"asset": "BTC", "direction": "LONG", "entry_price": 65000,
+                      "target_price": 72000, "stop_loss": 63000},
+            )
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception:
+        pass
+    return {"prediction": "LONG", "confidence": 0.75, "message": "ML service unavailable, fallback"}
 
 if __name__ == "__main__":
     logger.info("Starting server in development mode...")
