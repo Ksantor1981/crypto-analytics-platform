@@ -64,11 +64,18 @@ def get_signals(
     pages = ceil(total / limit) if limit > 0 else 0
     page = (skip // limit) + 1
 
+    signals_with_channels = []
+    for s in signals:
+        s_dict = {c.name: getattr(s, c.name) for c in s.__table__.columns}
+        s_dict["channel_name"] = s.channel.name if s.channel else None
+        s_dict["channel_username"] = s.channel.username if s.channel else None
+        signals_with_channels.append(s_dict)
+
     return {
-        "signals": signals,
+        "signals": signals_with_channels,
         "total": total,
         "page": page,
-        "size": len(signals),
+        "size": len(signals_with_channels),
         "pages": pages,
     }
 

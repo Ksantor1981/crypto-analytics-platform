@@ -423,7 +423,7 @@ async def test_signals():
                 "confidence_score": float(signal.confidence_score) if signal.confidence_score else None,
                 "created_at": signal.created_at.isoformat() if signal.created_at else None,
                 "channel_id": signal.channel_id,
-                "channel_name": f"Channel {signal.channel_id}" if signal.channel_id else "Unknown"
+                "channel_name": signal.channel.name if signal.channel else f"Channel {signal.channel_id}"
             }
             result.append(signal_dict)
         
