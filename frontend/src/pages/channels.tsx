@@ -108,7 +108,7 @@ const ChannelsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [sortOption, setSortOption] = React.useState('rating');
 
-  const channels: ChannelView[] = (apiChannels?.length ? apiChannels : fallbackChannels) as ChannelView[];
+  const channels: ChannelView[] = (apiChannels || []) as ChannelView[];
 
   const filteredAndSortedChannels = useMemo(() => {
     if (!channels) return [];
