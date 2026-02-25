@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 // 1. Типы данных для канала (на основе моковых данных)
@@ -51,12 +51,9 @@ const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
 
 // 3. Кастомный хук для использования в компонентах
 export const useChannel = (channelId: string | undefined) => {
-  return useQuery<ChannelDetails, Error>(
-    ['channel', channelId], // Ключ для кэширования
-    () => fetchChannelById(channelId!),
-    {
-      // Хук не будет выполняться, если channelId не определен
-      enabled: !!channelId,
-    }
-  );
+  return useQuery<ChannelDetails, Error>({
+    queryKey: ['channel', channelId],
+    queryFn: () => fetchChannelById(channelId!),
+    enabled: !!channelId,
+  });
 };
