@@ -64,12 +64,20 @@ def read_channels(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: models.User = Depends(auth.get_current_active_user)
+    current_user: Optional[models.User] = Depends(auth.get_optional_current_user)
 ):
     """
-    Retrieve channels for the current user.
+    Retrieve channels. If authenticated, shows user's channels first.
     """
-    channels = db.query(models.Channel).filter(models.Channel.owner_id == current_user.id).offset(skip).limit(limit).all()
+    query = db.query(models.Channel).filter(models.Channel.is_active == True)
+    if current_user:
+        query = query.order_by(
+            (models.Channel.owner_id == current_user.id).desc(),
+            models.Channel.accuracy.desc()
+        )
+    else:
+        query = query.order_by(models.Channel.accuracy.desc())
+    channels = query.offset(skip).limit(limit).all()
     return channels
 
 @router.post("/discover", response_model=dict)

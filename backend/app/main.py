@@ -71,6 +71,101 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 trading_scheduler = None
 
+
+def _seed_demo_data(db_engine):
+    """Seed database with demo data if empty"""
+    from sqlalchemy.orm import Session
+    try:
+        with Session(db_engine) as session:
+            from app.models.channel import Channel
+            from app.models.signal import Signal
+            if session.query(Channel).count() > 0:
+                return
+            demo_channels = [
+                Channel(
+                    username="cryptomaster", name="CryptoMaster",
+                    url="https://t.me/cryptomaster", platform="telegram",
+                    description="Leading crypto signals channel with high accuracy",
+                    category="premium", signals_count=342, successful_signals=268,
+                    accuracy=78.5, average_roi=15.3, subscribers_count=12500,
+                    is_active=True, is_verified=True, status="active",
+                ),
+                Channel(
+                    username="binancekillers", name="BinanceKillers",
+                    url="https://t.me/binancekillers", platform="telegram",
+                    description="Professional crypto trading signals",
+                    category="premium", signals_count=256, successful_signals=210,
+                    accuracy=82.1, average_roi=22.7, subscribers_count=8900,
+                    is_active=True, is_verified=True, status="active",
+                ),
+                Channel(
+                    username="cryptosignals", name="CryptoSignals",
+                    url="https://t.me/cryptosignals", platform="telegram",
+                    description="Daily crypto signals and market analysis",
+                    category="general", signals_count=189, successful_signals=124,
+                    accuracy=65.6, average_roi=8.4, subscribers_count=5200,
+                    is_active=True, is_verified=False, status="active",
+                ),
+                Channel(
+                    username="r_cryptocurrency", name="r/CryptoCurrency",
+                    url="https://reddit.com/r/CryptoCurrency", platform="reddit",
+                    description="Reddit's largest crypto community",
+                    category="community", signals_count=95, successful_signals=61,
+                    accuracy=64.2, average_roi=5.1, subscribers_count=6700000,
+                    is_active=True, is_verified=False, status="active",
+                ),
+                Channel(
+                    username="whale_alert", name="Whale Alert",
+                    url="https://t.me/whale_alert_io", platform="telegram",
+                    description="Tracking large crypto transactions",
+                    category="analytics", signals_count=520, successful_signals=312,
+                    accuracy=60.0, average_roi=3.2, subscribers_count=45000,
+                    is_active=True, is_verified=True, status="active",
+                ),
+            ]
+            for ch in demo_channels:
+                session.add(ch)
+            session.commit()
+
+            channels = session.query(Channel).all()
+            demo_signals = [
+                Signal(channel_id=channels[0].id, asset="BTC/USDT", symbol="BTCUSDT",
+                       direction="LONG", entry_price=43250.0, tp1_price=45000.0,
+                       stop_loss=42000.0, status="TP1_HIT", confidence_score=0.85,
+                       original_text="BTC long entry 43250, TP 45000, SL 42000",
+                       profit_loss_absolute=4.05),
+                Signal(channel_id=channels[0].id, asset="ETH/USDT", symbol="ETHUSDT",
+                       direction="LONG", entry_price=2680.0, tp1_price=2850.0,
+                       stop_loss=2600.0, status="PENDING", confidence_score=0.72,
+                       original_text="ETH long 2680, target 2850"),
+                Signal(channel_id=channels[1].id, asset="BTC/USDT", symbol="BTCUSDT",
+                       direction="SHORT", entry_price=44500.0, tp1_price=42000.0,
+                       stop_loss=45500.0, status="SL_HIT", confidence_score=0.68,
+                       original_text="BTC short from 44500",
+                       profit_loss_absolute=-2.25),
+                Signal(channel_id=channels[1].id, asset="SOL/USDT", symbol="SOLUSDT",
+                       direction="LONG", entry_price=98.5, tp1_price=115.0,
+                       stop_loss=92.0, status="TP2_HIT", confidence_score=0.91,
+                       original_text="SOL breakout long 98.5",
+                       profit_loss_absolute=16.75),
+                Signal(channel_id=channels[2].id, asset="BNB/USDT", symbol="BNBUSDT",
+                       direction="LONG", entry_price=315.0, tp1_price=340.0,
+                       stop_loss=305.0, status="ENTRY_HIT", confidence_score=0.65,
+                       original_text="BNB long entry 315"),
+                Signal(channel_id=channels[3].id, asset="ADA/USDT", symbol="ADAUSDT",
+                       direction="LONG", entry_price=0.45, tp1_price=0.55,
+                       stop_loss=0.40, status="TP1_HIT", confidence_score=0.78,
+                       original_text="ADA looks bullish, entry 0.45",
+                       profit_loss_absolute=22.22),
+            ]
+            for sig in demo_signals:
+                session.add(sig)
+            session.commit()
+            logger.info(f"Seeded {len(demo_channels)} channels and {len(demo_signals)} signals")
+    except Exception as e:
+        logger.warning(f"Seed data error (non-critical): {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Управление жизненным циклом приложения"""
@@ -84,6 +179,7 @@ async def lifespan(app: FastAPI):
             try:
                 Base.metadata.create_all(bind=engine)
                 logger.info("Database tables created successfully")
+                _seed_demo_data(engine)
             except Exception as db_error:
                 logger.error(f"Database initialization failed: {db_error}")
         else:
