@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { apiClient } from '@/lib/api';
 import {
   Card,
   CardContent,
@@ -144,6 +145,38 @@ const categories = [
 
 export default function RatingsPage() {
   const [activeCategory, setActiveCategory] = useState('top');
+  const [apiChannels, setApiChannels] = useState<typeof topChannels>([]);
+
+  useEffect(() => {
+    async function loadChannels() {
+      try {
+        const data = await apiClient.getChannels();
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped = data.map((c: Record<string, unknown>, i: number) => ({
+            id: c.id as number,
+            rank: i + 1,
+            name: (c.name || 'Unknown') as string,
+            description: (c.description || '') as string,
+            accuracy: (c.accuracy || 0) as number,
+            signals: (c.signals_count || 0) as number,
+            roi: (c.average_roi || 0) as number,
+            subscribers: (c.subscribers_count || 0) as number,
+            rating: Math.min(5, ((c.accuracy as number || 0) / 20)),
+            avatar: (c.platform === 'reddit' ? '🔴' : c.platform === 'twitter' ? '🐦' : '📡') as string,
+            badge: (c.accuracy as number || 0) > 80 ? 'Лидер' : (c.accuracy as number || 0) > 65 ? 'Проверенный' : 'Стабильный',
+            winRate: (c.accuracy || 0) as number,
+            avgReturn: (c.average_roi || 0) as number,
+          }));
+          const sorted = mapped.sort((a: {accuracy: number}, b: {accuracy: number}) => b.accuracy - a.accuracy);
+          sorted.forEach((c: {rank: number}, i: number) => { c.rank = i + 1; });
+          setApiChannels(sorted);
+        }
+      } catch { /* use fallback */ }
+    }
+    loadChannels();
+  }, []);
+
+  const effectiveTopChannels = apiChannels.length > 0 ? apiChannels : topChannels;
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -279,7 +312,7 @@ export default function RatingsPage() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {topChannels.map((channel, index) => (
+                {effectiveTopChannels.map((channel, index) => (
                   <Card
                     key={channel.id}
                     className={`card-hover relative overflow-hidden ${
