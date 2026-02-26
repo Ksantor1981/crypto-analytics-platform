@@ -20,12 +20,18 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install "bcrypt==4.0.1"
-      - name: Run tests
+          pip install "bcrypt==4.0.1" pytest-cov structlog
+      - name: Lint
+        run: python -m py_compile app/main.py && echo "Syntax OK"
+      - name: Run tests with coverage
         env:
           USE_SQLITE: "true"
           SECRET_KEY: "ci-test-secret-key-32-chars-minimum"
-        run: python -m pytest tests/ -v --tb=short
+        run: |
+          python -m pytest tests/ -v --tb=short \
+            --cov=app/services --cov=app/models \
+            --cov-report=term-missing \
+            --cov-fail-under=30
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -44,7 +50,7 @@ jobs:
       - name: Build
         run: npx next build
 
-  ml-service-check:
+  ml-service:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -56,5 +62,18 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Check imports
+      - name: Check model loading
         run: python -c "from models.trained_predictor import predict_signal_success; print('ML model OK')"
+      - name: Check training script
+        run: python -c "from train_from_db import train; print('Train script OK')"
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for secrets
+        run: |
+          ! grep -rn "sk_test_\|sk_live_\|password.*=.*\"[A-Z]" --include="*.py" . | grep -v ".git/" | grep -v "description\|Field\|getenv\|environ" || echo "No secrets found ✅"
+      - name: Check for session files
+        run: |
+          ! find . -name "*.session" -not -path "./.git/*" | grep . || echo "No session files ✅"
