@@ -8,8 +8,8 @@ from telethon import TelegramClient
 
 async def create_user_session():
     # API данные из workers/telegram_config.env
-    api_id = 21073808
-    api_hash = "2e3adb8940912dd295fe20c1d2ce5368"
+    api_id = int(os.getenv("TELEGRAM_API_ID", "0"))
+    api_hash = os.getenv("TELEGRAM_API_HASH", "")
     session_name = "user_session"
     
     print("Создаем USER сессию для Telegram...")
