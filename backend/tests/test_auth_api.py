@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from httpx import AsyncClient
 
 pytestmark = pytest.mark.asyncio
@@ -7,7 +8,7 @@ pytestmark = pytest.mark.asyncio
 async def test_register_new_user_success(async_client: AsyncClient):
     """Тест успешной регистрации нового пользователя."""
     user_data = {
-        "email": "test@example.com",
+        "email": f"test_{uuid.uuid4().hex[:8]}@example.com",
         "password": "strongpassword123",
         "confirm_password": "strongpassword123",
         "full_name": "Test User"
@@ -24,8 +25,9 @@ async def test_register_new_user_success(async_client: AsyncClient):
 
 async def test_register_existing_user_fails(async_client: AsyncClient):
     """Тест ошибки при регистрации пользователя с существующим email."""
+    unique_email = f"test_dup_{uuid.uuid4().hex[:8]}@example.com"
     user_data = {
-        "email": "test2@example.com",
+        "email": unique_email,
         "password": "strongpassword123",
         "confirm_password": "strongpassword123",
         "full_name": "Test User"
