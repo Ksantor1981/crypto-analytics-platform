@@ -109,12 +109,14 @@ def get_real_market_data(asset: str) -> Dict[str, Any]:
                 change_24h = data[coingecko_id].get('usd_24h_change', 0)
                 volume_24h = data[coingecko_id].get('usd_24h_vol', 1000000)
                 
-                # Calculate some technical indicators
-                rsi = 50 + random.uniform(-10, 10)  # Mock RSI for now
-                macd = random.uniform(-0.1, 0.1)    # Mock MACD for now
-                bollinger_position = random.uniform(0.2, 0.8)  # Mock BB position
-                volume_ratio = random.uniform(0.8, 1.2)  # Mock volume ratio
-                volatility = abs(change_24h) / 100  # Real volatility based on 24h change
+                # Derive indicators from real price data
+                volatility = abs(change_24h) / 100
+                rsi = 50 + change_24h * 2  # RSI approximation from 24h change
+                rsi = max(10, min(90, rsi))
+                macd = change_24h / 100  # MACD signal from momentum
+                bollinger_position = 0.5 + (change_24h / 20)
+                bollinger_position = max(0.05, min(0.95, bollinger_position))
+                volume_ratio = min(volume_24h / 1_000_000_000, 3.0) if volume_24h else 1.0
                 
                 return {
                     "price": price,
@@ -143,10 +145,10 @@ def get_real_market_data(asset: str) -> Dict[str, Any]:
                 "price": price,
                 "volume": volume_24h,
                 "change_24h": change_24h,
-                "rsi": 50 + random.uniform(-10, 10),
-                "macd": random.uniform(-0.1, 0.1),
-                "bollinger_position": random.uniform(0.2, 0.8),
-                "volume_ratio": random.uniform(0.8, 1.2),
+                "rsi": 50,
+                "macd": 0,
+                "bollinger_position": 0.5,
+                "volume_ratio": 1.0,
                 "volatility": abs(change_24h) / 100,
                 "source": "binance_real"
             }
@@ -168,13 +170,7 @@ def get_real_market_data(asset: str) -> Dict[str, Any]:
     
     if asset_upper in mock_data:
         data = mock_data[asset_upper].copy()
-        data["price"] += random.uniform(-0.01, 0.01) * data["price"]
-        data["volume"] += random.uniform(-0.05, 0.05) * data["volume"]
-        data["change_24h"] += random.uniform(-0.1, 0.1)
-        data["rsi"] = 50 + random.uniform(-10, 10)
-        data["macd"] = random.uniform(-0.1, 0.1)
-        data["bollinger_position"] = random.uniform(0.2, 0.8)
-        data["volume_ratio"] = random.uniform(0.8, 1.2)
+        # Binance fallback — no random noise
         data["volatility"] = abs(data["change_24h"]) / 100
         data["source"] = "mock_fallback"
         return data
