@@ -22,7 +22,7 @@ try:
         channels, users, signals, subscriptions, 
         payments, ml_integration, telegram_integration, 
         trading, ml_predictions, backtesting, dashboard,
-        user_sources, feedback, analytics, collect, export_signals
+        user_sources, feedback, analytics, collect, export_signals, stripe_checkout
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -302,6 +302,7 @@ routers_config = [
     ("analytics", "/api/v1/analytics", "analytics"),
     ("collect", "/api/v1/collect", "collect"),
     ("export_signals", "/api/v1", "export"),
+    ("stripe_checkout", "/api/v1/stripe", "stripe"),
 ]
 
 # Подключаем роутеры с обработкой ошибок
