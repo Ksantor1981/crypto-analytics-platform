@@ -230,10 +230,10 @@ const ChannelsPage: React.FC = () => {
                 <CardContent className="flex-grow">
                   <p className="text-sm text-gray-600 mb-4 h-10 overflow-hidden">{channel.description}</p>
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center truncate"><CheckCircle className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" /> <span>Точность: {channel.accuracy?.toFixed(1) ?? 'N/A'}%</span></div>
-                    <div className="flex items-center truncate"><TrendingUp className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" /> <span>ROI: {channel.roi?.toFixed(1) ?? 'N/A'}%</span></div>
-                    <div className="flex items-center truncate"><Users className="h-4 w-4 mr-2 text-purple-500 flex-shrink-0" /> <span>Подписчики: {channel.subscribers ?? 'N/A'}</span></div>
-                    <div className="flex items-center truncate"><BarChart3 className="h-4 w-4 mr-2 text-yellow-500 flex-shrink-0" /> <span>Сигналы: {channel.signals ?? 'N/A'}</span></div>
+                    <div className="flex items-center truncate"><CheckCircle className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" /> <span>Точность: {channel.accuracy != null ? `${Math.round(channel.accuracy * 10) / 10}%` : '—'}</span></div>
+                    <div className="flex items-center truncate"><TrendingUp className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" /> <span>ROI: {(channel as any).average_roi?.toFixed(1) ?? channel.roi?.toFixed(1) ?? '—'}%</span></div>
+                    <div className="flex items-center truncate"><Users className="h-4 w-4 mr-2 text-purple-500 flex-shrink-0" /> <span>Подписчики: {(channel as any).subscribers_count ?? channel.subscribers ?? '—'}</span></div>
+                    <div className="flex items-center truncate"><BarChart3 className="h-4 w-4 mr-2 text-yellow-500 flex-shrink-0" /> <span>Сигналы: {(channel as any).signals_count ?? channel.signals ?? 0}</span></div>
                   </div>
                 </CardContent>
                 <div className="p-4 border-t mt-auto bg-gray-50">
