@@ -16,7 +16,11 @@ from ...models.channel import Channel
 from ...models.user import User
 from ...models.signal import Signal
 from ...models.performance_metric import PerformanceMetric
-from .telegram_integration import get_coingecko_price, analyze_channel_metrics
+try:
+    from .telegram_integration import get_coingecko_price, analyze_channel_metrics
+except ImportError:
+    get_coingecko_price = None
+    analyze_channel_metrics = None
 
 router = APIRouter(tags=["User Sources"])
 logger = logging.getLogger(__name__)
