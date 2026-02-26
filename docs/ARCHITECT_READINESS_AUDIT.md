@@ -55,7 +55,14 @@ helm/         monitoring/   infrastructure/  nginx/
 
 ---
 
-## 4. Рекомендации (приоритет)
+## 4. Production features (реализовано)
+
+- **Prometheus** — `GET /metrics`, prometheus-client
+- **Structured logging** — structlog в main.py (JSON при LOG_JSON=true)
+- **Graceful shutdown** — lifespan: cancel tasks, stop scheduler, engine.dispose()
+- **Pinned deps** — скрипты `scripts/generate_requirements_pinned.sh|.ps1`
+
+## 5. Рекомендации (приоритет)
 
 1. **Реальный сбор** — TELEGRAM_API_ID/HASH в .env, список каналов в `workers/real_data_config.py`
 2. **ML pipeline** — обучить XGBoost на реальных сигналах, сохранить .pkl
@@ -64,7 +71,7 @@ helm/         monitoring/   infrastructure/  nginx/
 
 ---
 
-## 5. Вердикт
+## 6. Вердикт
 
 **Для резюме/портфолио:** Подходит с честной формулировкой:  
 *«Full-stack pet-project: FastAPI + Next.js + ML service. MVP реализован, доработка до production в процессе.»*

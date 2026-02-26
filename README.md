@@ -63,6 +63,7 @@ cd frontend && npm install --legacy-peer-deps && npm run dev
 
 - `GET /health` — liveness probe
 - `GET /ready` — readiness probe (checks DB)
+- `GET /metrics` — Prometheus metrics (для scraping)
 - `GET /api/v1/channels/` — список каналов с accuracy
 - `GET /api/v1/signals/` — сигналы с фильтрацией
 - `POST /api/v1/collect/deep-collect` — глубокий сбор из всех каналов
@@ -127,7 +128,7 @@ cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # 
 
 | Сервис   | Файл |
 |----------|------|
-| Backend  | `backend/requirements.txt` |
+| Backend  | `backend/requirements.txt` (+ `requirements-pinned.txt` via script) |
 | ML       | `ml-service/requirements.txt` |
 | Workers  | `workers/requirements.txt` |
 | Frontend | `frontend/package.json` + `package-lock.json` |
