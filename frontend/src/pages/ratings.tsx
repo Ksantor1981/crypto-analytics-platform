@@ -52,7 +52,7 @@ export default function RatingsPage() {
   useEffect(() => {
     async function loadChannels() {
       try {
-        const data = await apiClient.getChannels();
+        const data = await apiClient.getChannels({ sort: 'accuracy_desc', limit: 100 });
         if (Array.isArray(data) && data.length > 0) {
           const mapped = data.map((c: Record<string, unknown>, i: number) => ({
             id: c.id as number,
