@@ -65,17 +65,17 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Crypto Analytics Platform"
     VERSION: str = "1.0.0"
     
-    # Database - Поддержка PostgreSQL и SQLite
+    # Database - PostgreSQL (primary) or SQLite (fallback)
     DATABASE_URL: str = Field(
-        default="postgresql://postgres:password@localhost:5433/crypto_analytics",
+        default="postgresql://postgres:postgres123@localhost:5432/crypto_analytics",
         description="Database connection URL"
     )
-    USE_SQLITE: bool = True  # Используем SQLite для простоты
+    USE_SQLITE: bool = False
     
     @property
     def database_url(self) -> str:
-        """Возвращает URL базы данных в зависимости от настроек"""
-        if self.USE_SQLITE or "sqlite" in self.DATABASE_URL.lower():
+        """Returns database URL — PostgreSQL by default, SQLite if USE_SQLITE=true"""
+        if self.USE_SQLITE:
             return "sqlite:///./crypto_analytics.db"
         return self.DATABASE_URL
     
@@ -97,6 +97,9 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+    
+    # Monitoring
+    SENTRY_DSN: str = ""
     
     # Redis
     REDIS_URL: str = "redis://localhost:6380/0"

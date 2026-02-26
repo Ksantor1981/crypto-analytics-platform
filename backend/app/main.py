@@ -11,6 +11,22 @@ import sys
 import os
 from pathlib import Path
 
+# Sentry error tracking
+try:
+    import sentry_sdk
+    sentry_dsn = os.getenv("SENTRY_DSN", "")
+    if sentry_dsn:
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            traces_sample_rate=0.3,
+            profiles_sample_rate=0.1,
+            environment=os.getenv("ENVIRONMENT", "development"),
+            send_default_pii=False,
+        )
+        logging.getLogger(__name__).info("Sentry initialized")
+except ImportError:
+    pass
+
 # Добавляем текущую директорию в путь для импортов
 sys.path.append(str(Path(__file__).parent))
 
