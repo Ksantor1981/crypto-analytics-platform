@@ -13,7 +13,10 @@ from ...core.database import get_db
 from ...services.telegram_service import TelegramService
 from ...models.channel import Channel
 from ...models.signal import Signal
-from .comprehensive_signal_collector import ComprehensiveSignalCollector
+try:
+    from .comprehensive_signal_collector import ComprehensiveSignalCollector
+except ImportError:
+    ComprehensiveSignalCollector = None
 
 logger = logging.getLogger(__name__)
 
