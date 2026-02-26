@@ -116,10 +116,42 @@ def train():
     )
     model.fit(features, labels)
 
+    from sklearn.metrics import classification_report, confusion_matrix
+    import json as _json
+
     train_acc = (model.predict(features) == labels).mean()
     cv_scores = cross_val_score(model, features, labels, cv=min(5, len(features)//10 or 2), scoring='accuracy')
     accuracy = cv_scores.mean()
-    logger.info(f"Train accuracy: {train_acc:.1%}, CV accuracy: {accuracy:.1%} (+/- {cv_scores.std():.1%})")
+
+    # Confusion matrix
+    y_pred = model.predict(features)
+    cm = confusion_matrix(labels, y_pred)
+    report = classification_report(labels, y_pred, target_names=["FAIL", "SUCCESS"], output_dict=True)
+
+    # Feature importance
+    feature_names = ["confidence", "risk_reward", "price_dev", "direction", "rsi", "macd", "ch_accuracy", "ch_signals"]
+    importance = dict(zip(feature_names, model.feature_importances_.tolist()))
+
+    eval_report = {
+        "train_accuracy": round(train_acc * 100, 1),
+        "cv_accuracy": round(accuracy * 100, 1),
+        "cv_std": round(cv_scores.std() * 100, 1),
+        "confusion_matrix": cm.tolist(),
+        "classification_report": {k: v for k, v in report.items() if k in ("FAIL", "SUCCESS", "accuracy")},
+        "feature_importance": {k: round(v, 4) for k, v in sorted(importance.items(), key=lambda x: -x[1])},
+        "real_signals": len(signals),
+        "total_samples": len(features),
+        "random_seed": 42,
+    }
+
+    report_path = os.path.join(os.path.dirname(__file__), "models", "evaluation_report.json")
+    with open(report_path, "w") as f:
+        _json.dump(eval_report, f, indent=2)
+
+    logger.info(f"Train: {train_acc:.1%}, CV: {accuracy:.1%} (+/- {cv_scores.std():.1%})")
+    logger.info(f"Confusion matrix: {cm.tolist()}")
+    logger.info(f"Top features: {list(eval_report['feature_importance'].items())[:3]}")
+    logger.info(f"Evaluation report saved to {report_path}")
     logger.info(f"Training accuracy: {accuracy:.1%}")
 
     model_path = os.path.join(os.path.dirname(__file__), "models", "signal_model.pkl")

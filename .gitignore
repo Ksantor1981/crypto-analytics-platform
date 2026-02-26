@@ -183,3 +183,42 @@ __marimo__/
 !helm/
 !monitoring/
 !prom-grafana/
+
+# Security — never commit
+*.backup*
+*keys*.txt
+*secret*.txt
+*.session
+*.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# DB
+*.db
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Coverage
+htmlcov/
+.coverage
+coverage.xml
+
+# Next.js
+.next/
+out/
+
+# Docker
+*.log
