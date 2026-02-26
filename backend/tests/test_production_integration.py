@@ -16,23 +16,23 @@ import sys
 backend_path = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_path))
 
-# Mock недостающие модули перед импортом
-sys.modules['app.core.production_logging'] = MagicMock()
-sys.modules['app.services.message_queue'] = MagicMock()
-
-# Импортируем после установки моков
 from app.core.config import (
     settings, redis_config, telegram_config, 
     processing_config, market_data_config, logging_config
 )
 
 class MockQueueMessage:
-    def __init__(self, id, type, payload, correlation_id=None, max_retries=3):
+    """Mock compatible with QueueMessage interface (priority, created_at, retry_count)."""
+    def __init__(self, id, type, payload, correlation_id=None, max_retries=3, priority=None,
+                 created_at=None, retry_count=0, **kwargs):
         self.id = id
         self.type = type
         self.payload = payload
         self.correlation_id = correlation_id
         self.max_retries = max_retries
+        self.priority = priority
+        self.created_at = created_at
+        self.retry_count = retry_count
     
     def to_dict(self):
         return {
@@ -40,12 +40,18 @@ class MockQueueMessage:
             'type': self.type,
             'payload': self.payload,
             'correlation_id': self.correlation_id,
-            'max_retries': self.max_retries
+            'max_retries': self.max_retries,
+            'priority': getattr(self.priority, 'value', None) or self.priority or 'normal',
+            'created_at': self.created_at,
+            'retry_count': self.retry_count
         }
     
     @classmethod
     def from_dict(cls, data):
-        return cls(**data)
+        # Filter to known params to avoid passing through to __init__
+        known = {'id', 'type', 'payload', 'correlation_id', 'max_retries', 'priority', 'created_at', 'retry_count'}
+        filtered = {k: v for k, v in data.items() if k in known}
+        return cls(**filtered)
 
 class MockRedisMessageQueue:
     def __init__(self):
@@ -132,7 +138,7 @@ class MockRedisMessageQueue:
             "total_subscribers": len(self.subscribers)
         }
 
-# Mock функции логирования
+# Mock функции логирования (для внутреннего использования тестов)
 mock_logger = MagicMock()
 def mock_get_logger(name):
     return mock_logger
@@ -140,12 +146,6 @@ def mock_get_logger(name):
 def mock_set_trace_id(trace_id):
     return trace_id
 
-# Устанавливаем моки в модули
-sys.modules['app.core.production_logging'].get_logger = mock_get_logger
-sys.modules['app.core.production_logging'].set_trace_id = mock_set_trace_id
-sys.modules['app.services.message_queue'].RedisMessageQueue = MockRedisMessageQueue
-sys.modules['app.services.message_queue'].QueueMessage = MockQueueMessage
-sys.modules['app.services.message_queue'].MessagePriority = MagicMock()
 
 class TestProductionIntegration:
     """Integration tests for production-ready systems"""
