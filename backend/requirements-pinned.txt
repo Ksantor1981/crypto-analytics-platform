@@ -1,0 +1,4 @@
+# Full dependency tree - generate with: ./scripts/generate_requirements_pinned.sh (or .ps1)
+# Or: pip install -r requirements.txt && pip freeze > requirements-pinned.txt
+# Direct dependencies are pinned in requirements.txt
+# This file: run the script above to populate

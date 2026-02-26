@@ -62,16 +62,15 @@ except ImportError as e:
         TradingScheduler = None
         SubscriptionLimitMiddleware = None
 
-# Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler('/app/logs/backend.log') if os.path.exists('/app/logs') else logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+# Structured logging (structlog)
+try:
+    from app.core.logging_config import setup_logging, get_logger
+    _use_json = os.getenv("LOG_JSON", "false").lower() == "true"
+    setup_logging(json_format=_use_json, level=os.getenv("LOG_LEVEL", "INFO"))
+    logger = get_logger(__name__)
+except ImportError:
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
 
 settings = get_settings()
 trading_scheduler = None
@@ -136,9 +135,11 @@ def _seed_demo_data(db_engine):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Управление жизненным циклом приложения"""
+    """Управление жизненным циклом приложения (startup + graceful shutdown)."""
     global trading_scheduler
-    
+    import asyncio
+    _background_tasks: list = []
+
     logger.info("Starting Crypto Analytics Platform...")
     
     try:
@@ -202,34 +203,49 @@ async def lifespan(app: FastAPI):
                 logger.info(f"Auto-collection: {total} signals from {len(channels)} channels")
             except Exception as e:
                 logger.warning(f"Auto-collection failed: {e}")
-        asyncio.create_task(_auto_collect())
+        t1 = asyncio.create_task(_auto_collect())
+        _background_tasks.append(t1)
 
         # Start periodic collection schedulers
         try:
             from app.tasks.scheduler import periodic_collection, periodic_reddit_collection
-            asyncio.create_task(periodic_collection())
-            asyncio.create_task(periodic_reddit_collection())
+            t2 = asyncio.create_task(periodic_collection())
+            t3 = asyncio.create_task(periodic_reddit_collection())
+            _background_tasks.extend([t2, t3])
             logger.info("Schedulers started: Telegram every 15 min, Reddit every 30 min")
         except Exception as sched_err:
-            logger.warning(f"Scheduler not started: {sched_err}")
+            logger.warning("Scheduler not started", error=str(sched_err))
 
         logger.info("Application startup completed")
         yield
-        
+
     except Exception as e:
-        logger.error(f"Critical error during application startup: {e}")
-        # Не падаем, а продолжаем работу в ограниченном режиме
+        logger.error("Critical error during application startup", error=str(e))
         yield
-        
+
     finally:
-        # Остановка приложения
-        logger.info("Shutting down application...")
+        # Graceful shutdown: cancel background tasks
+        logger.info("Shutting down application (graceful)...")
+        for task in _background_tasks:
+            if not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+        # Stop trading scheduler
         try:
             if trading_scheduler is not None:
                 trading_scheduler.stop()
                 logger.info("Trading scheduler stopped")
         except Exception as e:
-            logger.error(f"Error stopping trading scheduler: {e}")
+            logger.error("Error stopping trading scheduler", error=str(e))
+        # Close DB engine
+        try:
+            if engine:
+                engine.dispose()
+        except Exception:
+            pass
         logger.info("Application shutdown completed")
 
 # Создание FastAPI приложения
@@ -409,6 +425,17 @@ async def health_check():
     health_data["timestamp"] = datetime.utcnow().isoformat()
     
     return health_data
+
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics endpoint for scraping."""
+    try:
+        from app.core.metrics import metrics_response
+        return metrics_response()
+    except ImportError:
+        return JSONResponse(status_code=503, content={"detail": "prometheus_client not installed"})
+
 
 @app.get("/api/v1/status")
 async def api_status():
