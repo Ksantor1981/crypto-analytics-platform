@@ -144,7 +144,6 @@ def mock_set_trace_id(trace_id):
 sys.modules['app.core.production_logging'].get_logger = mock_get_logger
 sys.modules['app.core.production_logging'].set_trace_id = mock_set_trace_id
 sys.modules['app.services.message_queue'].RedisMessageQueue = MockRedisMessageQueue
-sys.modules['app.services.message_queue'].QueueMessage = MockQueueMessage
 sys.modules['app.services.message_queue'].MessagePriority = MagicMock()
 
 class TestProductionIntegration:
