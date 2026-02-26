@@ -10,13 +10,15 @@ from sqlalchemy.orm import Session
 from celery import current_app
 
 from app.core.database import get_db
-from app.celery_app import celery_app
+try:
+    from app.celery_app import celery_app
+except ImportError:
+    celery_app = None
 from app.models.signal import Signal
-from app.api.endpoints.telegram_integration import (
-    collect_from_all_sources, 
-    parse_6month_real_history,
-    analyze_channel_quality
-)
+
+collect_from_all_sources = None
+parse_6month_real_history = None
+analyze_channel_quality = None
 
 logger = logging.getLogger(__name__)
 
