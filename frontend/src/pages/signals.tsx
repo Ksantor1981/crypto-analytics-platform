@@ -62,7 +62,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
         <meta name="description" content="Торговые сигналы криптовалют" />
       </Head>
 
-      <DashboardLayout>
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -154,7 +154,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
             </CardContent>
           </div>
         </div>
-      </DashboardLayout>
+      </div>
     </>
   );
 }

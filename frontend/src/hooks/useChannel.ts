@@ -43,6 +43,25 @@ export interface ChannelDetails {
 
 const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
   const raw = await apiClient.getChannel(channelId);
+
+  let signals: ChannelSignal[] = [];
+  try {
+    const sigResp = await apiClient.getSignals(channelId);
+    const sigData = Array.isArray(sigResp) ? sigResp : (sigResp?.signals || []);
+    signals = sigData.map((s: Record<string, unknown>) => ({
+      id: s.id as number,
+      symbol: (s.asset || s.symbol || '') as string,
+      type: (s.direction || 'LONG') as 'LONG' | 'SHORT',
+      entry_price: (s.entry_price || 0) as number,
+      target_price: (s.tp1_price || undefined) as number | undefined,
+      stop_loss: (s.stop_loss || undefined) as number | undefined,
+      status: ((s.status as string) || 'open').toLowerCase().includes('hit') ? 'closed'
+        : ((s.status as string) || '').includes('SL') ? 'failed' : 'open',
+      timestamp: (s.created_at || new Date().toISOString()) as string,
+      pnl: (s.profit_loss_percentage || undefined) as number | undefined,
+    }));
+  } catch {}
+
   return {
     id: raw.id,
     name: raw.name || 'Unknown',
@@ -68,7 +87,7 @@ const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
     maxDrawdown: 0,
     sharpeRatio: 0,
     monthlyGrowth: [],
-    recent_signals: [],
+    recent_signals: signals,
   };
 };
 
