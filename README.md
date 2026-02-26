@@ -2,6 +2,15 @@
 
 Платформа анализа криптовалютных торговых сигналов из Telegram-каналов и Reddit с ML-предсказаниями и Stripe-подписками.
 
+**Статус:** MVP. Локальная разработка и демо — готовы. Production требует настройки секретов и подключения реальных источников данных.
+
+**Документация:**
+- [ТЗ (Техническое задание)](./ТЗ.md) — полные требования, этапы, критерии успеха
+- [Соответствие ТЗ](./СООТВЕТСТВИЕ_ТЗ_2026_02_25.md) — актуальный статус реализации (~55%)
+- [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production
+
+---
+
 ## Стек
 
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS, React Query
@@ -71,21 +80,37 @@ cd backend && python -m pytest tests/ -v  # 82 tests
 
 ## Текущие метрики
 
-- 27 Telegram каналов + 20 Reddit сабреддитов
-- ~150 реальных сигналов
-- Accuracy: 41.7% (5 TP / 7 SL из 12 resolved)
-- ML CV accuracy: 96.0% ±2.4%
+- 27 Telegram каналов + 20 Reddit сабреддитов (конфиг в `workers/real_data_config.py`)
+- ~150 сигналов (seed data; для реальных — нужны Telegram API ключи в `.env`)
+- Accuracy каналов: 41.7% (по seed)
+- ML CV accuracy: 96.0% ±2.4% (на валидационном наборе)
 - 0 hardcoded secrets в коде
 - 82 теста, 0 mock/fake данных
 
+## Структура репозитория
+
+```
+backend/          # FastAPI, REST API, JWT auth
+frontend/         # Next.js 14, TypeScript, React Query
+ml-service/        # XGBoost/scikit-learn, изолированный сервис
+workers/           # Celery, сбор из Telegram/Reddit
+helm/              # Kubernetes манифесты
+monitoring/        # Prometheus, Grafana
+docs/              # Документация, отчёты
+ТЗ.md              # Техническое задание
+```
+
 ## Переменные окружения
 
-См. `.env.example`
+См. `env.example` в корне. Копировать в `.env` и заполнить:
+- `SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`
+- `TELEGRAM_API_ID`, `TELEGRAM_API_HASH` — для реального сбора
+- `STRIPE_*` — для подписок
 
 ## Deploy
 
 ```bash
-cp .env.example .env  # заполнить секреты
+cp env.example .env  # заполнить секреты
 docker compose -f docker-compose.deploy.yml up -d
 ```
 
