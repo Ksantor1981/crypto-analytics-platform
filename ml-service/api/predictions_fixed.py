@@ -11,15 +11,16 @@ import requests
 import random
 from datetime import datetime
 
-# Используем простой предиктор
+# Используем обученную модель с fallback на SimplePredictor
 from models.simple_predictor import SimplePredictor
+from models.trained_predictor import predict_signal_success, _load_model
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/predictions", tags=["predictions"])
 
-# Инициализируем модель
 predictor = SimplePredictor()
+_load_model()  # Pre-load trained model on startup
 
 # Pydantic модели
 class SignalPredictionRequest(BaseModel):
@@ -108,12 +109,14 @@ def get_real_market_data(asset: str) -> Dict[str, Any]:
                 change_24h = data[coingecko_id].get('usd_24h_change', 0)
                 volume_24h = data[coingecko_id].get('usd_24h_vol', 1000000)
                 
-                # Calculate some technical indicators
-                rsi = 50 + random.uniform(-10, 10)  # Mock RSI for now
-                macd = random.uniform(-0.1, 0.1)    # Mock MACD for now
-                bollinger_position = random.uniform(0.2, 0.8)  # Mock BB position
-                volume_ratio = random.uniform(0.8, 1.2)  # Mock volume ratio
-                volatility = abs(change_24h) / 100  # Real volatility based on 24h change
+                # Derive indicators from real price data
+                volatility = abs(change_24h) / 100
+                rsi = 50 + change_24h * 2  # RSI approximation from 24h change
+                rsi = max(10, min(90, rsi))
+                macd = change_24h / 100  # MACD signal from momentum
+                bollinger_position = 0.5 + (change_24h / 20)
+                bollinger_position = max(0.05, min(0.95, bollinger_position))
+                volume_ratio = min(volume_24h / 1_000_000_000, 3.0) if volume_24h else 1.0
                 
                 return {
                     "price": price,
@@ -142,10 +145,10 @@ def get_real_market_data(asset: str) -> Dict[str, Any]:
                 "price": price,
                 "volume": volume_24h,
                 "change_24h": change_24h,
-                "rsi": 50 + random.uniform(-10, 10),
-                "macd": random.uniform(-0.1, 0.1),
-                "bollinger_position": random.uniform(0.2, 0.8),
-                "volume_ratio": random.uniform(0.8, 1.2),
+                "rsi": 50,
+                "macd": 0,
+                "bollinger_position": 0.5,
+                "volume_ratio": 1.0,
                 "volatility": abs(change_24h) / 100,
                 "source": "binance_real"
             }
@@ -167,13 +170,7 @@ def get_real_market_data(asset: str) -> Dict[str, Any]:
     
     if asset_upper in mock_data:
         data = mock_data[asset_upper].copy()
-        data["price"] += random.uniform(-0.01, 0.01) * data["price"]
-        data["volume"] += random.uniform(-0.05, 0.05) * data["volume"]
-        data["change_24h"] += random.uniform(-0.1, 0.1)
-        data["rsi"] = 50 + random.uniform(-10, 10)
-        data["macd"] = random.uniform(-0.1, 0.1)
-        data["bollinger_position"] = random.uniform(0.2, 0.8)
-        data["volume_ratio"] = random.uniform(0.8, 1.2)
+        # Binance fallback — no random noise
         data["volatility"] = abs(data["change_24h"]) / 100
         data["source"] = "mock_fallback"
         return data
@@ -341,13 +338,43 @@ async def get_model_info():
 
 @router.get("/health")
 async def health_check():
-    """
-    Health check для predictions API
-    """
     return {
         "status": "healthy",
         "service": "predictions",
         "timestamp": datetime.now().isoformat(),
-        "model_status": "ready",
-        "data_sources": ["coingecko", "binance", "mock_fallback"]
-    } 
+        "model_status": "trained" if _load_model() is not None else "rule_based",
+        "data_sources": ["coingecko", "binance", "mock_fallback"],
+    }
+
+
+@router.post("/ml-predict")
+async def ml_predict(request: PredictionRequest):
+    """Predict signal success using trained XGBoost model."""
+    market = get_real_market_data(request.asset)
+    price_dev = abs(request.entry_price - market["price"]) / market["price"] if market["price"] else 0.05
+    rr = 2.0
+    if request.target_price and request.stop_loss and request.entry_price:
+        if request.direction == "LONG":
+            rr = abs(request.target_price - request.entry_price) / max(abs(request.entry_price - request.stop_loss), 0.01)
+        else:
+            rr = abs(request.entry_price - request.target_price) / max(abs(request.stop_loss - request.entry_price), 0.01)
+
+    result = predict_signal_success(
+        confidence_score=0.7,
+        risk_reward_ratio=rr,
+        price_deviation=price_dev,
+        direction=request.direction,
+        rsi=market.get("rsi", 50),
+        macd=market.get("macd", 0),
+        channel_accuracy=70.0,
+        channel_signal_count=100,
+    )
+
+    return {
+        "asset": request.asset,
+        "direction": request.direction,
+        "entry_price": request.entry_price,
+        "prediction": result,
+        "market_data": market,
+        "timestamp": datetime.now().isoformat(),
+    }

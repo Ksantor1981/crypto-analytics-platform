@@ -11,6 +11,22 @@ import sys
 import os
 from pathlib import Path
 
+# Sentry error tracking
+try:
+    import sentry_sdk
+    sentry_dsn = os.getenv("SENTRY_DSN", "")
+    if sentry_dsn:
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            traces_sample_rate=0.3,
+            profiles_sample_rate=0.1,
+            environment=os.getenv("ENVIRONMENT", "development"),
+            send_default_pii=False,
+        )
+        logging.getLogger(__name__).info("Sentry initialized")
+except ImportError:
+    pass
+
 # Добавляем текущую директорию в путь для импортов
 sys.path.append(str(Path(__file__).parent))
 
@@ -22,7 +38,7 @@ try:
         channels, users, signals, subscriptions, 
         payments, ml_integration, telegram_integration, 
         trading, ml_predictions, backtesting, dashboard,
-        user_sources
+        user_sources, feedback, analytics, collect, export_signals, stripe_checkout
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -41,17 +57,6 @@ except ImportError as e:
         from core.scheduler import TradingScheduler
     except ImportError as fallback_error:
         logging.error(f"Fallback import failed: {fallback_error}")
-        # Создаем заглушки для критически важных компонентов
-        class MockSettings:
-            PROJECT_NAME = "Crypto Analytics Platform"
-            VERSION = "1.0.0"
-            BACKEND_CORS_ORIGINS = ["http://localhost:3000", "http://frontend:3000"]
-            ENVIRONMENT = "development"
-            DEBUG = True
-        
-        def get_settings():
-            return MockSettings()
-            
         engine = None
         Base = None
         TradingScheduler = None
@@ -71,6 +76,64 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 trading_scheduler = None
 
+
+def _seed_demo_data(db_engine):
+    """Seed database with demo data if empty"""
+    from sqlalchemy.orm import Session
+    try:
+        with Session(db_engine) as session:
+            from app.models.channel import Channel
+            from app.models.signal import Signal
+            if session.query(Channel).count() > 0:
+                return
+            channels_data = [
+                ("Wolf_of_Trading_singals", "Wolf of Trading Signals", "premium", "Premium trading signals"),
+                ("CryptoCapoTG", "Crypto Capo", "premium", "Technical analysis & signals"),
+                ("bitcoin_signals", "Bitcoin Signals", "signals", "Bitcoin trading signals"),
+                ("binance_signals", "Binance Signals", "signals", "Binance trading signals"),
+                ("cryptosignals", "Crypto Signals", "signals", "Daily crypto signals"),
+                ("crypto", "Crypto", "general", "General crypto channel"),
+                ("price", "Price", "analysis", "Price analysis & alerts"),
+                ("UniversalCryptoSignals", "Universal Crypto Signals", "signals", "Universal crypto trading signals"),
+                ("CryptoSignalsWorld", "Crypto Signals World", "signals", "Worldwide crypto signals"),
+                ("CryptoClassics", "Crypto Classics", "analysis", "Classic technical analysis"),
+                ("binancekillers", "Binance Killers", "signals", "Trading signals for Binance"),
+                ("Crypto_Futures_Signals", "Crypto Futures Signals", "signals", "Futures trading signals"),
+                ("TradingViewIdeas", "TradingView Ideas", "analysis", "Trading ideas & analysis"),
+                ("Crypto_Inner_Circler", "Crypto Inner Circle", "signals", "Trading insights & signals"),
+                ("io_altsignals", "Altsignals.io", "signals", "Altcoin signals"),
+                ("fatpigsignals", "Fat Pig Signals", "signals", "Trading signals"),
+                ("learn2trade", "Learn2Trade", "signals", "Education & signals"),
+                ("Signals_BTC_ETH", "Signals BTC & ETH", "signals", "Bitcoin & Ethereum signals"),
+                ("TTcoin_crypto", "TTcoin Cryptocurrency", "analysis", "Crypto analysis"),
+                ("WhaleCharts", "WhaleCharts", "analysis", "Whale tracking & charts"),
+                ("signalsbitcoinandethereum", "Bitcoin & Ethereum Signals", "signals", "BTC & ETH signals"),
+                ("crypto_analytics", "Crypto Analytics", "analysis", "Crypto analytics channel"),
+                ("BybitSignals", "Bybit Signals", "signals", "Bybit exchange trading signals"),
+                ("CoinCodex", "CoinCodex", "analysis", "Crypto market analysis and signals"),
+                ("CryptoBullSignals", "Crypto Bull Signals", "signals", "Bullish crypto trading signals"),
+                ("defi_trading", "DeFi Trading", "signals", "DeFi trading signals"),
+                ("futures_signals", "Futures Signals", "signals", "Crypto futures signals"),
+            ]
+            demo_channels = [
+                Channel(
+                    username=uname, name=name,
+                    url=f"https://t.me/{uname}", platform="telegram",
+                    description=desc, category=cat,
+                    signals_count=0, is_active=True, status="active",
+                )
+                for uname, name, cat, desc in channels_data
+            ]
+            for ch in demo_channels:
+                session.add(ch)
+            session.commit()
+
+            session.commit()
+            logger.info(f"Seeded {len(demo_channels)} real Telegram channels")
+    except Exception as e:
+        logger.warning(f"Seed data error (non-critical): {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Управление жизненным циклом приложения"""
@@ -84,6 +147,7 @@ async def lifespan(app: FastAPI):
             try:
                 Base.metadata.create_all(bind=engine)
                 logger.info("Database tables created successfully")
+                _seed_demo_data(engine)
             except Exception as db_error:
                 logger.error(f"Database initialization failed: {db_error}")
         else:
@@ -100,6 +164,55 @@ async def lifespan(app: FastAPI):
         else:
             logger.warning("Trading scheduler not available")
         
+        # Auto-collect signals from Telegram channels on startup
+        import asyncio
+        async def _auto_collect():
+            await asyncio.sleep(2)
+            try:
+                from app.core.database import SessionLocal
+                from app.models.channel import Channel
+                from app.models.signal import Signal
+                from app.services.telegram_scraper import collect_signals_from_channel
+                from app.services.metrics_calculator import recalculate_all_channels
+                db = SessionLocal()
+                channels = db.query(Channel).filter(Channel.is_active == True, Channel.platform == "telegram").all()
+                total = 0
+                for ch in channels:
+                    uname = ch.username or (ch.url or "").rstrip("/").split("/")[-1]
+                    if not uname:
+                        continue
+                    try:
+                        sigs = await collect_signals_from_channel(uname)
+                        for s in sigs:
+                            if not s.entry_price:
+                                continue
+                            if db.query(Signal).filter(Signal.channel_id == ch.id, Signal.original_text == s.original_text[:500]).first():
+                                continue
+                            db.add(Signal(channel_id=ch.id, asset=s.asset, symbol=s.asset.replace("/",""),
+                                direction=s.direction, entry_price=s.entry_price, tp1_price=s.take_profit,
+                                stop_loss=s.stop_loss, confidence_score=s.confidence, original_text=s.original_text,
+                                status="PENDING", message_timestamp=s.timestamp))
+                            total += 1
+                            ch.signals_count = (ch.signals_count or 0) + 1
+                    except Exception as e:
+                        logger.warning(f"Collect @{uname}: {e}")
+                db.commit()
+                recalculate_all_channels(db)
+                db.close()
+                logger.info(f"Auto-collection: {total} signals from {len(channels)} channels")
+            except Exception as e:
+                logger.warning(f"Auto-collection failed: {e}")
+        asyncio.create_task(_auto_collect())
+
+        # Start periodic collection schedulers
+        try:
+            from app.tasks.scheduler import periodic_collection, periodic_reddit_collection
+            asyncio.create_task(periodic_collection())
+            asyncio.create_task(periodic_reddit_collection())
+            logger.info("Schedulers started: Telegram every 15 min, Reddit every 30 min")
+        except Exception as sched_err:
+            logger.warning(f"Scheduler not started: {sched_err}")
+
         logger.info("Application startup completed")
         yield
         
@@ -143,6 +256,25 @@ cors_origins = [
 if hasattr(settings, 'BACKEND_CORS_ORIGINS'):
     cors_origins.extend(settings.BACKEND_CORS_ORIGINS)
 
+from starlette.middleware.base import BaseHTTPMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
@@ -188,7 +320,12 @@ routers_config = [
     ("trading", "/api/v1/trading", "trading"),
     ("ml_predictions", "/api/v1/predictions", "predictions"),
     ("backtesting", "/api/v1/backtesting", "backtesting"),
-    ("dashboard", "/api/v1/dashboard", "dashboard")
+    ("dashboard", "/api/v1/dashboard", "dashboard"),
+    ("feedback", "/api/v1/feedback", "feedback"),
+    ("analytics", "/api/v1/analytics", "analytics"),
+    ("collect", "/api/v1/collect", "collect"),
+    ("export_signals", "/api/v1", "export"),
+    ("stripe_checkout", "/api/v1/stripe", "stripe"),
 ]
 
 # Подключаем роутеры с обработкой ошибок
@@ -227,9 +364,23 @@ async def root():
         }
     }
 
+@app.get("/ready")
+async def readiness_check():
+    """Readiness probe — checks if app can serve requests."""
+    if engine:
+        try:
+            from sqlalchemy import text
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            return {"ready": True}
+        except Exception:
+            return JSONResponse(status_code=503, content={"ready": False, "reason": "database"})
+    return JSONResponse(status_code=503, content={"ready": False, "reason": "no_engine"})
+
+
 @app.get("/health")
 async def health_check():
-    """Детальная проверка состояния API"""
+    """Liveness probe — basic health check."""
     health_data = {
         "status": "healthy",
         "version": settings.VERSION,
@@ -321,7 +472,7 @@ async def test_signals():
                 "confidence_score": float(signal.confidence_score) if signal.confidence_score else None,
                 "created_at": signal.created_at.isoformat() if signal.created_at else None,
                 "channel_id": signal.channel_id,
-                "channel_name": f"Channel {signal.channel_id}" if signal.channel_id else "Unknown"
+                "channel_name": signal.channel.name if signal.channel else f"Channel {signal.channel_id}"
             }
             result.append(signal_dict)
         
@@ -373,13 +524,20 @@ async def dashboard_channels():
 # Заглушка для ML предсказаний если основной сервис недоступен
 @app.post("/api/v1/predictions/test")
 async def test_prediction():
-    """Тестовое ML предсказание"""
-    return {
-        "prediction": "LONG",
-        "confidence": 0.75,
-        "message": "Test prediction - ML service integration",
-        "features_analyzed": 42
-    }
+    """ML prediction via ML Service API"""
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.post(
+                f"{settings.ML_SERVICE_URL}/api/v1/predictions/ml-predict",
+                json={"asset": "BTC", "direction": "LONG", "entry_price": 65000,
+                      "target_price": 72000, "stop_loss": 63000},
+            )
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception:
+        pass
+    return {"prediction": "LONG", "confidence": 0.75, "message": "ML service unavailable, fallback"}
 
 if __name__ == "__main__":
     logger.info("Starting server in development mode...")

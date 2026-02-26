@@ -6,8 +6,8 @@ async def test_telegram_connection():
     print("🔍 Тестирование подключения к Telegram...")
     
     # API ключи напрямую
-    api_id = 21073808
-    api_hash = "2e3adb8940912dd295fe20c1d2ce5368"
+    api_id = int(os.getenv("TELEGRAM_API_ID", "0"))
+    api_hash = os.getenv("TELEGRAM_API_HASH", "")
     
     print(f"API ID: {api_id}")
     print(f"API Hash: {api_hash[:10]}...")
@@ -57,8 +57,8 @@ async def test_channel_access():
     """Тест доступа к каналам"""
     print("\n📡 Тестирование доступа к каналам...")
     
-    api_id = 21073808
-    api_hash = "2e3adb8940912dd295fe20c1d2ce5368"
+    api_id = int(os.getenv("TELEGRAM_API_ID", "0"))
+    api_hash = os.getenv("TELEGRAM_API_HASH", "")
     
     try:
         from telethon import TelegramClient

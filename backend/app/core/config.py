@@ -65,34 +65,41 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Crypto Analytics Platform"
     VERSION: str = "1.0.0"
     
-    # Database - Поддержка PostgreSQL и SQLite
+    # Database - PostgreSQL (primary) or SQLite (fallback)
     DATABASE_URL: str = Field(
-        default="postgresql://postgres:password@localhost:5433/crypto_analytics",
+        default="postgresql://REDACTED:REDACTED@localhost:5432/crypto_analytics",
         description="Database connection URL"
     )
-    USE_SQLITE: bool = True  # Используем SQLite для простоты
+    USE_SQLITE: bool = False
     
     @property
     def database_url(self) -> str:
-        """Возвращает URL базы данных в зависимости от настроек"""
-        if self.USE_SQLITE or "sqlite" in self.DATABASE_URL.lower():
+        """Returns database URL — PostgreSQL by default, SQLite if USE_SQLITE=true"""
+        if self.USE_SQLITE:
             return "sqlite:///./crypto_analytics.db"
         return self.DATABASE_URL
     
     # JWT
     SECRET_KEY: str = Field(
-        default="CHANGE_THIS_SECRET_KEY_IN_PRODUCTION_USE_OPENSSL_RAND_HEX_32",
+        default="",
         description="Secret key for JWT tokens. Generate with: openssl rand -hex 32"
     )
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = ["*"]
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+    ]
     
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+    
+    # Monitoring
+    SENTRY_DSN: str = ""
     
     # Redis
     REDIS_URL: str = "redis://localhost:6380/0"
@@ -130,7 +137,7 @@ class Settings(BaseSettings):
     
     # Trading Encryption
     TRADING_ENCRYPTION_KEY: str = Field(
-        default="YourSecretKey32BytesLongForDevOnly123",
+        default="",
         description="32-byte encryption key for trading API credentials"
     )
     

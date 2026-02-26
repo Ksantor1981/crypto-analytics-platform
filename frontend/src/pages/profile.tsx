@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { User as UserType } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/lib/api';
 import {
   Card,
   CardContent,
@@ -37,42 +39,25 @@ import {
   Info,
 } from 'lucide-react';
 
-// Mock user data
-const mockUser: UserType = {
-  id: '1', // Изменил на string
-  name: 'Алексей Иванов',
-  username: '@crypto_trader_alex',
-  email: 'aleksey.ivanov@email.com',
-  avatar: '👨‍💼',
-  joinDate: '2023-01-15',
-  role: 'user', // Добавил роль
-  
-  subscription: {
-    plan: 'Premium',
-    status: 'active',
-    price: 999
-  },
-  
+const defaultUser: UserType = {
+  id: '0',
+  name: '',
+  username: '',
+  email: '',
+  avatar: '👤',
+  joinDate: new Date().toISOString().split('T')[0],
+  role: 'user',
+  subscription: { plan: 'Free', status: 'active', price: 0 },
   stats: {
-    channelsFollowed: 23,
-    successRate: 87.5,
-    profit: 15420,
-    totalProfit: 42.3,
-    totalSignals: 1247,
-    winRate: 73.2,
-    totalReturn: 156.8,
-    daysActive: 247
+    channelsFollowed: 0, successRate: 0, profit: 0,
+    totalProfit: 0, totalSignals: 0, winRate: 0,
+    totalReturn: 0, daysActive: 0,
   },
-  
   settings: {
-    emailNotifications: true,
-    pushNotifications: true,
-    telegramAlerts: false,
-    weeklyReports: true,
-    darkMode: false,
-    language: 'ru',
-    timezone: 'Europe/Moscow'
-  }
+    emailNotifications: true, pushNotifications: true,
+    telegramAlerts: false, weeklyReports: false,
+    darkMode: false, language: 'ru', timezone: 'Europe/Moscow',
+  },
 };
 
 const planFeatures = {
@@ -93,14 +78,47 @@ const planFeatures = {
 };
 
 export default function ProfilePage() {
+  const { user: authUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
-  const [user, setUser] = useState(mockUser);
+  const [user, setUser] = useState(defaultUser);
   const [showEmail, setShowEmail] = useState(false);
+
+  useEffect(() => {
+    if (authUser) {
+      setUser(prev => ({
+        ...prev,
+        name: authUser.name || prev.name,
+        email: authUser.email || prev.email,
+        username: authUser.username || prev.username,
+      }));
+    }
+    async function loadStats() {
+      try {
+        const channels = await apiClient.getChannels();
+        const channelList = Array.isArray(channels) ? channels : [];
+        const signalsRaw = await apiClient.getSignals();
+        const signalCount = signalsRaw?.total || (Array.isArray(signalsRaw) ? signalsRaw.length : 0);
+        const avgAccuracy = channelList.length > 0
+          ? channelList.reduce((s: number, c: Record<string, number>) => s + (c.accuracy || 0), 0) / channelList.length
+          : 0;
+        setUser(prev => ({
+          ...prev,
+          stats: {
+            ...prev.stats,
+            channelsFollowed: channelList.length,
+            totalSignals: signalCount,
+            successRate: Math.round(avgAccuracy * 10) / 10,
+            winRate: Math.round(avgAccuracy * 10) / 10,
+          },
+        }));
+      } catch { /* API unavailable, keep defaults */ }
+    }
+    loadStats();
+  }, [authUser]);
 
   const handleSave = () => {
     setIsEditing(false);
-    // Здесь будет сохранение данных
   };
 
   const tabs = [
@@ -135,48 +153,6 @@ export default function ProfilePage() {
       </Head>
 
       <div className="min-h-screen bg-gray-50">
-        {/* Navigation */}
-        <nav className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <Link href="/" className="flex items-center">
-                  <TrendingUp className="h-8 w-8 text-blue-600" />
-                  <span className="ml-2 text-xl font-bold gradient-text">
-                    CryptoAnalytics
-                  </span>
-                </Link>
-                <div className="ml-8 flex space-x-4">
-                  <Link
-                    href="/dashboard"
-                    className="text-gray-500 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Панель
-                  </Link>
-                  <Link
-                    href="/channels"
-                    className="text-gray-500 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Каналы
-                  </Link>
-                  <Link
-                    href="/ratings"
-                    className="text-gray-500 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Рейтинги
-                  </Link>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">Demo User</span>
-                <Button variant="ghost" size="sm">
-                  Выйти
-                </Button>
-              </div>
-            </div>
-          </div>
-        </nav>
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8">

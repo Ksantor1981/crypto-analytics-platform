@@ -6,13 +6,22 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ...database import get_db
-from ...models.user import User
-from ...models.channel import Channel
-from ...core.auth import get_current_user
-from ...services.channel_metrics_service import channel_metrics_service
-from ...services.price_tracking_service import price_tracking_service
-from ...services.signal_validation_service import signal_validation_service
+from app.core.database import get_db
+from app.models.user import User
+from app.models.channel import Channel
+from app.core.auth import get_current_user
+try:
+    from app.services.channel_metrics_service import channel_metrics_service
+except ImportError:
+    channel_metrics_service = None
+try:
+    from app.services.price_tracking_service import price_tracking_service
+except ImportError:
+    price_tracking_service = None
+try:
+    from app.services.signal_validation_service import signal_validation_service
+except ImportError:
+    signal_validation_service = None
 
 router = APIRouter()
 

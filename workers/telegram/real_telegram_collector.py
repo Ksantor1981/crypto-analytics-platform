@@ -26,8 +26,8 @@ try:
     from workers.real_data_config import TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_BOT_TOKEN
 except ImportError:
     # Fallback значения для тестирования
-    TELEGRAM_API_ID = 21073808
-    TELEGRAM_API_HASH = "2e3adb8940912dd295fe20c1d2ce5368"
+    TELEGRAM_API_ID = int(os.getenv("TELEGRAM_API_ID", "0"))
+    TELEGRAM_API_HASH = os.getenv("TELEGRAM_API_HASH", "")
     TELEGRAM_BOT_TOKEN = None
 
 # Настройка логирования
