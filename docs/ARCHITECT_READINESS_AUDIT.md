@@ -35,7 +35,7 @@ helm/         monitoring/   infrastructure/  nginx/
 | Риск | Severity | Митигация |
 |------|----------|-----------|
 | Нет реального сбора Telegram | HIGH | Подключить Telethon + env keys; Celery beat |
-| ML модель не обучена | HIGH | train.py → .pkl; текущий SimplePredictor — rule-based |
+| ML модель | MEDIUM | train_from_db.py есть; CV 96%; OOS не подтверждён |
 | Stripe не подключен | MEDIUM | Тест-ключи Stripe в .env |
 | CI/CD отсутствует | MEDIUM | GitHub Actions: lint, test, build |
 | Секреты в env.example | FIXED | Placeholders только; real_keys убран из истории |
@@ -50,7 +50,7 @@ helm/         monitoring/   infrastructure/  nginx/
 | API <200ms | Частично | ⚠️ |
 | 99.9% uptime | Нет оркестрации | ❌ |
 | ML ≥87.2% | Rule-based, CV 96% на тестах | ⚠️ |
-| Тесты >80% | 82 теста, ~9% coverage | ⚠️ |
+| Тесты >80% | 85 тестов, pytest-cov в CI (30% min) | ⚠️ |
 | 0 hardcoded secrets | ✅ | ✅ |
 
 ---
@@ -65,7 +65,7 @@ helm/         monitoring/   infrastructure/  nginx/
 ## 5. Рекомендации (приоритет)
 
 1. **Реальный сбор** — TELEGRAM_API_ID/HASH в .env, список каналов в `workers/real_data_config.py`
-2. **ML pipeline** — обучить XGBoost на реальных сигналах, сохранить .pkl
+2. **ML pipeline** — train_from_db.py готов; добавить feature_importance, backtest
 3. **CI/CD** — `.github/workflows/ci.yml`: pytest, build frontend
 4. **Секреты** — Ротировать все ключи из старой папки (уже скомпрометированы)
 
