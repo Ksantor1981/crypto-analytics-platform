@@ -78,12 +78,13 @@ export const apiClient = {
       name?: string;
     }>('/users/me'),
 
-  getChannels: (params?: { skip?: number; limit?: number }) => {
+  getChannels: (params?: { skip?: number; limit?: number; sort?: string }) => {
     const q = new URLSearchParams();
     if (params?.skip != null) q.set('skip', String(params.skip));
     if (params?.limit != null) q.set('limit', String(params.limit));
+    if (params?.sort) q.set('sort', params.sort);
     const query = q.toString();
-    return request<any[]>(`/channels/${query ? `?${query}` : ''}`);
+    return request<any[]>(`/channels${query ? `?${query}` : ''}`);
   },
 
   getChannel: (id: string) => request<any>(`/channels/${id}`),

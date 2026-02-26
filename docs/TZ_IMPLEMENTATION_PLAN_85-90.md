@@ -8,8 +8,8 @@
 
 | # | Задача | Статус | Ответственный |
 |---|--------|--------|---------------|
-| 0.1 | Frontend: создать lib/utils, lib/i18n, lib/performance, lib/api | ⏳ | Разработчик |
-| 0.2 | Backend: проверить/исправить тесты в CI | ⏳ | Разработчик |
+| 0.1 | Frontend: создать lib/utils, lib/i18n, lib/performance, lib/api | ✅ | Разработчик |
+| 0.2 | Backend: проверить/исправить тесты в CI | ⏸ | CI ставит requirements.txt — должно проходить |
 | 0.3 | Прогон CI (ci.yml + ci-cd.yml) | ⏳ | QA |
 
 ---
@@ -18,8 +18,8 @@
 
 | # | Задача из СООТВЕТСТВИЕ_ТЗ | Влияние | Метрика |
 |---|---------------------------|---------|---------|
-| 1.1 | Антирейтинг из API (не хардкод) | Аналитика +15% | ratings — worstChannels из /channels?sort=accuracy_asc |
-| 1.2 | Авторасчёт accuracy/ROI каналов | Аналитика +15% | channel_metrics_service, Celery task |
+| 1.1 | Антирейтинг из API (не хардкод) | Аналитика +15% | ✅ GET /channels?sort=accuracy_asc, ratings использует apiChannels |
+| 1.2 | Авторасчёт accuracy/ROI каналов | Аналитика +15% | ✅ metrics_calculator, POST /collect/recalculate-metrics |
 | 1.3 | Stripe checkout flow (тест-ключи) | Backend +15% | /stripe/create-checkout, webhook |
 | 1.4 | Тесты: 50+ backend тестов, coverage 40%+ | Backend +10% | pytest, pytest-cov |
 
