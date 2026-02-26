@@ -220,6 +220,8 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
         if stop_loss:
             confidence = 0.85
 
+    from app.services.sanitizer import sanitize_signal_text
+
     return ParsedSignal(
         asset=asset,
         direction=direction,
@@ -227,7 +229,7 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
         take_profit=take_profit,
         stop_loss=stop_loss,
         confidence=confidence,
-        original_text=text[:500],
+        original_text=sanitize_signal_text(text[:500]),
     )
 
 
