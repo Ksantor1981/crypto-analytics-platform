@@ -15,6 +15,7 @@ from app.models.user import User
 from app.services.telegram_scraper import collect_signals_from_channel
 from app.services.reddit_scraper import collect_reddit_signals, CRYPTO_SUBREDDITS
 from app.services.ocr_signal_parser import parse_signal_from_image_url
+from app.services.deep_collector import deep_collect_and_validate
 from app.services.metrics_calculator import recalculate_all_channels, recalculate_channel_metrics
 from app.services.price_validator import validate_signal_price
 from app.services.signal_checker import check_pending_signals
@@ -198,6 +199,16 @@ async def check_signals(
 ):
     """Check pending signals against current market prices. Updates TP/SL hit status."""
     result = await check_pending_signals(db)
+    return result
+
+
+@router.post("/deep-collect")
+async def deep_collect(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Deep historical collection: scrape ALL posts, validate against CoinGecko prices."""
+    result = await deep_collect_and_validate(db)
     return result
 
 
