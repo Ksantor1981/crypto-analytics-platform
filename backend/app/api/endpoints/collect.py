@@ -16,6 +16,7 @@ from app.services.telegram_scraper import collect_signals_from_channel
 from app.services.metrics_calculator import recalculate_all_channels, recalculate_channel_metrics
 from app.services.price_validator import validate_signal_price
 from app.services.signal_checker import check_pending_signals
+from app.services.historical_validator import validate_all_signals
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -64,6 +65,7 @@ async def collect_channel_signals(
             confidence_score=sig.confidence,
             original_text=sig.original_text,
             status="PENDING",
+            message_timestamp=sig.timestamp,
         )
         db.add(db_signal)
         new_count += 1
@@ -125,6 +127,7 @@ async def collect_all_channels(
                     confidence_score=sig.confidence,
                     original_text=sig.original_text,
                     status="PENDING",
+                    message_timestamp=sig.timestamp,
                 )
                 db.add(db_signal)
                 new_count += 1
@@ -193,6 +196,16 @@ async def check_signals(
 ):
     """Check pending signals against current market prices. Updates TP/SL hit status."""
     result = await check_pending_signals(db)
+    return result
+
+
+@router.post("/validate-history")
+async def validate_historical(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Validate all signals against historical CoinGecko prices. Updates accuracy."""
+    result = await validate_all_signals(db)
     return result
 
 

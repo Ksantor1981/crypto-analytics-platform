@@ -169,7 +169,8 @@ async def lifespan(app: FastAPI):
                                 continue
                             db.add(Signal(channel_id=ch.id, asset=s.asset, symbol=s.asset.replace("/",""),
                                 direction=s.direction, entry_price=s.entry_price, tp1_price=s.take_profit,
-                                stop_loss=s.stop_loss, confidence_score=s.confidence, original_text=s.original_text, status="PENDING"))
+                                stop_loss=s.stop_loss, confidence_score=s.confidence, original_text=s.original_text,
+                                status="PENDING", message_timestamp=s.timestamp))
                             total += 1
                             ch.signals_count = (ch.signals_count or 0) + 1
                     except Exception as e:
