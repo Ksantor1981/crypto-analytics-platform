@@ -36,8 +36,8 @@ RUN pip install telethon requests
 COPY telegram_collector.py .
 
 # Переменные окружения
-ENV TELEGRAM_API_ID=21073808
-ENV TELEGRAM_API_HASH=2e3adb8940912dd295fe20c1d2ce5368
+ENV TELEGRAM_API_ID=${TELEGRAM_API_ID}
+ENV TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
 
 # Запуск сборщика
 CMD ["python", "telegram_collector.py"]

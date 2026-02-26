@@ -87,7 +87,7 @@ def restart_all_services():
             host="localhost",
             database="crypto_analytics", 
             user="postgres",
-            password="REDACTED"
+            password=os.getenv("POSTGRES_PASSWORD", "")
         )
         print("  ✅ PostgreSQL подключение работает")
         conn.close()

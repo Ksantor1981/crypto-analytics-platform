@@ -11,8 +11,8 @@ async def test_session():
     try:
         from telethon import TelegramClient
         
-        api_id = 21073808
-        api_hash = "2e3adb8940912dd295fe20c1d2ce5368"
+        api_id = int(os.getenv("TELEGRAM_API_ID", "0"))
+        api_hash = os.getenv("TELEGRAM_API_HASH", "")
         session_file = "telegram_session"
         
         print(f"🔍 Testing session: {session_file}")
