@@ -7,7 +7,8 @@
 **Документация:**
 - [ТЗ (Техническое задание)](./ТЗ.md) — полные требования, этапы, критерии успеха
 - [Соответствие ТЗ](./СООТВЕТСТВИЕ_ТЗ_2026_02_25.md) — актуальный статус реализации (~55%)
-- [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production
+- [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production  
+- [Оценка статуса](./docs/ARCHITECT_STATUS_EVALUATION.md) — технический архитектор (текущее состояние)
 - [ML Pipeline](./ml-service/README.md) — train-скрипт, feature engineering, воспроизводимость
 
 ---
