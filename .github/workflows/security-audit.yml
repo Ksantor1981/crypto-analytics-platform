@@ -25,7 +25,7 @@ jobs:
           pip install bandit safety
       - name: Install frontend dependencies
         run: |
-          cd frontend && npm ci
+          cd frontend && npm install --legacy-peer-deps
       - name: Run security audit
         run: |
           chmod +x security_audit.sh
