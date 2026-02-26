@@ -8,6 +8,7 @@
 - [ТЗ (Техническое задание)](./ТЗ.md) — полные требования, этапы, критерии успеха
 - [Соответствие ТЗ](./СООТВЕТСТВИЕ_ТЗ_2026_02_25.md) — актуальный статус реализации (~55%)
 - [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production
+- [ML Pipeline](./ml-service/README.md) — train-скрипт, feature engineering, воспроизводимость
 
 ---
 
@@ -75,7 +76,8 @@ Swagger: http://localhost:8000/docs
 ## Тесты
 
 ```bash
-cd backend && python -m pytest tests/ -v  # 82 tests
+cd backend && python -m pytest tests/ -v                    # 85 тестов
+cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # + coverage
 ```
 
 ## Текущие метрики
@@ -85,20 +87,50 @@ cd backend && python -m pytest tests/ -v  # 82 tests
 - Accuracy каналов: 41.7% (по seed)
 - ML CV accuracy: 96.0% ±2.4% (на валидационном наборе)
 - 0 hardcoded secrets в коде
-- 82 теста, 0 mock/fake данных
+- 85 тестов (pytest), pytest-cov в CI
 
-## Структура репозитория
+## Структура репозитория (tree -L 2)
 
 ```
-backend/          # FastAPI, REST API, JWT auth
-frontend/         # Next.js 14, TypeScript, React Query
-ml-service/        # XGBoost/scikit-learn, изолированный сервис
-workers/           # Celery, сбор из Telegram/Reddit
-helm/              # Kubernetes манифесты
-monitoring/        # Prometheus, Grafana
-docs/              # Документация, отчёты
-ТЗ.md              # Техническое задание
+├── backend/           # FastAPI, REST API, JWT auth
+│   ├── app/            # routers, models, services, schemas
+│   ├── tests/          # 85 pytest тестов
+│   ├── requirements.txt
+│   └── alembic/        # миграции БД
+├── frontend/           # Next.js 14, TypeScript, React Query
+│   ├── src/            # pages, components, hooks
+│   ├── package.json
+│   └── package-lock.json
+├── ml-service/         # XGBoost/scikit-learn, изолированный сервис
+│   ├── models/         # trained_predictor, ensemble
+│   ├── train_from_db.py # reproducible train скрипт
+│   └── requirements.txt
+├── workers/            # Celery, сбор из Telegram/Reddit
+│   ├── telegram/       # парсеры, коллекторы
+│   ├── real_data_config.py
+│   └── requirements.txt
+├── helm/               # Kubernetes манифесты
+├── infrastructure/helm/crypto-analytics/
+├── monitoring/         # Prometheus, Grafana
+├── nginx/
+├── scripts/
+├── security/
+├── docs/               # Документация, отчёты
+├── .github/workflows/   # CI (ci.yml, ci-cd.yml)
+├── alembic.ini
+├── docker-compose*.yml
+├── env.example
+└── ТЗ.md
 ```
+
+## Зависимости
+
+| Сервис   | Файл |
+|----------|------|
+| Backend  | `backend/requirements.txt` |
+| ML       | `ml-service/requirements.txt` |
+| Workers  | `workers/requirements.txt` |
+| Frontend | `frontend/package.json` + `package-lock.json` |
 
 ## Переменные окружения
 
