@@ -168,8 +168,9 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
         r'(?:entry|вход)\s*[:]\s*\$?([\d]+[,.]?\d*k?)\s*[-–]',
     ]
     tp_patterns = [
-        r'(?:tp|take.profit|тейк|цель|target)\s*\d?[:\s]*\$?([\d]+[,.]?\d*k?)',
-        r'(?:targets?|цели)[:\s]*\$?([\d]+[,.]?\d*k?)',
+        r'(?:tp|take.profit|тейк|цель)\s*(?:\d\s*)?[:\s]+\$?([\d]+[,.]?\d*k?)',
+        r'(?:targets?|цели)\s*[:\s]+\$?([\d]+[,.]?\d*k?)',
+        r'(?:target)\s+([\d]+[,.]?\d*k?)',
     ]
     sl_patterns = [
         r'(?:sl|stop.loss|стоп|стоп.лосс|stoploss)[:\s]*\$?([\d]+[,.]?\d*k?)',

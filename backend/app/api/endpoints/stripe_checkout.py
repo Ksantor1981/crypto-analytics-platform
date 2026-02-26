@@ -4,7 +4,7 @@ Stripe Checkout — create sessions for subscription payments.
 import os
 import logging
 import stripe
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -65,6 +65,53 @@ async def create_checkout_session(
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/webhook")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events (subscription created/updated/cancelled)."""
+    import json
+
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+    webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+
+    try:
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+        else:
+            event = json.loads(payload)
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+    event_type = event.get("type", "")
+    data = event.get("data", {}).get("object", {})
+
+    if event_type == "checkout.session.completed":
+        user_id = data.get("metadata", {}).get("user_id")
+        plan = data.get("metadata", {}).get("plan")
+        email = data.get("customer_email")
+        logger.info(f"Checkout completed: user={user_id} plan={plan} email={email}")
+
+        if user_id and plan:
+            from app.core.database import SessionLocal
+            from app.models.user import User
+            db = SessionLocal()
+            try:
+                user = db.query(User).filter(User.id == int(user_id)).first()
+                if user:
+                    user.role = "PREMIUM_USER" if plan == "premium" else "PRO_USER"
+                    user.stripe_customer_id = data.get("customer")
+                    db.commit()
+                    logger.info(f"User {user_id} upgraded to {plan}")
+            finally:
+                db.close()
+
+    elif event_type in ("customer.subscription.deleted", "customer.subscription.updated"):
+        logger.info(f"Subscription event: {event_type}")
+
+    return {"received": True}
 
 
 @router.get("/plans")
