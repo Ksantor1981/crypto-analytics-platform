@@ -2,14 +2,14 @@
 Channel model for storing Telegram channel information
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, Float, String, Boolean, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .base import BaseModel
 
 
 class Channel(BaseModel):
-    """Model for storing Telegram channel information"""
+    """Model for storing channel information"""
     
     __tablename__ = "channels"
     
@@ -17,11 +17,16 @@ class Channel(BaseModel):
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     username = Column(String(100), unique=True, index=True, nullable=False)
     name = Column(String(200), nullable=False)
+    url = Column(String(500), nullable=True)
     description = Column(Text, nullable=True)
     platform = Column(String(50), default="telegram", nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
     subscribers_count = Column(Integer, nullable=True)
+    signals_count = Column(Integer, default=0, nullable=False)
+    successful_signals = Column(Integer, default=0, nullable=False)
+    accuracy = Column(Float, nullable=True)
+    average_roi = Column(Float, nullable=True)
     category = Column(String(100), nullable=True)
     priority = Column(Integer, default=1, nullable=False)
     expected_accuracy = Column(String(50), nullable=True)

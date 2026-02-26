@@ -1,19 +1,32 @@
 """
-Celery tasks for automated trading
+Celery tasks for automated trading.
+Requires TRADING_ENCRYPTION_KEY env var to be set.
 """
+import os
 import asyncio
 from celery import Celery
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import logging
 
-from app.core.database import get_db
-from app.services.trading_service import TradingService
-from app.services.risk_service import RiskService
-from app.models.trading import TradingAccount, TradingPosition
-from app.models.signal import Signal
-
 logger = logging.getLogger(__name__)
+
+def _check_trading_ready():
+    """Check if trading is configured. Returns False if encryption key missing."""
+    key = os.getenv("TRADING_ENCRYPTION_KEY", "")
+    if not key or len(key) < 10:
+        return False
+    return True
+
+# Only import heavy deps if trading is configured
+if _check_trading_ready():
+    from app.core.database import get_db
+    from app.services.trading_service import TradingService
+    from app.services.risk_service import RiskService
+    from app.models.trading import TradingAccount, TradingPosition
+    from app.models.signal import Signal
+else:
+    get_db = None
 
 # Initialize Celery app
 celery_app = Celery('crypto_analytics_trading')
@@ -21,6 +34,8 @@ celery_app = Celery('crypto_analytics_trading')
 @celery_app.task
 def update_all_positions():
     """Update prices and PnL for all open positions"""
+    if not _check_trading_ready():
+        return
     try:
         db = next(get_db())
         trading_service = TradingService(db)
@@ -58,6 +73,8 @@ def update_all_positions():
 @celery_app.task
 def check_stop_losses():
     """Check and execute stop losses for all open positions"""
+    if not _check_trading_ready():
+        return
     try:
         db = next(get_db())
         risk_service = RiskService(db)
@@ -109,6 +126,8 @@ def check_stop_losses():
 @celery_app.task
 def check_take_profits():
     """Check and execute take profits for all open positions"""
+    if not _check_trading_ready():
+        return
     try:
         db = next(get_db())
         risk_service = RiskService(db)
@@ -160,6 +179,8 @@ def check_take_profits():
 @celery_app.task
 def update_trailing_stops():
     """Update trailing stops for all open positions"""
+    if not _check_trading_ready():
+        return
     try:
         db = next(get_db())
         risk_service = RiskService(db)
@@ -203,6 +224,8 @@ def update_trailing_stops():
 @celery_app.task
 def execute_pending_signals():
     """Execute pending signals for auto-trading accounts"""
+    if not _check_trading_ready():
+        return
     try:
         db = next(get_db())
         trading_service = TradingService(db)
@@ -264,6 +287,8 @@ def execute_pending_signals():
 @celery_app.task
 def sync_account_balances():
     """Sync account balances with exchanges"""
+    if not _check_trading_ready():
+        return
     try:
         db = next(get_db())
         
@@ -304,6 +329,8 @@ def sync_account_balances():
 @celery_app.task
 def generate_trading_report():
     """Generate daily trading report"""
+    if not _check_trading_ready():
+        return
     try:
         db = next(get_db())
         trading_service = TradingService(db)

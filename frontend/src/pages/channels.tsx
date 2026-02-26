@@ -25,60 +25,6 @@ import { StatusBadge } from '@/components/channels/StatusBadge';
 import { ChannelView } from '@/types/view';
 import { Channel } from '@/types';
 
-// Fallback mock data for demonstration when API is not available
-const fallbackChannels: ChannelView[] = [
-  {
-    id: '1',
-    name: 'CryptoSignals Pro',
-    url: 'https://t.me/cryptosignals_pro',
-    description: 'Профессиональные сигналы с высокой точностью',
-    type: 'telegram',
-    status: 'active',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    accuracy: 87.5,
-    signals: 156,
-    roi: 24.3,
-    subscribers: 12500,
-    category: 'premium',
-    rating: 4.8,
-    avatar: '🚀',
-  },
-  {
-    id: '2',
-    name: 'TradingMaster',
-    url: 'https://t.me/tradingmaster',
-    description: 'Ежедневные торговые возможности',
-    type: 'telegram',
-    status: 'active',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    accuracy: 82.1,
-    signals: 89,
-    roi: 18.7,
-    subscribers: 8900,
-    category: 'medium',
-    rating: 4.5,
-    avatar: '📈',
-  },
-  {
-    id: '3',
-    name: 'CoinHunter',
-    url: 'https://t.me/coinhunter',
-    description: 'Поиск перспективных альткоинов',
-    type: 'telegram',
-    status: 'pending',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    accuracy: 91.2,
-    signals: 203,
-    roi: 31.5,
-    subscribers: 15600,
-    category: 'premium',
-    rating: 4.9,
-    avatar: '🎯',
-  },
-];
 
 const categories = [
   { value: 'all', label: 'Все каналы' },
@@ -108,7 +54,7 @@ const ChannelsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [sortOption, setSortOption] = React.useState('rating');
 
-  const channels: ChannelView[] = (apiChannels?.length ? apiChannels : fallbackChannels) as ChannelView[];
+  const channels: ChannelView[] = (apiChannels || []) as ChannelView[];
 
   const filteredAndSortedChannels = useMemo(() => {
     if (!channels) return [];
@@ -230,10 +176,10 @@ const ChannelsPage: React.FC = () => {
                 <CardContent className="flex-grow">
                   <p className="text-sm text-gray-600 mb-4 h-10 overflow-hidden">{channel.description}</p>
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center truncate"><CheckCircle className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" /> <span>Точность: {channel.accuracy?.toFixed(1) ?? 'N/A'}%</span></div>
-                    <div className="flex items-center truncate"><TrendingUp className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" /> <span>ROI: {channel.roi?.toFixed(1) ?? 'N/A'}%</span></div>
-                    <div className="flex items-center truncate"><Users className="h-4 w-4 mr-2 text-purple-500 flex-shrink-0" /> <span>Подписчики: {channel.subscribers ?? 'N/A'}</span></div>
-                    <div className="flex items-center truncate"><BarChart3 className="h-4 w-4 mr-2 text-yellow-500 flex-shrink-0" /> <span>Сигналы: {channel.signals ?? 'N/A'}</span></div>
+                    <div className="flex items-center truncate"><CheckCircle className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" /> <span>Точность: {channel.accuracy != null ? `${Math.round(channel.accuracy * 10) / 10}%` : '—'}</span></div>
+                    <div className="flex items-center truncate"><TrendingUp className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" /> <span>ROI: {(channel as any).average_roi?.toFixed(1) ?? channel.roi?.toFixed(1) ?? '—'}%</span></div>
+                    <div className="flex items-center truncate"><Users className="h-4 w-4 mr-2 text-purple-500 flex-shrink-0" /> <span>Подписчики: {(channel as any).subscribers_count ?? channel.subscribers ?? '—'}</span></div>
+                    <div className="flex items-center truncate"><BarChart3 className="h-4 w-4 mr-2 text-yellow-500 flex-shrink-0" /> <span>Сигналы: {(channel as any).signals_count ?? channel.signals ?? 0}</span></div>
                   </div>
                 </CardContent>
                 <div className="p-4 border-t mt-auto bg-gray-50">

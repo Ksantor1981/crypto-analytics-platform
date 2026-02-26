@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import {
   Card,
   CardContent,
@@ -19,92 +20,94 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Clock,
+  LogOut,
 } from 'lucide-react';
 import DashboardTour from '@/components/tour/DashboardTour';
+import { apiClient } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
-// Mock data for demonstration
-const mockChannels = [
-  {
-    id: 1,
-    name: 'CryptoSignals Pro',
-    accuracy: 87.5,
-    signals: 156,
-    roi: 24.3,
-    status: 'active',
-  },
-  {
-    id: 2,
-    name: 'TradingMaster',
-    accuracy: 82.1,
-    signals: 89,
-    roi: 18.7,
-    status: 'active',
-  },
-  {
-    id: 3,
-    name: 'CoinHunter',
-    accuracy: 91.2,
-    signals: 203,
-    roi: 31.5,
-    status: 'active',
-  },
-];
+interface DashboardChannel {
+  id: number;
+  name: string;
+  accuracy: number;
+  signals: number;
+  roi: number;
+  status: string;
+}
 
-const mockRecentSignals = [
-  {
-    id: 1,
-    channel: 'CryptoSignals Pro',
-    pair: 'BTC/USDT',
-    direction: 'LONG',
-    entry: 43250,
-    status: 'success',
-    profit: 5.2,
-    time: '2 часа назад',
-  },
-  {
-    id: 2,
-    channel: 'TradingMaster',
-    pair: 'ETH/USDT',
-    direction: 'SHORT',
-    entry: 2680,
-    status: 'pending',
-    profit: 0,
-    time: '30 мин назад',
-  },
-  {
-    id: 3,
-    channel: 'CoinHunter',
-    pair: 'BNB/USDT',
-    direction: 'LONG',
-    entry: 315,
-    status: 'failed',
-    profit: -2.1,
-    time: '1 час назад',
-  },
-];
+interface DashboardSignal {
+  id: number;
+  channel: string;
+  pair: string;
+  direction: string;
+  entry: number;
+  status: string;
+  profit: number;
+  time: string;
+}
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user: authUser, logout, isAuthenticated } = useAuth();
   const [runTour, setRunTour] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [channels, setChannels] = useState<DashboardChannel[]>([]);
+  const [recentSignals, setRecentSignals] = useState<DashboardSignal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [healthData, setHealthData] = useState<Record<string, unknown> | null>(null);
 
-    useEffect(() => {
-    // Mock user data - in real app this would come from API
-    setUser({
-      name: 'Demo User',
-      email: 'demo@cryptoanalytics.com',
-      plan: 'Free',
-      channelsUsed: 3,
-      channelsLimit: 3,
-    });
-    setLoading(false);
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const health = await apiClient.healthCheck();
+        setHealthData(health);
 
-    // Check if the tour should run
-    const tourCompleted = localStorage.getItem('dashboardTourCompleted');
-    if (!tourCompleted) {
-      // Use a timeout to ensure the DOM is ready for the tour
-      setTimeout(() => setRunTour(true), 1000);
+        try {
+          const channelsData = await apiClient.getChannels();
+          if (Array.isArray(channelsData)) {
+            setChannels(channelsData.map((ch: Record<string, unknown>) => ({
+              id: ch.id as number,
+              name: (ch.name || ch.username || 'Unknown') as string,
+              accuracy: (ch.accuracy || ch.expected_accuracy || 0) as number,
+              signals: (ch.signals_count || 0) as number,
+              roi: (ch.average_roi || 0) as number,
+              status: (ch.status || 'active') as string,
+            })));
+          }
+        } catch {
+          // channels endpoint may require auth
+        }
+
+        try {
+          const signalsRaw = await apiClient.getSignals();
+          const signalsData = Array.isArray(signalsRaw) ? signalsRaw : (signalsRaw?.signals || []);
+          if (signalsData.length > 0) {
+            setRecentSignals(signalsData.slice(0, 5).map((s: Record<string, unknown>) => ({
+              id: s.id as number,
+              channel: (s.channel_name || `Channel ${s.channel_id}`) as string,
+              pair: (s.asset || s.symbol || 'N/A') as string,
+              direction: (s.direction || 'LONG') as string,
+              entry: (s.entry_price || 0) as number,
+              status: ((s.status as string) || '').toLowerCase().includes('success') ? 'success'
+                : ((s.status as string) || '').toLowerCase().includes('fail') ? 'failed' : 'pending',
+              profit: (s.profit_loss || 0) as number,
+              time: s.created_at ? new Date(s.created_at as string).toLocaleString('ru-RU') : '',
+            })));
+          }
+        } catch {
+          // signals endpoint may require auth
+        }
+      } catch {
+        // health check failed
+      } finally {
+        setLoading(false);
+      }
+
+      const tourCompleted = localStorage.getItem('dashboardTourCompleted');
+      if (!tourCompleted) {
+        setTimeout(() => setRunTour(true), 1000);
+      }
     }
+    loadDashboard();
   }, []);
 
   if (loading) {
@@ -130,50 +133,6 @@ export default function DashboardPage() {
       </Head>
 
       <div className="min-h-screen bg-gray-50">
-        {/* Navigation */}
-        <nav className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <Link href="/" className="flex items-center">
-                  <TrendingUp className="h-8 w-8 text-blue-600" />
-                  <span className="ml-2 text-xl font-bold gradient-text">
-                    CryptoAnalytics
-                  </span>
-                </Link>
-                <div className="ml-8 flex space-x-4">
-                  <Link
-                    href="/dashboard"
-                    className="text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Панель
-                  </Link>
-                  <Link
-                    href="/channels"
-                    className="text-gray-500 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Каналы
-                  </Link>
-                  <Link
-                    href="/ratings"
-                    className="text-gray-500 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                  >
-                    Рейтинги
-                  </Link>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
-                  Привет, {user?.name}!
-                </span>
-                <Button variant="ghost" size="sm">
-                  Выйти
-                </Button>
-              </div>
-            </div>
-          </div>
-        </nav>
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8 dashboard-header">
@@ -193,11 +152,10 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-blue-900">
-                      Тарифный план: {user?.plan}
+                      Тарифный план: {authUser?.subscription?.plan || 'Free'}
                     </h3>
                     <p className="text-blue-700">
-                      Используется каналов: {user?.channelsUsed} из{' '}
-                      {user?.channelsLimit}
+                      Отслеживается каналов: {channels.length}
                     </p>
                   </div>
                   <Button className="bg-blue-600 hover:bg-blue-700">
@@ -218,9 +176,9 @@ export default function DashboardPage() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockChannels.length}</div>
+                <div className="text-2xl font-bold">{channels.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  из {user?.channelsLimit} доступных
+                  активных каналов
                 </p>
               </CardContent>
             </Card>
@@ -233,7 +191,11 @@ export default function DashboardPage() {
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">86.9%</div>
+                <div className="text-2xl font-bold">
+                  {channels.length > 0
+                    ? (channels.reduce((s, c) => s + c.accuracy, 0) / channels.length).toFixed(1)
+                    : '—'}%
+                </div>
                 <p className="text-xs text-muted-foreground">
                   <span className="text-green-600">+2.1%</span> за последний
                   месяц
@@ -247,7 +209,11 @@ export default function DashboardPage() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">+24.8%</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {channels.length > 0
+                    ? `+${(channels.reduce((s, c) => s + c.roi, 0) / channels.length).toFixed(1)}`
+                    : '—'}%
+                </div>
                 <p className="text-xs text-muted-foreground">
                   за последние 30 дней
                 </p>
@@ -269,7 +235,10 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockChannels.map(channel => (
+                  {channels.length === 0 && (
+                    <p className="text-gray-500 text-center py-4">Нет отслеживаемых каналов. Добавьте первый канал!</p>
+                  )}
+                  {channels.map(channel => (
                     <div
                       key={channel.id}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
@@ -308,7 +277,10 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockRecentSignals.map(signal => (
+                  {recentSignals.length === 0 && (
+                    <p className="text-gray-500 text-center py-4">Пока нет сигналов.</p>
+                  )}
+                  {recentSignals.map(signal => (
                     <div
                       key={signal.id}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
@@ -396,53 +368,32 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button
-                    className="h-20 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
+                    onClick={() => router.push('/channels')}>
                     <Plus className="h-6 w-6 mb-2" />
                     Добавить канал
                   </Button>
-                  <Button
-                    className="h-20 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
+                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
+                    onClick={() => router.push('/ratings')}>
                     <BarChart3 className="h-6 w-6 mb-2" />
-                    Посмотреть рейтинги
+                    Рейтинги
                   </Button>
-                  <Button
-                    className="h-20 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
+                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
+                    onClick={() => router.push('/signals')}>
+                    <TrendingUp className="h-6 w-6 mb-2" />
+                    Все сигналы
+                  </Button>
+                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
+                    onClick={() => router.push('/alerts')}>
                     <AlertTriangle className="h-6 w-6 mb-2" />
-                    Антирейтинг каналов
+                    Алерты
                   </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Demo Notice */}
-          <div className="mt-8">
-            <Card className="border-yellow-200 bg-yellow-50">
-              <CardContent className="p-6">
-                <div className="flex items-start">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-yellow-800">
-                      Демо-режим
-                    </h4>
-                    <p className="text-yellow-700 text-sm mt-1">
-                      Это демонстрационная версия. Данные не являются реальными.
-                      Для получения доступа к актуальной аналитике
-                      зарегистрируйтесь или войдите в систему.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </>

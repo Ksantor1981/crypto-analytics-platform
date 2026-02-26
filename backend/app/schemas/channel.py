@@ -27,11 +27,18 @@ class ChannelUpdate(BaseModel):
 
 class ChannelInDB(ChannelBase):
     id: int
-    owner_id: int
-    is_active: bool
-    is_verified: bool
+    owner_id: Optional[int] = None
+    username: Optional[str] = None
+    is_active: bool = True
+    is_verified: bool = False
+    subscribers_count: Optional[int] = None
+    signals_count: int = 0
+    successful_signals: int = 0
+    accuracy: Optional[float] = None
+    average_roi: Optional[float] = None
+    status: str = "active"
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         orm_mode = True
@@ -39,11 +46,18 @@ class ChannelInDB(ChannelBase):
 
 class ChannelResponse(ChannelBase):
     id: int
-    owner_id: int
-    is_active: bool
-    is_verified: bool
+    owner_id: Optional[int] = None
+    username: Optional[str] = None
+    is_active: bool = True
+    is_verified: bool = False
+    subscribers_count: Optional[int] = None
+    signals_count: int = 0
+    successful_signals: int = 0
+    accuracy: Optional[float] = None
+    average_roi: Optional[float] = None
+    status: str = "active"
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         orm_mode = True

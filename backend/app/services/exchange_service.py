@@ -251,9 +251,8 @@ class ExchangeService:
         try:
             # In production, this would make an actual API call
             # For now, we'll simulate a price
-            import random
             base_price = 50000 if "BTC" in symbol else 3000 if "ETH" in symbol else 100
-            price_variation = random.uniform(-0.01, 0.01)  # ±1% variation
+            price_variation = 0  # ±1% variation
             price = base_price * (1 + price_variation)
             
             logger.info(f"Bybit price simulated for {symbol}: {price}")
@@ -268,9 +267,8 @@ class ExchangeService:
         try:
             # In production, this would make an actual API call
             # For now, we'll simulate a price
-            import random
             base_price = 50000 if "BTC" in symbol else 3000 if "ETH" in symbol else 100
-            price_variation = random.uniform(-0.01, 0.01)  # ±1% variation
+            price_variation = 0  # ±1% variation
             price = base_price * (1 + price_variation)
             
             logger.info(f"Binance price simulated for {symbol}: {price}")

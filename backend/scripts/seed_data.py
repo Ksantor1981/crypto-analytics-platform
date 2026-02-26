@@ -394,7 +394,7 @@ def seed_database():
         admin_data = UserCreate(
             email="admin@crypto-analytics.com",
             username="admin",
-            password="admin123",
+            password=os.getenv("ADMIN_PASSWORD", "ChangeMeInProduction!"),
             full_name="System Administrator",
             is_active=True,
             is_admin=True

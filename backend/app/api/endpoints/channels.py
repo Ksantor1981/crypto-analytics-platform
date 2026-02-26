@@ -15,7 +15,6 @@ from app.core.auth import get_current_user
 from datetime import datetime
 
 router = APIRouter(
-    prefix="/channels",
     tags=["channels"],
     responses={404: {"description": "Not found"}},
 )
@@ -46,7 +45,15 @@ def create_channel(
             detail=f"Channel with URL '{channel_in.url}' already exists."
         )
 
-    db_channel = models.Channel(**channel_in.dict(), owner_id=current_user.id)
+    channel_data = channel_in.dict()
+    if not channel_data.get('username'):
+        import re
+        url = channel_data.get('url', '')
+        name = channel_data.get('name', '')
+        username = re.sub(r'[^a-zA-Z0-9_]', '_', url.split('/')[-1] or name)[:100] or f"channel_{current_user.id}"
+        channel_data['username'] = username
+
+    db_channel = models.Channel(**channel_data, owner_id=current_user.id)
     db.add(db_channel)
     db.commit()
     db.refresh(db_channel)
@@ -57,12 +64,20 @@ def read_channels(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: models.User = Depends(auth.get_current_active_user)
+    current_user: Optional[models.User] = Depends(auth.get_optional_current_user)
 ):
     """
-    Retrieve channels for the current user.
+    Retrieve channels. If authenticated, shows user's channels first.
     """
-    channels = db.query(models.Channel).filter(models.Channel.owner_id == current_user.id).offset(skip).limit(limit).all()
+    query = db.query(models.Channel).filter(models.Channel.is_active == True)
+    if current_user:
+        query = query.order_by(
+            (models.Channel.owner_id == current_user.id).desc(),
+            models.Channel.accuracy.desc()
+        )
+    else:
+        query = query.order_by(models.Channel.accuracy.desc())
+    channels = query.offset(skip).limit(limit).all()
     return channels
 
 @router.post("/discover", response_model=dict)
@@ -159,12 +174,15 @@ def discover_channels(
 
 @router.get("/{channel_id}", response_model=schemas.Channel)
 def read_channel(
-    *,
-    channel: models.Channel = Depends(auth.get_channel_for_owner_or_admin)
+    channel_id: int,
+    db: Session = Depends(get_db),
 ):
     """
-    Get a specific channel by ID.
+    Get a specific channel by ID (public).
     """
+    channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
     return channel
 
 @router.delete("/{channel_id}", response_model=schemas.Channel)

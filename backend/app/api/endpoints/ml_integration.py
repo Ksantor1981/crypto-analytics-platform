@@ -17,7 +17,7 @@ from ...core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/ml", tags=["ml-integration"])
+router = APIRouter(tags=["ml-integration"])
 
 # ML Service configuration
 ML_SERVICE_URL = "http://localhost:8001"  # В продакшене из env переменных
