@@ -93,6 +93,11 @@ def _seed_demo_data(db_engine):
                 ("WhaleCharts", "WhaleCharts", "analysis", "Whale tracking & charts"),
                 ("signalsbitcoinandethereum", "Bitcoin & Ethereum Signals", "signals", "BTC & ETH signals"),
                 ("crypto_analytics", "Crypto Analytics", "analysis", "Crypto analytics channel"),
+                ("BybitSignals", "Bybit Signals", "signals", "Bybit exchange trading signals"),
+                ("CoinCodex", "CoinCodex", "analysis", "Crypto market analysis and signals"),
+                ("CryptoBullSignals", "Crypto Bull Signals", "signals", "Bullish crypto trading signals"),
+                ("defi_trading", "DeFi Trading", "signals", "DeFi trading signals"),
+                ("futures_signals", "Futures Signals", "signals", "Crypto futures signals"),
             ]
             demo_channels = [
                 Channel(
@@ -183,11 +188,12 @@ async def lifespan(app: FastAPI):
                 logger.warning(f"Auto-collection failed: {e}")
         asyncio.create_task(_auto_collect())
 
-        # Start periodic collection scheduler (every 15 min)
+        # Start periodic collection schedulers
         try:
-            from app.tasks.scheduler import periodic_collection
+            from app.tasks.scheduler import periodic_collection, periodic_reddit_collection
             asyncio.create_task(periodic_collection())
-            logger.info("Periodic collection scheduler started (every 15 min)")
+            asyncio.create_task(periodic_reddit_collection())
+            logger.info("Schedulers started: Telegram every 15 min, Reddit every 30 min")
         except Exception as sched_err:
             logger.warning(f"Scheduler not started: {sched_err}")
 

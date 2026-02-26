@@ -9,6 +9,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 COLLECTION_INTERVAL = 900  # 15 minutes
+REDDIT_INTERVAL = 1800  # 30 minutes
 
 
 async def periodic_collection():
@@ -70,6 +71,58 @@ async def periodic_collection():
             )
         except Exception as e:
             logger.error(f"[Scheduler] Error: {e}")
+            db.rollback()
+        finally:
+            db.close()
+
+
+async def periodic_reddit_collection():
+    """Collect signals from Reddit every 30 minutes."""
+    from app.core.database import SessionLocal
+    from app.models.channel import Channel
+    from app.models.signal import Signal
+    from app.services.reddit_scraper import collect_reddit_signals, CRYPTO_SUBREDDITS
+
+    while True:
+        await asyncio.sleep(REDDIT_INTERVAL)
+        logger.info("[Scheduler] Reddit collection starting...")
+
+        db = SessionLocal()
+        try:
+            total = 0
+            for sub in CRYPTO_SUBREDDITS:
+                try:
+                    sigs = await collect_reddit_signals(sub, limit=25)
+                    for sig in sigs:
+                        if not sig.entry_price:
+                            continue
+                        channel = db.query(Channel).filter(Channel.username == f"r_{sub}").first()
+                        if not channel:
+                            channel = Channel(
+                                username=f"r_{sub}", name=f"r/{sub}",
+                                url=f"https://reddit.com/r/{sub}", platform="reddit",
+                                description=f"Reddit r/{sub}", category="community",
+                                is_active=True, status="active", signals_count=0,
+                            )
+                            db.add(channel)
+                            db.flush()
+                        if db.query(Signal).filter(Signal.channel_id == channel.id, Signal.original_text == sig.original_text[:500]).first():
+                            continue
+                        db.add(Signal(
+                            channel_id=channel.id, asset=sig.asset, symbol=sig.asset.replace("/", ""),
+                            direction=sig.direction, entry_price=sig.entry_price,
+                            tp1_price=sig.take_profit, stop_loss=sig.stop_loss,
+                            confidence_score=sig.confidence, original_text=sig.original_text,
+                            status="PENDING", message_timestamp=sig.timestamp,
+                        ))
+                        total += 1
+                        channel.signals_count = (channel.signals_count or 0) + 1
+                except Exception as e:
+                    logger.warning(f"[Scheduler] Reddit r/{sub}: {e}")
+            db.commit()
+            logger.info(f"[Scheduler] Reddit: {total} new signals from {len(CRYPTO_SUBREDDITS)} subs")
+        except Exception as e:
+            logger.error(f"[Scheduler] Reddit error: {e}")
             db.rollback()
         finally:
             db.close()
