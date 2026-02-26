@@ -36,8 +36,8 @@ class ValidationResult:
     low_after: Optional[float] = None
 
 
-async def get_price_range_after(asset: str, after_date: datetime, days: int = 14) -> Optional[dict]:
-    """Get high/low prices for an asset in the days after a signal."""
+async def get_price_range_after(asset: str, after_date: datetime, days: int = 7) -> Optional[dict]:
+    """Get daily OHLC prices for an asset after a signal date."""
     pair = asset.replace("/USDT", "").replace("/USD", "").upper()
     cg_id = COINGECKO_IDS.get(pair)
     if not cg_id:
@@ -45,16 +45,45 @@ async def get_price_range_after(asset: str, after_date: datetime, days: int = 14
 
     from_ts = int(after_date.timestamp())
     to_ts = int((after_date + timedelta(days=days)).timestamp())
+    now_ts = int(datetime.utcnow().timestamp())
+    if to_ts > now_ts:
+        to_ts = now_ts
+
+    if from_ts >= to_ts:
+        return None
 
     try:
         async with httpx.AsyncClient(timeout=15) as client:
+            # Use OHLC endpoint for daily candles (more accurate than market_chart)
             r = await client.get(
+                f"https://api.coingecko.com/api/v3/coins/{cg_id}/ohlc",
+                params={"vs_currency": "usd", "days": days}
+            )
+            if r.status_code == 200:
+                candles = r.json()
+                # Filter candles to only after signal date
+                relevant = []
+                for c in candles:
+                    candle_ts = c[0] / 1000
+                    if candle_ts >= from_ts:
+                        relevant.append({"open": c[1], "high": c[2], "low": c[3], "close": c[4]})
+
+                if relevant:
+                    return {
+                        "high": max(c["high"] for c in relevant),
+                        "low": min(c["low"] for c in relevant),
+                        "close": relevant[-1]["close"],
+                        "data_points": len(relevant),
+                        "candles": relevant[:5],
+                    }
+
+            # Fallback to market_chart/range
+            r2 = await client.get(
                 f"https://api.coingecko.com/api/v3/coins/{cg_id}/market_chart/range",
                 params={"vs_currency": "usd", "from": from_ts, "to": to_ts}
             )
-            if r.status_code == 200:
-                data = r.json()
-                prices = [p[1] for p in data.get("prices", [])]
+            if r2.status_code == 200:
+                prices = [p[1] for p in r2.json().get("prices", [])]
                 if prices:
                     return {
                         "high": max(prices),
@@ -85,35 +114,52 @@ async def validate_signal_historically(
 
     high = price_data["high"]
     low = price_data["low"]
+    close = price_data["close"]
+
+    # Validate TP/SL make sense for direction
+    if direction == "LONG":
+        if tp_price and tp_price < entry_price:
+            tp_price = None  # TP below entry doesn't make sense for LONG
+        if sl_price and sl_price > entry_price:
+            sl_price = None  # SL above entry doesn't make sense for LONG
+    elif direction == "SHORT":
+        if tp_price and tp_price > entry_price:
+            tp_price = None  # TP above entry doesn't make sense for SHORT
+        if sl_price and sl_price < entry_price:
+            sl_price = None  # SL below entry doesn't make sense for SHORT
 
     outcome = "PENDING"
     exit_price = None
     pnl = None
 
     if direction == "LONG":
-        if tp_price and high >= tp_price:
-            outcome = "TP_HIT"
-            exit_price = tp_price
-            pnl = ((tp_price - entry_price) / entry_price) * 100
-        elif sl_price and low <= sl_price:
+        if sl_price and low <= sl_price:
+            # SL checked first — in real trading SL triggers before TP
             outcome = "SL_HIT"
             exit_price = sl_price
             pnl = ((sl_price - entry_price) / entry_price) * 100
-        else:
-            exit_price = price_data["close"]
-            pnl = ((exit_price - entry_price) / entry_price) * 100
-    elif direction == "SHORT":
-        if tp_price and low <= tp_price:
+        elif tp_price and high >= tp_price:
             outcome = "TP_HIT"
             exit_price = tp_price
-            pnl = ((entry_price - tp_price) / entry_price) * 100
-        elif sl_price and high >= sl_price:
+            pnl = ((tp_price - entry_price) / entry_price) * 100
+        else:
+            # No TP/SL hit — use closing price as unrealized PnL
+            outcome = "OPEN"
+            exit_price = close
+            pnl = ((close - entry_price) / entry_price) * 100
+    elif direction == "SHORT":
+        if sl_price and high >= sl_price:
             outcome = "SL_HIT"
             exit_price = sl_price
             pnl = ((entry_price - sl_price) / entry_price) * 100
+        elif tp_price and low <= tp_price:
+            outcome = "TP_HIT"
+            exit_price = tp_price
+            pnl = ((entry_price - tp_price) / entry_price) * 100
         else:
-            exit_price = price_data["close"]
-            pnl = ((entry_price - exit_price) / entry_price) * 100
+            outcome = "OPEN"
+            exit_price = close
+            pnl = ((entry_price - close) / entry_price) * 100
 
     return ValidationResult(
         signal_id=signal_id, asset=asset, direction=direction,
