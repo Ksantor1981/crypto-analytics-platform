@@ -2,6 +2,17 @@
 
 Платформа анализа криптовалютных торговых сигналов из Telegram-каналов и Reddit с ML-предсказаниями и Stripe-подписками.
 
+**Статус:** MVP. Локальная разработка и демо — готовы. Production требует настройки секретов и подключения реальных источников данных.
+
+**Документация:**
+- [ТЗ (Техническое задание)](./ТЗ.md) — полные требования, этапы, критерии успеха
+- [Соответствие ТЗ](./СООТВЕТСТВИЕ_ТЗ_2026_02_25.md) — актуальный статус реализации (~55%)
+- [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production  
+- [Оценка статуса](./docs/ARCHITECT_STATUS_EVALUATION.md) — технический архитектор (текущее состояние)
+- [ML Pipeline](./ml-service/README.md) — train-скрипт, feature engineering, воспроизводимость
+
+---
+
 ## Стек
 
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS, React Query
@@ -53,6 +64,7 @@ cd frontend && npm install --legacy-peer-deps && npm run dev
 
 - `GET /health` — liveness probe
 - `GET /ready` — readiness probe (checks DB)
+- `GET /metrics` — Prometheus metrics (для scraping)
 - `GET /api/v1/channels/` — список каналов с accuracy
 - `GET /api/v1/signals/` — сигналы с фильтрацией
 - `POST /api/v1/collect/deep-collect` — глубокий сбор из всех каналов
@@ -66,26 +78,73 @@ Swagger: http://localhost:8000/docs
 ## Тесты
 
 ```bash
-cd backend && python -m pytest tests/ -v  # 82 tests
+cd backend && python -m pytest tests/ -v                    # 85 тестов
+cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # + coverage
 ```
 
 ## Текущие метрики
 
-- 27 Telegram каналов + 20 Reddit сабреддитов
-- ~150 реальных сигналов
-- Accuracy: 41.7% (5 TP / 7 SL из 12 resolved)
-- ML CV accuracy: 96.0% ±2.4%
+- 27 Telegram каналов + 20 Reddit сабреддитов (конфиг в `workers/real_data_config.py`)
+- ~150 сигналов (seed data; для реальных — нужны Telegram API ключи в `.env`)
+- Accuracy каналов: 41.7% (по seed)
+- ML CV accuracy: 96.0% ±2.4% (на валидационном наборе)
 - 0 hardcoded secrets в коде
-- 82 теста, 0 mock/fake данных
+- 85 тестов (pytest), pytest-cov в CI
+
+## Структура репозитория (tree -L 2)
+
+```
+├── backend/           # FastAPI, REST API, JWT auth
+│   ├── app/            # routers, models, services, schemas
+│   ├── tests/          # 85 pytest тестов
+│   ├── requirements.txt
+│   └── alembic/        # миграции БД
+├── frontend/           # Next.js 14, TypeScript, React Query
+│   ├── src/            # pages, components, hooks
+│   ├── package.json
+│   └── package-lock.json
+├── ml-service/         # XGBoost/scikit-learn, изолированный сервис
+│   ├── models/         # trained_predictor, ensemble
+│   ├── train_from_db.py # reproducible train скрипт
+│   └── requirements.txt
+├── workers/            # Celery, сбор из Telegram/Reddit
+│   ├── telegram/       # парсеры, коллекторы
+│   ├── real_data_config.py
+│   └── requirements.txt
+├── helm/               # Kubernetes манифесты
+├── infrastructure/helm/crypto-analytics/
+├── monitoring/         # Prometheus, Grafana
+├── nginx/
+├── scripts/
+├── security/
+├── docs/               # Документация, отчёты
+├── .github/workflows/   # CI (ci.yml, ci-cd.yml)
+├── alembic.ini
+├── docker-compose*.yml
+├── env.example
+└── ТЗ.md
+```
+
+## Зависимости
+
+| Сервис   | Файл |
+|----------|------|
+| Backend  | `backend/requirements.txt` (+ `requirements-pinned.txt` via script) |
+| ML       | `ml-service/requirements.txt` |
+| Workers  | `workers/requirements.txt` |
+| Frontend | `frontend/package.json` + `package-lock.json` |
 
 ## Переменные окружения
 
-См. `.env.example`
+См. `env.example` в корне. Копировать в `.env` и заполнить:
+- `SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`
+- `TELEGRAM_API_ID`, `TELEGRAM_API_HASH` — для реального сбора
+- `STRIPE_*` — для подписок
 
 ## Deploy
 
 ```bash
-cp .env.example .env  # заполнить секреты
+cp env.example .env  # заполнить секреты
 docker compose -f docker-compose.deploy.yml up -d
 ```
 

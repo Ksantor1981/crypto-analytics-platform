@@ -64,19 +64,24 @@ def read_channels(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
+    sort: Optional[str] = Query("accuracy_desc", description="Sort: accuracy_desc (default), accuracy_asc (anti-rating)"),
     current_user: Optional[models.User] = Depends(auth.get_optional_current_user)
 ):
     """
     Retrieve channels. If authenticated, shows user's channels first.
+    sort=accuracy_asc — для антирейтинга (худшие первыми).
     """
     query = db.query(models.Channel).filter(models.Channel.is_active == True)
+    order_accuracy = models.Channel.accuracy.desc()
+    if sort == "accuracy_asc":
+        order_accuracy = models.Channel.accuracy.asc()
     if current_user:
         query = query.order_by(
             (models.Channel.owner_id == current_user.id).desc(),
-            models.Channel.accuracy.desc()
+            order_accuracy
         )
     else:
-        query = query.order_by(models.Channel.accuracy.desc())
+        query = query.order_by(order_accuracy)
     channels = query.offset(skip).limit(limit).all()
     return channels
 

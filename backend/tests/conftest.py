@@ -94,6 +94,23 @@ def test_settings():
     
     return Settings()
 
+
+@pytest.fixture
+async def async_client():
+    """Async HTTP client for testing FastAPI endpoints."""
+    from httpx import ASGITransport, AsyncClient
+    from app.main import app
+    from app.core.database import engine
+    from app.models.base import Base
+    
+    # Ensure tables exist for auth/integration tests
+    Base.metadata.create_all(bind=engine)
+    
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+
+
 # Add pytest markers
 pytest_plugins = []
 
