@@ -12,6 +12,17 @@ from pathlib import Path
 backend_path = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_path))
 
+# Ensure redis module exists for patch — inject fake if not installed (e.g. minimal CI env)
+try:
+    import redis as _redis
+except ImportError:
+    _fake = MagicMock()
+    _fake.Redis = MagicMock()
+    _fake.asyncio = MagicMock()
+    _fake.asyncio.Redis = MagicMock()
+    sys.modules['redis'] = _fake
+    sys.modules['redis.asyncio'] = _fake.asyncio
+
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for the test session."""
