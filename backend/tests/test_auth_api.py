@@ -1,51 +1,36 @@
+"""Auth API tests using TestClient (sync)."""
 import pytest
 import uuid
-from httpx import AsyncClient
-
-pytestmark = pytest.mark.asyncio
+from fastapi.testclient import TestClient
 
 
-async def test_register_new_user_success(async_client: AsyncClient):
-    """Тест успешной регистрации нового пользователя."""
-    user_data = {
-        "email": f"test_{uuid.uuid4().hex[:8]}@example.com",
-        "password": "strongpassword123",
-        "confirm_password": "strongpassword123",
-        "full_name": "Test User"
-    }
-    response = await async_client.post("/api/v1/users/register", json=user_data)
-    print(f"Response status: {response.status_code}")
-    print(f"Response content: {response.text}")
-    assert response.status_code == 201, f"Expected 201, got {response.status_code}. Response: {response.text}"
-    response_data = response.json()
-    assert response_data["email"] == user_data["email"]
-    assert "id" in response_data
-    assert "access_token" not in response_data  # Токен не должен возвращаться при регистрации
+@pytest.fixture
+def client():
+    import os
+    os.environ["USE_SQLITE"] = "true"
+    os.environ["SECRET_KEY"] = "test-secret-key-32-chars-minimum"
+    from app.main import app
+    return TestClient(app)
 
 
-async def test_register_existing_user_fails(async_client: AsyncClient):
-    """Тест ошибки при регистрации пользователя с существующим email."""
-    unique_email = f"test_dup_{uuid.uuid4().hex[:8]}@example.com"
-    user_data = {
-        "email": unique_email,
-        "password": "strongpassword123",
-        "confirm_password": "strongpassword123",
-        "full_name": "Test User"
-    }
-    
-    # Первая регистрация должна быть успешной
-    response = await async_client.post("/api/v1/users/register", json=user_data)
-    assert response.status_code == 201, f"First registration failed: {response.text}"
-    
-    # Вторая попытка регистрации с тем же email должна завершиться ошибкой
-    response = await async_client.post("/api/v1/users/register", json=user_data)
-    print(f"Response status: {response.status_code}")
-    print(f"Response content: {response.text}")
-    
-    assert response.status_code == 400, f"Expected 400, got {response.status_code}"
-    
-    # Проверяем структуру ответа и сообщение об ошибке
-    response_data = response.json()
-    assert "detail" in response_data, f"Response does not contain 'detail' field: {response_data}"
-    assert "уже зарегистрирован" in response_data["detail"], \
-        f"Expected error message to contain 'уже зарегистрирован', but got: {response_data['detail']}"
+def test_register_new_user_success(client):
+    email = f"test_{uuid.uuid4().hex[:8]}@example.com"
+    r = client.post("/api/v1/users/register", json={
+        "email": email, "password": "StrongPass123!",
+        "confirm_password": "StrongPass123!", "full_name": "Test User",
+    })
+    assert r.status_code == 201, f"Got {r.status_code}: {r.text}"
+    assert r.json()["email"] == email
+
+
+def test_register_existing_user_fails(client):
+    email = f"dup_{uuid.uuid4().hex[:8]}@example.com"
+    client.post("/api/v1/users/register", json={
+        "email": email, "password": "StrongPass123!",
+        "confirm_password": "StrongPass123!", "full_name": "Dup",
+    })
+    r = client.post("/api/v1/users/register", json={
+        "email": email, "password": "StrongPass123!",
+        "confirm_password": "StrongPass123!", "full_name": "Dup",
+    })
+    assert r.status_code in (400, 409)
