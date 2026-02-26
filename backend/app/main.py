@@ -364,9 +364,23 @@ async def root():
         }
     }
 
+@app.get("/ready")
+async def readiness_check():
+    """Readiness probe — checks if app can serve requests."""
+    if engine:
+        try:
+            from sqlalchemy import text
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            return {"ready": True}
+        except Exception:
+            return JSONResponse(status_code=503, content={"ready": False, "reason": "database"})
+    return JSONResponse(status_code=503, content={"ready": False, "reason": "no_engine"})
+
+
 @app.get("/health")
 async def health_check():
-    """Детальная проверка состояния API"""
+    """Liveness probe — basic health check."""
     health_data = {
         "status": "healthy",
         "version": settings.VERSION,
