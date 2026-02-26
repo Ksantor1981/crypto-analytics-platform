@@ -41,7 +41,10 @@ except ImportError as e:
         from core.scheduler import TradingScheduler
     except ImportError as fallback_error:
         logging.error(f"Fallback import failed: {fallback_error}")
-        raise RuntimeError(f"Cannot start: {fallback_error}")
+        engine = None
+        Base = None
+        TradingScheduler = None
+        SubscriptionLimitMiddleware = None
 
 # Настройка логирования
 logging.basicConfig(
