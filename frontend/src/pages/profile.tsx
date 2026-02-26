@@ -112,7 +112,7 @@ export default function ProfilePage() {
             winRate: Math.round(avgAccuracy * 10) / 10,
           },
         }));
-      } catch { /* fallback to mock stats */ }
+      } catch { /* API unavailable, keep defaults */ }
     }
     loadStats();
   }, [authUser]);

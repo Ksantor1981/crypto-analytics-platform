@@ -31,109 +31,11 @@ import {
   DollarSign,
 } from 'lucide-react';
 
-// Mock data for top channels
-const topChannels = [
-  {
-    id: 3,
-    rank: 1,
-    name: 'CoinHunter',
-    description: 'Поиск перспективных альткоинов с высочайшей точностью',
-    accuracy: 91.2,
-    signals: 203,
-    roi: 31.5,
-    subscribers: 15600,
-    rating: 4.9,
-    avatar: '🎯',
-    badge: 'Лидер',
-    monthlyGrowth: 12.3,
-    winRate: 94.1,
-    avgReturn: 18.7,
-  },
-  {
-    id: 1,
-    rank: 2,
-    name: 'CryptoSignals Pro',
-    description: 'Профессиональные сигналы для опытных трейдеров',
-    accuracy: 87.5,
-    signals: 156,
-    roi: 24.3,
-    subscribers: 12500,
-    rating: 4.8,
-    avatar: '🚀',
-    badge: 'Проверенный',
-    monthlyGrowth: 8.9,
-    winRate: 89.2,
-    avgReturn: 15.6,
-  },
-  {
-    id: 2,
-    rank: 3,
-    name: 'TradingMaster',
-    description: 'Стабильные ежедневные торговые возможности',
-    accuracy: 82.1,
-    signals: 89,
-    roi: 18.7,
-    subscribers: 8900,
-    rating: 4.5,
-    avatar: '📈',
-    badge: 'Стабильный',
-    monthlyGrowth: 6.2,
-    winRate: 84.7,
-    avgReturn: 12.3,
-  },
-];
+// Fallback empty array (data loads from API)
+const topChannels: Array<Record<string, unknown>> = [];
 
-// Mock data for worst channels (anti-rating)
-const worstChannels = [
-  {
-    id: 6,
-    rank: 1,
-    name: 'ScamAlert',
-    description: 'Известные мошеннические сигналы - избегать!',
-    accuracy: 23.1,
-    signals: 45,
-    roi: -67.2,
-    subscribers: 1200,
-    rating: 1.2,
-    avatar: '❌',
-    badge: 'Опасно',
-    monthlyLoss: -45.3,
-    scamReports: 89,
-    avgLoss: -34.5,
-  },
-  {
-    id: 7,
-    rank: 2,
-    name: 'FakeSignals',
-    description: 'Поддельные сигналы для накрутки статистики',
-    accuracy: 31.8,
-    signals: 78,
-    roi: -52.1,
-    subscribers: 2400,
-    rating: 1.8,
-    avatar: '🚫',
-    badge: 'Фейк',
-    monthlyLoss: -38.7,
-    scamReports: 67,
-    avgLoss: -28.9,
-  },
-  {
-    id: 8,
-    rank: 3,
-    name: 'PumpDump Channel',
-    description: 'Пампы без реальной стратегии',
-    accuracy: 42.5,
-    signals: 134,
-    roi: -34.6,
-    subscribers: 5600,
-    rating: 2.1,
-    avatar: '📉',
-    badge: 'Памп&Дамп',
-    monthlyLoss: -25.4,
-    scamReports: 45,
-    avgLoss: -19.7,
-  },
-];
+// Anti-rating loads from API (channels with low accuracy)
+const worstChannels: Array<Record<string, unknown>> = [];
 
 // Categories for filtering
 const categories = [

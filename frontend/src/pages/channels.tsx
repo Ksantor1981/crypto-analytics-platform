@@ -25,60 +25,6 @@ import { StatusBadge } from '@/components/channels/StatusBadge';
 import { ChannelView } from '@/types/view';
 import { Channel } from '@/types';
 
-// Fallback mock data for demonstration when API is not available
-const fallbackChannels: ChannelView[] = [
-  {
-    id: '1',
-    name: 'CryptoSignals Pro',
-    url: 'https://t.me/cryptosignals_pro',
-    description: 'Профессиональные сигналы с высокой точностью',
-    type: 'telegram',
-    status: 'active',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    accuracy: 87.5,
-    signals: 156,
-    roi: 24.3,
-    subscribers: 12500,
-    category: 'premium',
-    rating: 4.8,
-    avatar: '🚀',
-  },
-  {
-    id: '2',
-    name: 'TradingMaster',
-    url: 'https://t.me/tradingmaster',
-    description: 'Ежедневные торговые возможности',
-    type: 'telegram',
-    status: 'active',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    accuracy: 82.1,
-    signals: 89,
-    roi: 18.7,
-    subscribers: 8900,
-    category: 'medium',
-    rating: 4.5,
-    avatar: '📈',
-  },
-  {
-    id: '3',
-    name: 'CoinHunter',
-    url: 'https://t.me/coinhunter',
-    description: 'Поиск перспективных альткоинов',
-    type: 'telegram',
-    status: 'pending',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    accuracy: 91.2,
-    signals: 203,
-    roi: 31.5,
-    subscribers: 15600,
-    category: 'premium',
-    rating: 4.9,
-    avatar: '🎯',
-  },
-];
 
 const categories = [
   { value: 'all', label: 'Все каналы' },

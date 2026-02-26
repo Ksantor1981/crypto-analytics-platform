@@ -10,7 +10,10 @@ import random
 from datetime import timedelta
 
 from ...core.database import get_db
-from ...services.telegram_service import TelegramService
+try:
+    from ...services.telegram_service import TelegramService
+except ImportError:
+    TelegramService = None
 from ...models.channel import Channel
 from ...models.signal import Signal
 try:
