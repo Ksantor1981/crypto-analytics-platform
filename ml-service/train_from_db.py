@@ -105,13 +105,21 @@ def train():
     from xgboost import XGBClassifier
     import joblib
 
+    # Use regularization to prevent overfit on small datasets
+    from sklearn.model_selection import cross_val_score
+
     model = XGBClassifier(
-        n_estimators=100, max_depth=4, learning_rate=0.1,
+        n_estimators=50, max_depth=3, learning_rate=0.05,
+        min_child_weight=5, subsample=0.8, colsample_bytree=0.8,
+        reg_alpha=1.0, reg_lambda=2.0,
         random_state=42, use_label_encoder=False, eval_metric='logloss',
     )
     model.fit(features, labels)
 
-    accuracy = (model.predict(features) == labels).mean()
+    train_acc = (model.predict(features) == labels).mean()
+    cv_scores = cross_val_score(model, features, labels, cv=min(5, len(features)//10 or 2), scoring='accuracy')
+    accuracy = cv_scores.mean()
+    logger.info(f"Train accuracy: {train_acc:.1%}, CV accuracy: {accuracy:.1%} (+/- {cv_scores.std():.1%})")
     logger.info(f"Training accuracy: {accuracy:.1%}")
 
     model_path = os.path.join(os.path.dirname(__file__), "models", "signal_model.pkl")

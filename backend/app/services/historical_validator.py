@@ -181,13 +181,19 @@ async def validate_all_signals(db) -> dict:
     sl_count = 0
     total_validated = 0
 
-    for s in signals:
+    import asyncio as _aio
+
+    for i, s in enumerate(signals):
         if not s.entry_price:
             continue
 
         sig_date = s.message_timestamp or s.created_at
         if not sig_date:
             continue
+
+        # Rate limit: CoinGecko free tier ~30 req/min
+        if i > 0 and i % 10 == 0:
+            await _aio.sleep(2)
         if isinstance(sig_date, str):
             sig_date = datetime.fromisoformat(sig_date)
 
