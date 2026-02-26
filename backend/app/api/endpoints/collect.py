@@ -16,6 +16,7 @@ from app.services.telegram_scraper import collect_signals_from_channel
 from app.services.reddit_scraper import collect_reddit_signals, CRYPTO_SUBREDDITS
 from app.services.ocr_signal_parser import parse_signal_from_image_url
 from app.services.deep_collector import deep_collect_and_validate
+from app.services.telethon_collector import is_authenticated as telethon_ready, collect_channel_history
 from app.services.metrics_calculator import recalculate_all_channels, recalculate_channel_metrics
 from app.services.price_validator import validate_signal_price
 from app.services.signal_checker import check_pending_signals
@@ -296,6 +297,51 @@ async def validate_historical(
     """Validate all signals against historical CoinGecko prices. Updates accuracy."""
     result = await validate_all_signals(db)
     return result
+
+
+@router.get("/telethon-status")
+async def telethon_status():
+    """Check if Telethon is authenticated."""
+    return {
+        "authenticated": telethon_ready(),
+        "how_to_auth": "Run: cd backend && python -m app.services.telethon_collector --auth",
+    }
+
+
+@router.post("/telethon-collect/{channel_username}")
+async def telethon_collect(
+    channel_username: str,
+    days: int = 90,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Collect deep history from a channel via Telethon (requires auth)."""
+    if not telethon_ready():
+        return {"error": "Telethon not authenticated", "how_to": "Run: python -m app.services.telethon_collector --auth"}
+
+    signals = await collect_channel_history(channel_username, days_back=days)
+
+    channel = db.query(Channel).filter(Channel.username == channel_username).first()
+    if not channel:
+        return {"error": f"Channel @{channel_username} not in database"}
+
+    saved = 0
+    for sig in signals:
+        if db.query(Signal).filter(Signal.channel_id == channel.id, Signal.original_text == sig.original_text[:500]).first():
+            continue
+        db.add(Signal(
+            channel_id=channel.id, asset=sig.asset, symbol=sig.asset.replace("/", ""),
+            direction=sig.direction, entry_price=sig.entry_price,
+            tp1_price=sig.take_profit, stop_loss=sig.stop_loss,
+            confidence_score=sig.confidence, original_text=sig.original_text,
+            status="PENDING", message_timestamp=sig.timestamp,
+        ))
+        saved += 1
+
+    channel.signals_count = db.query(Signal).filter(Signal.channel_id == channel.id).count()
+    db.commit()
+
+    return {"channel": channel_username, "signals_found": len(signals), "new_saved": saved, "total": channel.signals_count}
 
 
 @router.get("/bot-status")
