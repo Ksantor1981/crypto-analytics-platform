@@ -15,7 +15,13 @@ from app.services.telegram_scraper import ParsedSignal, parse_signal_from_text
 
 logger = logging.getLogger(__name__)
 
-API_ID = int(os.getenv("TELEGRAM_API_ID", "21073808"))
+_raw_api_id = os.getenv("TELEGRAM_API_ID", "21073808")
+try:
+    API_ID = int(_raw_api_id)
+except ValueError:
+    import re
+    m = re.search(r"(\d{5,})", _raw_api_id)
+    API_ID = int(m.group(1)) if m else 21073808
 API_HASH = os.getenv("TELEGRAM_API_HASH", "2e3adb8940912dd295fe20c1d2ce5368")
 SESSION_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "telegram_session")
 

@@ -11,14 +11,12 @@ from app.services.telegram_scraper import ParsedSignal, parse_signal_from_text
 logger = logging.getLogger(__name__)
 
 CRYPTO_SUBREDDITS = [
-    "CryptoCurrency",
-    "CryptoMarkets",
-    "Bitcoin",
-    "ethtrader",
-    "SatoshiStreetBets",
-    "CryptoMoonShots",
-    "altcoin",
-    "binance",
+    "CryptoCurrency", "CryptoMarkets", "Bitcoin", "ethtrader",
+    "SatoshiStreetBets", "CryptoMoonShots", "altcoin", "binance",
+    "solana", "cardano", "ethereum", "defi", "BitcoinBeginners",
+    "CryptoTechnology", "Bitcointrading", "CryptoCurrencyTrading",
+    "Daytrading", "wallstreetbetscrypto", "CryptoCurrencies",
+    "Crypto_Currency_News",
 ]
 
 
