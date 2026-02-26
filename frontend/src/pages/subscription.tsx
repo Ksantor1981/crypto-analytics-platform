@@ -1,325 +1,101 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Head from 'next/head';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/lib/api';
-import { formatDate } from '@/lib/utils';
+import { CheckCircle, Zap, Crown, Star } from 'lucide-react';
 
-interface Subscription {
-  id: string;
-  channel_id: string;
-  channel_name: string;
-  status: 'active' | 'cancelled' | 'expired';
-  price: number;
-  currency: 'USD';
-  billing_period: 'monthly' | 'yearly';
-  start_date: string;
-  end_date: string;
-  auto_renew: boolean;
-  stripe_subscription_id?: string;
-}
-
-interface PricingPlan {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: 'USD';
-  billing_period: 'monthly' | 'yearly';
-  features: string[];
-  popular?: boolean;
-}
+const plans = [
+  {
+    id: 'free', name: 'Free', price: 0, period: 'навсегда',
+    icon: Star, color: 'gray',
+    features: ['До 3 каналов', 'Базовая аналитика', 'Антирейтинг (топ-3)', 'Email поддержка'],
+  },
+  {
+    id: 'premium', name: 'Premium', price: 19, period: '/мес',
+    icon: Zap, color: 'blue', popular: true,
+    features: ['До 15 каналов', 'Полная аналитика', 'Excel экспорт', 'Расширенные фильтры', 'Push уведомления', 'Приоритетная поддержка'],
+  },
+  {
+    id: 'pro', name: 'Pro', price: 49, period: '/мес',
+    icon: Crown, color: 'purple',
+    features: ['Безлимит каналов', 'ML предсказания', 'API доступ', 'Кастомные алерты', 'VIP поддержка', 'Персональный менеджер'],
+  },
+];
 
 export default function SubscriptionPage() {
   const { user } = useAuth();
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const currentPlan = user?.subscription?.plan?.toLowerCase() || 'free';
 
-  useEffect(() => {
-    fetchSubscriptions();
-    fetchPricingPlans();
-  }, []);
-
-  const fetchSubscriptions = async () => {
-    try {
-      const response = await apiClient.getSubscriptions();
-      // Временно используем моковые данные, так как API может возвращать другую структуру
-      setSubscriptions([
-        {
-          id: '1',
-          channel_id: '1',
-          channel_name: 'Crypto Signals Pro',
-          status: 'active',
-          price: 50,
-          currency: 'USD',
-          billing_period: 'monthly',
-          start_date: new Date('2024-01-01').toISOString(),
-          end_date: new Date('2024-02-01').toISOString(),
-          auto_renew: true,
-          stripe_subscription_id: 'sub_123',
-        },
-        {
-          id: '2',
-          channel_id: '2',
-          channel_name: 'Technical Analysis Hub',
-          status: 'cancelled',
-          price: 30,
-          currency: 'USD',
-          billing_period: 'monthly',
-          start_date: new Date('2023-12-01').toISOString(),
-          end_date: new Date('2024-01-01').toISOString(),
-          auto_renew: false,
-        },
-      ]);
-    } catch (error) {
-      console.error('Error fetching subscriptions:', error);
-    }
-  };
-
-  const fetchPricingPlans = async () => {
-    try {
-      // Временно используем моковые данные
-      setPricingPlans([
-        {
-          id: 'basic',
-          name: 'Базовый',
-          description: 'Для начинающих трейдеров',
-          price: 29,
-          currency: 'USD',
-          billing_period: 'monthly',
-          features: [
-            'Доступ к 5 каналам',
-            'Базовые сигналы',
-            'Email уведомления',
-            'Поддержка по email',
-          ],
-        },
-        {
-          id: 'pro',
-          name: 'Профессиональный',
-          description: 'Для активных трейдеров',
-          price: 99,
-          currency: 'USD',
-          billing_period: 'monthly',
-          features: [
-            'Неограниченный доступ к каналам',
-            'Продвинутые сигналы',
-            'Приоритетная поддержка',
-            'API доступ',
-            'Экспорт данных',
-          ],
-          popular: true,
-        },
-        {
-          id: 'enterprise',
-          name: 'Корпоративный',
-          description: 'Для команд и организаций',
-          price: 299,
-          currency: 'USD',
-          billing_period: 'monthly',
-          features: [
-            'Все функции Pro',
-            'Командный доступ',
-            'Индивидуальная настройка',
-            'Выделенная поддержка',
-            'SLA гарантии',
-          ],
-        },
-      ]);
-    } catch (error) {
-      console.error('Error fetching pricing plans:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpgrade = async (planId: string) => {
+  const handleSelectPlan = (planId: string) => {
+    if (planId === currentPlan) return;
     setSelectedPlan(planId);
-    try {
-      await apiClient.updateSubscription(planId as 'free' | 'pro' | 'enterprise');
-      // Обновляем данные после успешного обновления
-      await fetchSubscriptions();
-    } catch (error) {
-      console.error('Error upgrading subscription:', error);
-    } finally {
-      setSelectedPlan(null);
-    }
+    // TODO: Stripe checkout when keys are available
+    alert(`Для оформления подписки "${planId}" необходима интеграция со Stripe. Добавьте STRIPE_SECRET_KEY в переменные окружения.`);
   };
-
-  const handleCancelSubscription = async (subscriptionId: string) => {
-    try {
-      console.log('Cancelling subscription:', subscriptionId);
-      // Временно просто логируем
-      // await apiClient.cancelSubscription(subscriptionId);
-      // await fetchSubscriptions();
-    } catch (error) {
-      console.error('Error cancelling subscription:', error);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Загрузка...</div>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <>
-      <Head>
-        <title>Подписки - Crypto Analytics Platform</title>
-        <meta name="description" content="Управление подписками и тарифными планами" />
-      </Head>
-      <DashboardLayout>
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Управление подписками
-            </h1>
-            <p className="text-gray-600">
-              Просматривайте и управляйте вашими подписками на каналы
-            </p>
-          </div>
-
-          {/* Active Subscriptions */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Активные подписки
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {subscriptions.map(subscription => (
-                <Card key={subscription.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-lg font-semibold">
-                          {subscription.channel_name}
-                        </h3>
-                        <p className="text-gray-600">
-                          ${subscription.price}/{subscription.billing_period}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          subscription.status === 'active'
-                            ? 'default'
-                            : subscription.status === 'cancelled'
-                            ? 'secondary'
-                            : 'destructive'
-                        }
-                      >
-                        {subscription.status === 'active'
-                          ? 'Активна'
-                          : subscription.status === 'cancelled'
-                          ? 'Отменена'
-                          : 'Истекла'}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">Начало:</span>
-                        <br />
-                        {formatDate(subscription.start_date)}
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Окончание:</span>
-                        <br />
-                        {formatDate(subscription.end_date)}
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <div className="flex space-x-2">
-                      {subscription.status === 'active' && (
-                        <Button
-                          variant="outline"
-                          onClick={() => handleCancelSubscription(subscription.id)}
-                        >
-                          Отменить
-                        </Button>
-                      )}
-                      <Button variant="outline">Детали</Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          {/* Pricing Plans */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Тарифные планы
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {pricingPlans.map(plan => (
-                <Card
-                  key={plan.id}
-                  className={`relative ${
-                    plan.popular ? 'ring-2 ring-blue-500' : ''
-                  }`}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <Badge className="bg-blue-500 text-white">
-                        Популярный
-                      </Badge>
-                    </div>
-                  )}
-                  <CardHeader>
-                    <h3 className="text-xl font-semibold">{plan.name}</h3>
-                    <p className="text-gray-600">{plan.description}</p>
-                    <div className="text-3xl font-bold">
-                      ${plan.price}
-                      <span className="text-sm font-normal text-gray-500">
-                        /{plan.billing_period}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-center">
-                          <span className="text-green-500 mr-2">✓</span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      className="w-full"
-                      onClick={() => handleUpgrade(plan.id)}
-                      disabled={selectedPlan === plan.id}
-                    >
-                      {selectedPlan === plan.id ? 'Обновление...' : 'Выбрать план'}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </div>
+      <Head><title>Подписки - CryptoAnalytics</title></Head>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Тарифные планы</h1>
+          <p className="text-gray-600">Выберите план, который подходит для ваших задач</p>
+          <p className="text-sm text-blue-600 mt-2">
+            Текущий план: <span className="font-semibold capitalize">{currentPlan}</span>
+          </p>
         </div>
-      </DashboardLayout>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {plans.map(plan => {
+            const Icon = plan.icon;
+            const isCurrent = currentPlan === plan.id;
+            return (
+              <Card key={plan.id} className={`relative flex flex-col ${plan.popular ? 'border-2 border-blue-500 shadow-lg' : 'border'}`}>
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs font-semibold px-4 py-1 rounded-full">
+                    Популярный
+                  </div>
+                )}
+                <CardHeader className="text-center pb-2">
+                  <Icon className={`h-8 w-8 mx-auto mb-2 text-${plan.color}-500`} />
+                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  <div className="mt-2">
+                    <span className="text-4xl font-bold">${plan.price}</span>
+                    <span className="text-gray-500 text-sm">{plan.period}</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <ul className="space-y-3">
+                    {plan.features.map((f, i) => (
+                      <li key={i} className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <div className="p-4 pt-0 mt-auto">
+                  <Button
+                    className={`w-full ${isCurrent ? 'bg-gray-200 text-gray-600' : plan.popular ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
+                    variant={plan.popular ? 'default' : 'outline'}
+                    disabled={isCurrent}
+                    onClick={() => handleSelectPlan(plan.id)}
+                  >
+                    {isCurrent ? 'Текущий план' : plan.price === 0 ? 'Начать бесплатно' : 'Выбрать'}
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div className="mt-10 text-center text-sm text-gray-500">
+          <p>Все платные планы включают 7-дневный бесплатный пробный период.</p>
+          <p className="mt-1">Отмена подписки возможна в любое время.</p>
+        </div>
+      </div>
     </>
   );
 }
-
-// Отключаем SSG для этой страницы
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}
-
-
