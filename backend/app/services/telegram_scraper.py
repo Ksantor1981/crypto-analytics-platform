@@ -30,6 +30,9 @@ CRYPTO_PAIRS = {
 LONG_KW = re.compile(r'\b(long|buy|buyy|лонг|покупка|купить|бай|adding\s+more)\b|📈|🟢|🚀', re.I)
 SHORT_KW = re.compile(r'\b(short|sell|selll|шорт|продажа|продать|сел)\b|📉|🔴', re.I)
 
+# Non-crypto assets to ignore
+IGNORE_ASSETS = {"XAU", "XAUUSD", "GOLD", "OIL", "SPX", "NAS", "DXY", "EUR", "GBP", "JPY"}
+
 
 @dataclass
 class ParsedSignal:
@@ -138,6 +141,12 @@ def _validate_price(price: float, asset: str) -> bool:
 
 def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
     """Extract trading signal from message text."""
+    # Skip non-crypto assets
+    text_upper = text.upper()
+    for ignore in IGNORE_ASSETS:
+        if ignore in text_upper and not any(c in text_upper for c in ["BTC", "ETH", "SOL"]):
+            return None
+
     asset = _detect_asset(text)
     if not asset:
         return None
