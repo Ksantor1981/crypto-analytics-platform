@@ -194,3 +194,13 @@ async def check_signals(
     """Check pending signals against current market prices. Updates TP/SL hit status."""
     result = await check_pending_signals(db)
     return result
+
+
+@router.get("/bot-status")
+async def bot_status(db: Session = Depends(get_db)):
+    """Check Telegram bot status and channel access."""
+    from app.services.telegram_bot import check_bot_access_to_channels
+    channels = db.query(Channel).filter(Channel.platform == "telegram").all()
+    usernames = [ch.username for ch in channels if ch.username]
+    result = await check_bot_access_to_channels(usernames)
+    return result
