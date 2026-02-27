@@ -62,10 +62,11 @@ except ImportError as e:
         TradingScheduler = None
         SubscriptionLimitMiddleware = None
 
-# Structured logging (structlog)
+# Structured logging (structlog) — JSON в production
 try:
     from app.core.logging_config import setup_logging, get_logger
-    _use_json = os.getenv("LOG_JSON", "false").lower() == "true"
+    _env = os.getenv("ENVIRONMENT", "development")
+    _use_json = os.getenv("LOG_JSON", "true" if _env == "production" else "false").lower() == "true"
     setup_logging(json_format=_use_json, level=os.getenv("LOG_LEVEL", "INFO"))
     logger = get_logger(__name__)
 except ImportError:
@@ -143,11 +144,19 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Crypto Analytics Platform...")
     
     try:
-        # Создаем все таблицы (если база данных доступна)
+        # В production используем Alembic (alembic upgrade head перед запуском).
+        # В development — create_all для быстрого старта без PostgreSQL.
+        use_alembic = os.getenv("USE_ALEMBIC", "false").lower() == "true"
         if engine and Base:
             try:
-                Base.metadata.create_all(bind=engine)
-                logger.info("Database tables created successfully")
+                if use_alembic:
+                    import subprocess
+                    backend_dir = Path(__file__).resolve().parent.parent
+                    subprocess.run(["alembic", "upgrade", "head"], cwd=str(backend_dir), check=False)
+                    logger.info("Alembic migrations applied")
+                else:
+                    Base.metadata.create_all(bind=engine)
+                    logger.info("Database tables created (create_all)")
                 _seed_demo_data(engine)
             except Exception as db_error:
                 logger.error(f"Database initialization failed: {db_error}")

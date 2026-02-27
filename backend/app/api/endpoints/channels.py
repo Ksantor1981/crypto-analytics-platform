@@ -71,6 +71,17 @@ def read_channels(
     Retrieve channels. If authenticated, shows user's channels first.
     sort=accuracy_asc — для антирейтинга (худшие первыми).
     """
+    # Redis cache (only when unauthenticated)
+    if current_user is None:
+        try:
+            from app.core.redis_cache import cache_get, cache_set, key_channels_list, CACHE_TTL_CHANNELS
+            cache_key = key_channels_list(sort or "accuracy_desc", skip, limit)
+            cached = cache_get(cache_key)
+            if cached is not None:
+                return [schemas.Channel(**c) for c in cached]
+        except Exception:
+            pass
+
     query = db.query(models.Channel).filter(models.Channel.is_active == True)
     order_accuracy = models.Channel.accuracy.desc()
     if sort == "accuracy_asc":
@@ -83,6 +94,16 @@ def read_channels(
     else:
         query = query.order_by(order_accuracy)
     channels = query.offset(skip).limit(limit).all()
+
+    # Cache for unauthenticated
+    if current_user is None:
+        try:
+            from app.core.redis_cache import cache_set, key_channels_list, CACHE_TTL_CHANNELS
+            cache_set(key_channels_list(sort or "accuracy_desc", skip, limit),
+                      [schemas.Channel.model_validate(ch).model_dump(mode="json") for ch in channels],
+                      CACHE_TTL_CHANNELS)
+        except Exception:
+            pass
     return channels
 
 @router.post("/discover", response_model=dict)

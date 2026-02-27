@@ -44,6 +44,7 @@ services:
       dockerfile: Dockerfile
     container_name: crypto-analytics-backend
     environment:
+      - USE_ALEMBIC=${USE_ALEMBIC:-true}
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
       - SECRET_KEY=${SECRET_KEY}

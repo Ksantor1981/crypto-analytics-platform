@@ -102,8 +102,8 @@ const ChannelsPage: React.FC = () => {
         <meta name="description" content="Просмотр и управление каналами для анализа крипто-сигналов." />
       </Head>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Каналы</h1>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Каналы</h1>
           <Button onClick={() => setIsModalOpen(true)} className="mt-4 sm:mt-0">
             <Plus className="mr-2 h-4 w-4" />
             Добавить канал

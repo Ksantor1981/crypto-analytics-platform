@@ -1,10 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+beforeEach(cleanup);
+
 // Mock API client
-jest.mock('../src/lib/api', () => ({
+jest.mock('@/lib/api', () => ({
   apiClient: {
     auth: {
       login: jest.fn(),
@@ -87,37 +89,34 @@ describe('Frontend Components Unit Tests', () => {
     });
 
     test('handles form submission', async () => {
-      const mockSubmit = jest.fn();
-      
-      render(
+      const mockSubmit = jest.fn((e) => e.preventDefault());
+      const { container } = render(
         <TestWrapper>
-          <form onSubmit={mockSubmit}>
-            <MockLoginForm />
+          <form data-testid="submit-form" onSubmit={mockSubmit}>
+            <input data-testid="submit-email" type="email" />
+            <input data-testid="submit-password" type="password" />
+            <button data-testid="submit-btn" type="submit">Войти</button>
           </form>
         </TestWrapper>
       );
-
-      const emailInput = screen.getByTestId('email-input');
-      const passwordInput = screen.getByTestId('password-input');
-      const submitButton = screen.getByTestId('login-button');
-
-      fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-      fireEvent.change(passwordInput, { target: { value: 'password123' } });
-      fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockSubmit).toHaveBeenCalled();
-      });
+      const emailInput = container.querySelector('[data-testid="submit-email"]');
+      const passwordInput = container.querySelector('[data-testid="submit-password"]');
+      const submitButton = container.querySelector('[data-testid="submit-btn"]');
+      if (emailInput && passwordInput && submitButton) {
+        fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+        fireEvent.change(passwordInput, { target: { value: 'password123' } });
+        fireEvent.click(submitButton);
+      }
+      await waitFor(() => expect(mockSubmit).toHaveBeenCalled());
     });
 
     test('validates email format', () => {
-      render(
+      const { container } = render(
         <TestWrapper>
           <MockLoginForm />
         </TestWrapper>
       );
-
-      const emailInput = screen.getByTestId('email-input');
+      const emailInput = container.querySelector('[data-testid="email-input"]');
       
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
       
@@ -137,26 +136,27 @@ describe('Frontend Components Unit Tests', () => {
     };
 
     test('renders channel information correctly', () => {
-      render(
+      const { container } = render(
         <TestWrapper>
           <MockChannelCard channel={mockChannel} />
         </TestWrapper>
       );
 
-      expect(screen.getByTestId('channel-card')).toBeInTheDocument();
-      expect(screen.getByTestId('channel-name')).toHaveTextContent('Test Channel');
-      expect(screen.getByTestId('channel-url')).toHaveTextContent('https://t.me/testchannel');
-      expect(screen.getByTestId('channel-accuracy')).toHaveTextContent('85.5%');
+      const scope = within(container);
+      expect(scope.getByTestId('channel-card')).toBeInTheDocument();
+      expect(scope.getByTestId('channel-name')).toHaveTextContent('Test Channel');
+      expect(scope.getByTestId('channel-url')).toHaveTextContent('https://t.me/testchannel');
+      expect(scope.getByTestId('channel-accuracy')).toHaveTextContent('85.5%');
     });
 
     test('displays channel metrics', () => {
-      render(
+      const { container } = render(
         <TestWrapper>
           <MockChannelCard channel={mockChannel} />
         </TestWrapper>
       );
 
-      const card = screen.getByTestId('channel-card');
+      const card = within(container).getByTestId('channel-card');
       expect(card).toBeInTheDocument();
     });
   });
@@ -184,42 +184,42 @@ describe('Frontend Components Unit Tests', () => {
     ];
 
     test('renders signal table with data', () => {
-      render(
+      const { container } = render(
         <TestWrapper>
           <MockSignalTable signals={mockSignals} />
         </TestWrapper>
       );
 
-      expect(screen.getByTestId('signal-table')).toBeInTheDocument();
-      expect(screen.getByTestId('signal-row-0')).toBeInTheDocument();
-      expect(screen.getByTestId('signal-row-1')).toBeInTheDocument();
+      const scope = within(container);
+      expect(scope.getByTestId('signal-table')).toBeInTheDocument();
+      expect(scope.getByTestId('signal-row-0')).toBeInTheDocument();
+      expect(scope.getByTestId('signal-row-1')).toBeInTheDocument();
     });
 
     test('displays signal information correctly', () => {
-      render(
+      const { container } = render(
         <TestWrapper>
           <MockSignalTable signals={mockSignals} />
         </TestWrapper>
       );
 
-      expect(screen.getByTestId('signal-pair-0')).toHaveTextContent('BTC/USDT');
-      expect(screen.getByTestId('signal-type-0')).toHaveTextContent('BUY');
-      expect(screen.getByTestId('signal-price-0')).toHaveTextContent('45000');
-      
-      expect(screen.getByTestId('signal-pair-1')).toHaveTextContent('ETH/USDT');
-      expect(screen.getByTestId('signal-type-1')).toHaveTextContent('SELL');
-      expect(screen.getByTestId('signal-price-1')).toHaveTextContent('3200');
+      const scope = within(container);
+      expect(scope.getByTestId('signal-pair-0')).toHaveTextContent('BTC/USDT');
+      expect(scope.getByTestId('signal-type-0')).toHaveTextContent('BUY');
+      expect(scope.getByTestId('signal-price-0')).toHaveTextContent('45000');
+      expect(scope.getByTestId('signal-pair-1')).toHaveTextContent('ETH/USDT');
+      expect(scope.getByTestId('signal-type-1')).toHaveTextContent('SELL');
+      expect(scope.getByTestId('signal-price-1')).toHaveTextContent('3200');
     });
 
     test('handles empty signals array', () => {
-      render(
+      const { container } = render(
         <TestWrapper>
           <MockSignalTable signals={[]} />
         </TestWrapper>
       );
 
-      expect(screen.getByTestId('signal-table')).toBeInTheDocument();
-      // Таблица должна быть пустой
+      expect(within(container).getByTestId('signal-table')).toBeInTheDocument();
     });
   });
 

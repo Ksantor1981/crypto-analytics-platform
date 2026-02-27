@@ -1,5 +1,6 @@
 """
 Validate signal prices against real market data from CoinGecko.
+Uses Redis cache when available, in-memory fallback otherwise.
 """
 import logging
 import httpx
@@ -8,7 +9,7 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
-_price_cache: Dict[str, tuple] = {}
+_price_cache: Dict[str, tuple] = {}  # in-memory fallback
 CACHE_TTL = 300  # 5 minutes
 
 
@@ -34,6 +35,16 @@ async def get_current_price(symbol: str) -> Optional[float]:
     if not coingecko_id:
         return None
 
+    # Redis cache (preferred)
+    try:
+        from app.core.redis_cache import cache_get, cache_set, key_price, CACHE_TTL_PRICE
+        cached = cache_get(key_price(pair))
+        if cached is not None:
+            return float(cached)
+    except ImportError:
+        pass
+
+    # In-memory fallback
     now = datetime.utcnow()
     if pair in _price_cache:
         cached_price, cached_time = _price_cache[pair]
@@ -51,6 +62,11 @@ async def get_current_price(symbol: str) -> Optional[float]:
                 price = data.get(coingecko_id, {}).get("usd")
                 if price:
                     _price_cache[pair] = (price, now)
+                    try:
+                        from app.core.redis_cache import cache_set, key_price, CACHE_TTL_PRICE
+                        cache_set(key_price(pair), price, CACHE_TTL_PRICE)
+                    except ImportError:
+                        pass
                     return price
     except Exception as e:
         logger.warning(f"CoinGecko price fetch failed for {pair}: {e}")

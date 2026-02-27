@@ -136,7 +136,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8 dashboard-header">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               Панель управления
             </h1>
             <p className="text-gray-600">
@@ -149,9 +149,9 @@ export default function DashboardPage() {
           <div className="mb-8">
             <Card className="border-blue-200 bg-blue-50">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-blue-900">
+                    <h3 className="text-base sm:text-lg font-semibold text-blue-900">
                       Тарифный план: {authUser?.subscription?.plan || 'Free'}
                     </h3>
                     <p className="text-blue-700">

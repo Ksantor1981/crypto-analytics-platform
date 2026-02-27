@@ -15,6 +15,13 @@ def get_signals_dashboard(
     db: Session = Depends(get_db)
 ):
     """Get signals without JOIN - simple version for dashboard."""
+    try:
+        from app.core.redis_cache import cache_get, cache_set, key_dashboard_signals, CACHE_TTL_ANALYTICS
+        cached = cache_get(key_dashboard_signals(skip, limit))
+        if cached is not None:
+            return cached
+    except Exception:
+        pass
     query = db.query(Signal)
     
     # Get total count
@@ -45,7 +52,12 @@ def get_signals_dashboard(
             "channel_name": f"Channel {signal.channel_id}" if signal.channel_id else "Unknown"
         }
         result.append(signal_dict)
-    
+
+    try:
+        from app.core.redis_cache import cache_set, key_dashboard_signals, CACHE_TTL_ANALYTICS
+        cache_set(key_dashboard_signals(skip, limit), result, CACHE_TTL_ANALYTICS)
+    except Exception:
+        pass
     return result
 
 @router.get("/channels", response_model=List[dict])
@@ -55,6 +67,13 @@ def get_channels_dashboard(
     db: Session = Depends(get_db)
 ):
     """Get channels without complex JOIN - simple version for dashboard."""
+    try:
+        from app.core.redis_cache import cache_get, cache_set, key_dashboard_channels, CACHE_TTL_ANALYTICS
+        cached = cache_get(key_dashboard_channels(skip, limit))
+        if cached is not None:
+            return cached
+    except Exception:
+        pass
     query = db.query(Channel)
     
     # Get total count
@@ -83,5 +102,10 @@ def get_channels_dashboard(
             "updated_at": channel.updated_at.isoformat() if channel.updated_at else None
         }
         result.append(channel_dict)
-    
+
+    try:
+        from app.core.redis_cache import cache_set, key_dashboard_channels, CACHE_TTL_ANALYTICS
+        cache_set(key_dashboard_channels(skip, limit), result, CACHE_TTL_ANALYTICS)
+    except Exception:
+        pass
     return result
