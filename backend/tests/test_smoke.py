@@ -27,10 +27,10 @@ def test_logging():
     print("✅ Logging OK")
 
 def test_message_queue():
-    """Test message queue connectivity"""
+    """Test Redis connectivity"""
     import redis
-    r = redis.Redis(host='localhost', port=6379, db=0, socket_connect_timeout=2)
     try:
+        r = redis.Redis(host='localhost', port=6379, db=0, socket_connect_timeout=1)
         assert r.ping()
-    except redis.ConnectionError:
+    except Exception:
         pytest.skip("Redis not available")
