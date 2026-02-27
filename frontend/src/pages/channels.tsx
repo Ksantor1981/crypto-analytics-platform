@@ -117,7 +117,7 @@ const ChannelsPage: React.FC = () => {
         />
 
         <Card className="mb-8">
-          <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+          <CardContent className="p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
             <div className="w-full md:w-1/2 lg:w-1/3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -129,7 +129,7 @@ const ChannelsPage: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <select
                 value={activeCategory}
                 onChange={(e) => setActiveCategory(e.target.value)}

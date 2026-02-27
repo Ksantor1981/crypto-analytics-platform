@@ -140,6 +140,20 @@ class TestTelegramScraper:
         from app.services.telegram_scraper import _validate_price
         assert _validate_price(65000, "BTC/USDT")
         assert not _validate_price(5, "BTC/USDT")
+        assert not _validate_price(168.4, "BTC/USDT")  # too low for BTC
+        assert not _validate_price(300000, "BTC/USDT")  # too high
+
+    def test_skip_news_digest(self):
+        from app.services.telegram_scraper import parse_signal_from_text
+        news = "Trump speaking in Congress. Bank of America acquired 2,486 BTC ($168.4 million). Weekly Digest."
+        assert parse_signal_from_text(news) is None
+
+    def test_skip_price_in_million_context(self):
+        from app.services.telegram_scraper import parse_signal_from_text
+        # $168.4 million — не entry price для BTC
+        text = "BTC LONG Strategy acquired $168.4 million worth of BTC"
+        sig = parse_signal_from_text(text)
+        assert sig is None or (sig and sig.entry_price != 168.4)
 
     def test_detect_asset_formats(self):
         from app.services.telegram_scraper import _detect_asset

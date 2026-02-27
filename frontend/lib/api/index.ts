@@ -73,9 +73,13 @@ export const apiClient = {
     request<{
       id: number;
       email: string;
-      subscription_type: string;
+      full_name?: string;
+      subscription_type?: string;
+      subscription_plan?: string;
+      role?: string;
       is_active: boolean;
-      name?: string;
+      is_premium?: boolean;
+      created_at?: string;
     }>('/users/me'),
 
   getChannels: (params?: { skip?: number; limit?: number; sort?: string }) => {
@@ -116,9 +120,27 @@ export const apiClient = {
     );
   },
 
+  getSignalsWithTotal: (channelId?: string, limit = 1000) => {
+    const q = new URLSearchParams();
+    if (channelId) q.set('channel_id', channelId);
+    q.set('limit', String(limit));
+    return request<{ signals?: any[]; total?: number }>(`/signals?${q.toString()}`);
+  },
+
   getSignal: (id: string) => request<any>(`/signals/${id}`),
 
   getSubscriptions: () => request<any>('/subscriptions/me'),
+
+  getSubscriptionPlans: () =>
+    request<Array<{
+      plan: string;
+      name: string;
+      description: string;
+      price_monthly: number;
+      price_yearly?: number;
+      features: string[];
+      is_popular?: boolean;
+    }>>('/subscriptions/plans'),
 
   updateSubscription: (planType: string) =>
     request('/subscriptions/me', {

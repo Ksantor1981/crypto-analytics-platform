@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crypto_analytics_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crypto_analytics_user} -d ${POSTGRES_DB:-crypto_analytics}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,7 +48,7 @@ services:
       - REDIS_URL=${REDIS_URL}
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - DEBUG=${DEBUG:-false}
+      - DEBUG=false
       # Добавляем ML service URL
       - ML_SERVICE_URL=${ML_SERVICE_URL:-http://ml-service:8001}
       # API Keys для бирж (если нужны)
@@ -107,6 +107,7 @@ services:
     environment:
       - REDIS_URL=${REDIS_URL}
       - MODEL_CACHE_ENABLED=${MODEL_CACHE_ENABLED:-true}
+      - BACKEND_URL=http://backend:8000
     ports:
       - "${ML_SERVICE_PORT:-8001}:8001"
     depends_on:

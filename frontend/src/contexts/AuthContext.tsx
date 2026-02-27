@@ -16,17 +16,21 @@ interface AuthContextType {
 
 // Функция для маппинга APIUser в User
 const mapAPIUserToUser = (apiUser: APIUser): User => {
+  const planByRole = (r?: string) =>
+    r === 'PREMIUM_USER' || r === 'premium' ? 'Premium' :
+    r === 'PRO_USER' || r === 'pro' ? 'Pro' : 'Free';
+  const subPlan = apiUser.subscription_plan || apiUser.subscription_type || apiUser.role;
+  const plan = planByRole(subPlan) || (apiUser.is_premium ? 'Premium' : 'Free');
   return {
     id: apiUser.id.toString(),
-    name: apiUser.name || apiUser.email,
-    username: apiUser.email,
+    name: apiUser.full_name || apiUser.name || apiUser.email,
+    username: apiUser.username || apiUser.email,
     email: apiUser.email,
     avatar: undefined,
-    joinDate: new Date().toISOString(),
+    joinDate: (apiUser as { created_at?: string }).created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
     role: 'user',
     subscription: {
-      plan: apiUser.subscription_type === 'pro' ? 'Pro' : 
-            apiUser.subscription_type === 'enterprise' ? 'Pro' : 'Free',
+      plan,
       status: 'active',
       price: 0
     },

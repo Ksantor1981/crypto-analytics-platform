@@ -33,6 +33,25 @@ SHORT_KW = re.compile(r'\b(short|sell|selll|шорт|продажа|продат
 # Non-crypto assets to ignore
 IGNORE_ASSETS = {"XAU", "XAUUSD", "GOLD", "OIL", "SPX", "NAS", "DXY", "EUR", "GBP", "JPY"}
 
+# News/digest keywords — skip posts that look like news, not signals
+NEWS_SKIP_KW = re.compile(
+    r'\b(Trump|Congress|Harvard|Bank of America|acquired|sold|increased|'
+    r'Weekly Digest|market digest|portfolio|ETF|insider trading|'
+    r'\$[\d.]+ (?:million|mill|billion|bn)\b|worth \$[\d.]+\s*(?:million|mill))',
+    re.I
+)
+
+# Реалистичные диапазоны цен по тикерам (min, max) USD
+PRICE_RANGES = {
+    "BTC": (10000, 250000), "ETH": (500, 15000), "BNB": (100, 5000),
+    "SOL": (5, 500), "ADA": (0.1, 10), "XRP": (0.1, 5), "DOT": (2, 50),
+    "DOGE": (0.01, 2), "AVAX": (5, 200), "LINK": (5, 100), "UNI": (2, 50),
+    "LTC": (30, 500), "NEAR": (1, 30), "APT": (5, 50), "ARB": (0.5, 5),
+    "OP": (0.5, 5), "SUI": (0.5, 20), "PEPE": (1e-8, 0.0001),
+    "SHIB": (1e-8, 0.0001), "MKR": (1000, 20000), "RUNE": (1, 50),
+}
+# Default для неизвестных: min из CRYPTO_PAIRS*0.1, max = min*1000
+
 
 @dataclass
 class ParsedSignal:
@@ -134,13 +153,33 @@ def _parse_price(text: str, pattern: str) -> Optional[float]:
 def _validate_price(price: float, asset: str) -> bool:
     """Check if price is reasonable for asset."""
     pair = asset.replace("/USDT", "").replace("/USD", "")
+    if pair in PRICE_RANGES:
+        lo, hi = PRICE_RANGES[pair]
+        return lo <= price <= hi
     min_price = CRYPTO_PAIRS.get(pair, 0.0001)
-    max_price = min_price * 100000
-    return min_price * 0.1 <= price <= max_price
+    max_price = min_price * 10000
+    return min_price * 0.5 <= price <= max_price
+
+
+def _is_news_or_digest(text: str) -> bool:
+    """Skip news/digest posts — not real trading signals."""
+    if NEWS_SKIP_KW.search(text):
+        return True
+    return False
+
+
+def _price_in_million_context(text: str, price: float) -> bool:
+    """True if this price appears next to million/mill (e.g. $168.4 million)."""
+    # Match "168.4" or "168" near "million"/"mill"
+    num_str = str(int(price)) if price == int(price) else str(price).rstrip("0").rstrip(".")
+    pat = rf'\$?{re.escape(num_str)}\s*(?:million|mill|bn|billion)\b'
+    return bool(re.search(pat, text, re.I))
 
 
 def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
     """Extract trading signal from message text."""
+    if _is_news_or_digest(text):
+        return None
     # Skip non-crypto assets
     text_upper = text.upper()
     for ignore in IGNORE_ASSETS:
@@ -179,7 +218,7 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
     entry_price = None
     for pat in entry_patterns:
         p = _parse_price(text, pat)
-        if p and _validate_price(p, asset):
+        if p and _validate_price(p, asset) and not _price_in_million_context(text, p):
             entry_price = p
             break
 

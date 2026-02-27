@@ -12,6 +12,11 @@ from pathlib import Path
 backend_path = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_path))
 
+# Ensure test-friendly env before any app imports
+os.environ.setdefault("USE_SQLITE", "true")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-32-chars-minimum")
+os.environ.setdefault("DEBUG", "true")
+
 # Ensure redis module exists for patch — inject fake if not installed (e.g. minimal CI env)
 try:
     import redis as _redis

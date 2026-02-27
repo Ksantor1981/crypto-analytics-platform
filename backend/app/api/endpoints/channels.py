@@ -177,100 +177,16 @@ def discover_channels(
             detail=f"Error during channel discovery: {str(e)}"
         )
 
-@router.get("/{channel_id}", response_model=schemas.Channel)
-def read_channel(
-    channel_id: int,
-    db: Session = Depends(get_db),
-):
-    """
-    Get a specific channel by ID (public).
-    """
-    channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    return channel
-
-@router.delete("/{channel_id}", response_model=schemas.Channel)
-def delete_channel(
-    *,
-    db: Session = Depends(auth.get_db),
-    channel: models.Channel = Depends(auth.get_channel_for_owner_or_admin)
-):
-    """
-    Delete a channel.
-    """
-    db.delete(channel)
-    db.commit()
-    return channel
-
-@router.get("/{channel_id}/signals")
-async def get_channel_signals(
-    channel_id: int,
-    skip: int = 0,
-    limit: int = 100,
-    start_date: Optional[datetime] = None,
-    end_date: Optional[datetime] = None,
-):
-    """
-    Retrieve signals from a specific channel with filtering options.
-    """
-    # Заглушка
-    return {
-        "items": [
-            {
-                "id": 1,
-                "channel_id": channel_id,
-                "asset": "BTC/USDT",
-                "direction": "BUY",
-                "entry_price": 50000.0,
-                "target_price": 55000.0,
-                "stop_loss": 48000.0,
-                "timestamp": datetime.now().isoformat(),
-                "status": "SUCCESSFUL",
-                "accuracy": 100.0,
-            }
-        ],
-        "total": 1,
-        "skip": skip,
-        "limit": limit,
-    }
-
-@router.get("/{channel_id}/statistics")
-async def get_channel_statistics(channel_id: int):
-    """
-    Get detailed statistics for a specific channel.
-    """
-    # Заглушка
-    return {
-        "channel_id": channel_id,
-        "total_signals": 342,
-        "successful_signals": 268,
-        "accuracy": 78.5,
-        "average_roi": 12.3,
-        "max_drawdown": 5.2,
-        "last_30_days": {
-            "signals": 42,
-            "accuracy": 81.0,
-            "roi": 14.5,
-        },
-    } 
-
 @router.get("/dashboard/", response_model=List[dict])
 def get_channels_dashboard(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
-    """Get channels without complex JOIN - simple version for dashboard."""
+    """Get channels without complex JOIN - simple version for dashboard. Must be before /{channel_id}."""
     query = db.query(Channel)
-    
-    # Get total count
     total = query.count()
-    
-    # Apply pagination
     channels = query.order_by(Channel.created_at.desc()).offset(skip).limit(limit).all()
-    
-    # Convert to simple dict format
     result = []
     for channel in channels:
         channel_dict = {
@@ -290,5 +206,97 @@ def get_channels_dashboard(
             "updated_at": channel.updated_at.isoformat() if channel.updated_at else None
         }
         result.append(channel_dict)
-    
-    return result 
+    return result
+
+
+@router.get("/{channel_id}", response_model=schemas.Channel)
+def read_channel(
+    channel_id: int,
+    db: Session = Depends(get_db),
+):
+    """
+    Get a specific channel by ID (public).
+    """
+    channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    return channel
+
+@router.delete("/{channel_id}", response_model=schemas.Channel)
+def delete_channel(
+    *,
+    db: Session = Depends(get_db),
+    channel: models.Channel = Depends(auth.get_channel_for_owner_or_admin)
+):
+    """
+    Delete a channel.
+    """
+    db.delete(channel)
+    db.commit()
+    return channel
+
+@router.get("/{channel_id}/signals")
+def get_channel_signals(
+    channel_id: int,
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+):
+    """
+    Retrieve signals from a specific channel with filtering options.
+    """
+    from app.services.signal_service import SignalService
+    from app.schemas.signal import SignalFilterParams
+
+    channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+
+    signal_service = SignalService(db)
+    filters = SignalFilterParams(channel_id=channel_id)
+    signals, total = signal_service.get_signals(skip=skip, limit=limit, filters=filters)
+
+    items = []
+    for s in signals:
+        items.append({
+            "id": s.id,
+            "channel_id": s.channel_id,
+            "asset": s.asset,
+            "symbol": s.asset,
+            "direction": s.direction.value if hasattr(s.direction, "value") else str(s.direction),
+            "entry_price": float(s.entry_price) if s.entry_price else None,
+            "tp1_price": float(s.tp1_price) if s.tp1_price else None,
+            "stop_loss": float(s.stop_loss) if s.stop_loss else None,
+            "status": s.status.value if hasattr(s.status, "value") else str(s.status),
+            "profit_loss_percentage": float(s.profit_loss_percentage) if s.profit_loss_percentage else None,
+            "created_at": s.created_at.isoformat() if s.created_at else None,
+        })
+    return {"items": items, "total": total, "skip": skip, "limit": limit}
+
+
+@router.get("/{channel_id}/statistics")
+def get_channel_statistics(channel_id: int, db: Session = Depends(get_db)):
+    """
+    Get detailed statistics for a specific channel.
+    """
+    from app.services.signal_service import SignalService
+    from app.schemas.signal import SignalFilterParams
+
+    channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+
+    signal_service = SignalService(db)
+    filters = SignalFilterParams(channel_id=channel_id)
+    stats = signal_service.get_signal_stats(filters)
+    total = stats.total_signals
+    successful = stats.successful_signals
+    accuracy = (successful / total * 100) if total > 0 else 0
+    return {
+        "channel_id": channel_id,
+        "total_signals": total,
+        "successful_signals": successful,
+        "accuracy": round(accuracy, 1),
+        "average_roi": round(stats.average_roi, 2),
+        "max_drawdown": 0,
+    } 

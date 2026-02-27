@@ -91,16 +91,23 @@ export default function ProfilePage() {
         name: authUser.name || prev.name,
         email: authUser.email || prev.email,
         username: authUser.username || prev.username,
+        subscription: authUser.subscription || prev.subscription,
       }));
     }
     async function loadStats() {
       try {
-        const channels = await apiClient.getChannels();
+        const [channels, signalsResp] = await Promise.all([
+          apiClient.getChannels(),
+          apiClient.getSignalsWithTotal(),
+        ]);
         const channelList = Array.isArray(channels) ? channels : [];
-        const signalsRaw = await apiClient.getSignals();
-        const signalCount = signalsRaw?.total || (Array.isArray(signalsRaw) ? signalsRaw.length : 0);
+        const signals = signalsResp?.signals ?? [];
+        const signalCount = signalsResp?.total ?? signals.length;
         const avgAccuracy = channelList.length > 0
           ? channelList.reduce((s: number, c: Record<string, number>) => s + (c.accuracy || 0), 0) / channelList.length
+          : 0;
+        const totalRoi = Array.isArray(signals)
+          ? signals.reduce((s: number, sig: Record<string, number>) => s + (sig.profit_loss_percentage || 0), 0)
           : 0;
         setUser(prev => ({
           ...prev,
@@ -110,6 +117,8 @@ export default function ProfilePage() {
             totalSignals: signalCount,
             successRate: Math.round(avgAccuracy * 10) / 10,
             winRate: Math.round(avgAccuracy * 10) / 10,
+            totalProfit: Math.round(totalRoi * 10) / 10,
+            daysActive: prev.stats?.daysActive || 0,
           },
         }));
       } catch { /* API unavailable, keep defaults */ }
@@ -288,10 +297,12 @@ export default function ProfilePage() {
                       Email
                     </label>
                     <div className="flex items-center mt-1">
-                      {showEmail ? (
-                        <p className="text-gray-900">{user.email}</p>
+                      {showEmail || user.email ? (
+                        <p className="text-gray-900">
+                          {showEmail ? user.email : (user.email ? user.email.replace(/(.{3}).*(@.*)/, '$1***$2') : '—')}
+                        </p>
                       ) : (
-                        <p className="text-gray-900">alex***@email.com</p>
+                        <p className="text-gray-500">—</p>
                       )}
                       <button
                         onClick={() => setShowEmail(!showEmail)}

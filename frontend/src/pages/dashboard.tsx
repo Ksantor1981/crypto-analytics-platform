@@ -241,13 +241,13 @@ export default function DashboardPage() {
                   {channels.map(channel => (
                     <div
                       key={channel.id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-gray-200 rounded-lg"
                     >
-                      <div>
-                        <h4 className="font-semibold text-gray-900">
+                      <div className="min-w-0">
+                        <h4 className="font-semibold text-gray-900 truncate">
                           {channel.name}
                         </h4>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
                           <span>Точность: {channel.accuracy}%</span>
                           <span>Сигналов: {channel.signals}</span>
                           <span className="text-green-600">
@@ -283,10 +283,10 @@ export default function DashboardPage() {
                   {recentSignals.map(signal => (
                     <div
                       key={signal.id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-gray-200 rounded-lg"
                     >
-                      <div>
-                        <div className="flex items-center space-x-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
                           <h4 className="font-semibold text-gray-900">
                             {signal.pair}
                           </h4>
