@@ -124,8 +124,8 @@ export const SignalsList: React.FC<SignalsListProps> = ({
   return (
     <Card>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <table className="w-full min-w-[640px] border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4">

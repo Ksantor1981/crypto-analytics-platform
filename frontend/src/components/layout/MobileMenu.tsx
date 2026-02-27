@@ -41,6 +41,12 @@ const navigationItems = [
     description: 'Просмотр всех каналов',
   },
   {
+    name: 'Сигналы',
+    href: '/signals',
+    icon: Zap,
+    description: 'Торговые сигналы',
+  },
+  {
     name: 'Рейтинги',
     href: '/ratings',
     icon: Award,

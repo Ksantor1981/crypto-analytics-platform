@@ -93,6 +93,85 @@ class EmailService:
             logger.error(f"Error sending payment reminder email: {e}")
             return False
     
+    async def send_welcome_email(self, user: User) -> bool:
+        """Send welcome email after registration"""
+        try:
+            subject = "Добро пожаловать в Crypto Analytics Platform"
+            email_data = {
+                "user_name": user.full_name or user.email.split("@")[0],
+                "dashboard_url": "https://crypto-analytics.com/dashboard",
+                "support_email": "support@crypto-analytics.com",
+            }
+            html_content = self._render_welcome_template(email_data)
+            text_content = self._render_welcome_text(email_data)
+            return await self._send_email(
+                to_email=user.email,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+            )
+        except Exception as e:
+            logger.error(f"Error sending welcome email: {e}")
+            return False
+
+    async def send_weekly_digest(
+        self,
+        user: User,
+        signals_count: int,
+        top_signals: List[Dict[str, Any]],
+        top_channels: List[Dict[str, Any]],
+    ) -> bool:
+        """Send weekly digest email"""
+        try:
+            subject = "Еженедельный дайджест — Crypto Analytics"
+            email_data = {
+                "user_name": user.full_name or user.email.split("@")[0],
+                "signals_count": signals_count,
+                "top_signals": top_signals[:5],
+                "top_channels": top_channels[:5],
+                "dashboard_url": "https://crypto-analytics.com/dashboard",
+            }
+            html_content = self._render_digest_template(email_data)
+            text_content = self._render_digest_text(email_data)
+            return await self._send_email(
+                to_email=user.email,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+            )
+        except Exception as e:
+            logger.error(f"Error sending weekly digest: {e}")
+            return False
+
+    async def send_signal_alert(
+        self,
+        user: User,
+        signal: Dict[str, Any],
+        channel_name: str,
+    ) -> bool:
+        """Send signal alert email"""
+        try:
+            subject = f"Новый сигнал: {signal.get('asset', 'N/A')} — {signal.get('direction', '')}"
+            email_data = {
+                "user_name": user.full_name or user.email.split("@")[0],
+                "asset": signal.get("asset", "N/A"),
+                "direction": signal.get("direction", "N/A"),
+                "entry_price": signal.get("entry_price"),
+                "channel_name": channel_name,
+                "dashboard_url": "https://crypto-analytics.com/signals",
+            }
+            html_content = self._render_alert_template(email_data)
+            text_content = self._render_alert_text(email_data)
+            return await self._send_email(
+                to_email=user.email,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+            )
+        except Exception as e:
+            logger.error(f"Error sending signal alert: {e}")
+            return False
+
     async def send_subscription_expired(self, user: User, subscription: Subscription) -> bool:
         """Send subscription expired notification"""
         try:
@@ -209,6 +288,100 @@ class EmailService:
             logger.error(f"Error sending email via SMTP: {e}")
             return False
     
+    def _render_welcome_template(self, data: Dict[str, Any]) -> str:
+        template = """
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Добро пожаловать</title>
+<style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333;}
+.container{max-width:600px;margin:0 auto;padding:20px;}
+.header{background:#2563eb;color:white;padding:20px;text-align:center;}
+.content{padding:20px;background:#f9fafb;}
+.footer{text-align:center;padding:20px;color:#6b7280;font-size:14px;}
+.button{display:inline-block;padding:12px 24px;background:#2563eb;color:white;text-decoration:none;border-radius:6px;}
+</style></head><body>
+<div class="container">
+<div class="header"><h1>Добро пожаловать!</h1></div>
+<div class="content">
+<h2>Привет, {{ user_name }}!</h2>
+<p>Спасибо за регистрацию в Crypto Analytics Platform.</p>
+<p>Начинайте работать с сигналами и аналитикой:</p>
+<p><a href="{{ dashboard_url }}" class="button">Открыть дашборд</a></p>
+<p>Вопросы? Пишите на <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+</div><div class="footer"><p>Crypto Analytics Platform</p></div>
+</div></body></html>
+"""
+        return Template(template).render(**data)
+
+    def _render_welcome_text(self, data: Dict[str, Any]) -> str:
+        return f"""Добро пожаловать!
+
+Привет, {data['user_name']}!
+
+Спасибо за регистрацию в Crypto Analytics Platform. Открыть дашборд: {data['dashboard_url']}
+Вопросы: {data['support_email']}
+
+Crypto Analytics Platform"""
+
+    def _render_digest_template(self, data: Dict[str, Any]) -> str:
+        template = """
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Еженедельный дайджест</title>
+<style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333;}
+.container{max-width:600px;margin:0 auto;padding:20px;}
+.header{background:#10b981;color:white;padding:20px;text-align:center;}
+.content{padding:20px;background:#f9fafb;}
+.footer{text-align:center;padding:20px;color:#6b7280;font-size:14px;}
+.button{display:inline-block;padding:12px 24px;background:#2563eb;color:white;text-decoration:none;border-radius:6px;}
+</style></head><body>
+<div class="container">
+<div class="header"><h1>Еженедельный дайджест</h1></div>
+<div class="content">
+<h2>Привет, {{ user_name }}!</h2>
+<p>За неделю собрано сигналов: <strong>{{ signals_count }}</strong></p>
+<h3>Топ сигналы</h3>
+<ul>{% for s in top_signals %}<li>{{ s.get('asset','?') }} — {{ s.get('direction','?') }}</li>{% endfor %}</ul>
+<p><a href="{{ dashboard_url }}" class="button">Дашборд</a></p>
+</div><div class="footer"><p>Crypto Analytics Platform</p></div>
+</div></body></html>
+"""
+        return Template(template).render(**data)
+
+    def _render_digest_text(self, data: Dict[str, Any]) -> str:
+        lines = [f"Еженедельный дайджест\nПривет, {data['user_name']}!\nСигналов за неделю: {data['signals_count']}"]
+        for s in data.get("top_signals", [])[:5]:
+            lines.append(f"- {s.get('asset','?')} {s.get('direction','?')}")
+        lines.append(f"Дашборд: {data['dashboard_url']}\nCrypto Analytics Platform")
+        return "\n".join(lines)
+
+    def _render_alert_template(self, data: Dict[str, Any]) -> str:
+        template = """
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Новый сигнал</title>
+<style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333;}
+.container{max-width:600px;margin:0 auto;padding:20px;}
+.header{background:#f59e0b;color:white;padding:20px;text-align:center;}
+.content{padding:20px;background:#f9fafb;}
+.footer{text-align:center;padding:20px;color:#6b7280;font-size:14px;}
+.button{display:inline-block;padding:12px 24px;background:#2563eb;color:white;text-decoration:none;border-radius:6px;}
+</style></head><body>
+<div class="container">
+<div class="header"><h1>Новый сигнал</h1></div>
+<div class="content">
+<h2>{{ asset }} — {{ direction }}</h2>
+<p>Канал: {{ channel_name }}</p>
+{% if entry_price %}<p>Вход: {{ entry_price }}</p>{% endif %}
+<p><a href="{{ dashboard_url }}" class="button">Сигналы</a></p>
+</div><div class="footer"><p>Crypto Analytics Platform</p></div>
+</div></body></html>
+"""
+        return Template(template).render(**data)
+
+    def _render_alert_text(self, data: Dict[str, Any]) -> str:
+        return f"""Новый сигнал: {data['asset']} — {data['direction']}
+Канал: {data['channel_name']}
+Сигналы: {data['dashboard_url']}
+Crypto Analytics Platform"""
+
     def _get_subscription_plan_name(self, payment: Payment) -> str:
         """Get subscription plan name from payment"""
         if payment.stripe_subscription_id:

@@ -17,6 +17,10 @@ CRYPTO_SUBREDDITS = [
     "CryptoTechnology", "Bitcointrading", "CryptoCurrencyTrading",
     "Daytrading", "wallstreetbetscrypto", "CryptoCurrencies",
     "Crypto_Currency_News",
+    # +10 for ROADMAP Signals
+    "BitcoinMarkets", "EthTrader", "CryptoMoon", "SolanaTrading",
+    "DeFi", "Chainlink", "Polkadot", "CosmosAirdrops",
+    "Crypto_General", "BitcoinCash",
 ]
 
 

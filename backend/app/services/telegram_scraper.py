@@ -41,6 +41,20 @@ NEWS_SKIP_KW = re.compile(
     re.I
 )
 
+# Garbage / spam / non-signal content — filter out
+GARBAGE_SKIP_KW = re.compile(
+    r'\b(join\s+channel|join\s+group|t\.me/|telegram\.me/join|'
+    r'100%\s*free|guaranteed\s*profit|no\s*loss|risk.?free|'
+    r'winner\s*winners|pump\s*dump\s*scheme|airdrop|giveaway|'
+    r'scam|phishing|rug\s*pull|fake\s*admin|copy\s*trading\s*scam|'
+    r'\d+\s*people\s*(?:joined|left)|DM\s*me|contact\s*admin|'
+    r'lottery|raffle|referral\s*only|invite\s*\d+\s*people)',
+    re.I
+)
+
+# Minimum length for signal text — too short = likely spam (8 allows "#BTC LONG", "$ETH SHORT from $2100")
+MIN_SIGNAL_TEXT_LEN = 8
+
 # Реалистичные диапазоны цен по тикерам (min, max) USD
 PRICE_RANGES = {
     "BTC": (10000, 250000), "ETH": (500, 15000), "BNB": (100, 5000),
@@ -168,6 +182,15 @@ def _is_news_or_digest(text: str) -> bool:
     return False
 
 
+def _is_garbage(text: str) -> bool:
+    """Filter spam/garbage — not real signals."""
+    if GARBAGE_SKIP_KW.search(text):
+        return True
+    if len(text.strip()) < MIN_SIGNAL_TEXT_LEN:
+        return True
+    return False
+
+
 def _price_in_million_context(text: str, price: float) -> bool:
     """True if this price appears next to million/mill (e.g. $168.4 million)."""
     # Match "168.4" or "168" near "million"/"mill"
@@ -179,6 +202,8 @@ def _price_in_million_context(text: str, price: float) -> bool:
 def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
     """Extract trading signal from message text."""
     if _is_news_or_digest(text):
+        return None
+    if _is_garbage(text):
         return None
     # Skip non-crypto assets
     text_upper = text.upper()
@@ -205,6 +230,10 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
         r'(?:sell|продать|short|шорт)\s*(?:at|по|@|from)?[:\s]*\$?([\d]+[,.]?\d*k?)',
         r'\bCP\b[:\s)]*\$?([\d]+[,.]?\d*k?)',
         r'(?:entry|вход)\s*[:]\s*\$?([\d]+[,.]?\d*k?)\s*[-–]',
+        r'(?:spot|спот|spot\s*price)[:\s]*\$?([\d]+[,.]?\d*k?)',
+        r'(?:current|текущая|current\s*price)[:\s]*\$?([\d]+[,.]?\d*k?)',
+        r'\@\s*\$?([\d]+[,.]?\d*k?)\s*(?:[-–]|$)',
+        r'(?:level|уровень)\s*(?:1)?[:\s]*\$?([\d]+[,.]?\d*k?)',
     ]
     tp_patterns = [
         r'(?:tp|take.profit|тейк|цель)\s*(?:\d\s*)?[:\s]+\$?([\d]+[,.]?\d*k?)',

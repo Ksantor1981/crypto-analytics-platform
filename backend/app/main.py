@@ -121,6 +121,25 @@ def _seed_demo_data(db_engine):
                 ("CryptoBullSignals", "Crypto Bull Signals", "signals", "Bullish crypto trading signals"),
                 ("defi_trading", "DeFi Trading", "signals", "DeFi trading signals"),
                 ("futures_signals", "Futures Signals", "signals", "Crypto futures signals"),
+                ("CryptoSignalsPro", "Crypto Signals Pro", "signals", "Pro trading signals"),
+                ("AltcoinSignals", "Altcoin Signals", "signals", "Altcoin trading signals"),
+                ("SatoshiSignals", "Satoshi Signals", "signals", "Bitcoin-focused signals"),
+                ("SolanaSignals", "Solana Signals", "signals", "Solana ecosystem signals"),
+                ("DeFiSignals", "DeFi Signals", "signals", "DeFi protocols signals"),
+                ("WhaleAlertSignals", "Whale Alert", "analysis", "Whale movements & alerts"),
+                ("TradingSignalsBTC", "Trading Signals BTC", "signals", "BTC spot & futures"),
+                ("CryptoAlertsChannel", "Crypto Alerts", "signals", "Real-time crypto alerts"),
+                ("SignalCryptoPro", "Signal Crypto Pro", "signals", "Professional signals"),
+                ("BitgetSignals", "Bitget Signals", "signals", "Bitget exchange signals"),
+                ("OKXSignals", "OKX Signals", "signals", "OKX trading signals"),
+                ("KucoinSignals", "KuCoin Signals", "signals", "KuCoin trading signals"),
+                ("MemecoinSignals", "Memecoin Signals", "signals", "Meme coin signals"),
+                ("Layer2Signals", "Layer 2 Signals", "signals", "L2 ecosystem signals"),
+                ("AISignalsCrypto", "AI Crypto Signals", "signals", "AI-powered signals"),
+                ("CryptoScoutSignals", "Crypto Scout", "signals", "Scouting & signals"),
+                ("TradingAlertsPro", "Trading Alerts Pro", "signals", "Pro alert channel"),
+                ("CryptoKingsSignals", "Crypto Kings", "signals", "Premium signals"),
+                ("SmartMoneyCrypto", "Smart Money Crypto", "analysis", "Smart money flows"),
             ]
             demo_channels = [
                 Channel(
@@ -224,11 +243,18 @@ async def lifespan(app: FastAPI):
 
         # Start periodic collection schedulers
         try:
-            from app.tasks.scheduler import periodic_collection, periodic_reddit_collection
+            from app.tasks.scheduler import (
+                periodic_collection,
+                periodic_reddit_collection,
+                periodic_weekly_digest,
+                periodic_daily_revalidation,
+            )
             t2 = asyncio.create_task(periodic_collection())
             t3 = asyncio.create_task(periodic_reddit_collection())
-            _background_tasks.extend([t2, t3])
-            logger.info("Schedulers started: Telegram every 15 min, Reddit every 30 min")
+            t4 = asyncio.create_task(periodic_weekly_digest())
+            t5 = asyncio.create_task(periodic_daily_revalidation())
+            _background_tasks.extend([t2, t3, t4, t5])
+            logger.info("Schedulers started: collect 5min, digest 7d, revalidation 24h")
         except Exception as sched_err:
             logger.warning("Scheduler not started", error=str(sched_err))
 

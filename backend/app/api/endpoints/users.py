@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from math import ceil
 from slowapi import Limiter
@@ -30,11 +30,22 @@ router = APIRouter()
 logger = get_logger(__name__)
 
 
+async def _send_welcome_email_task(user: User):
+    """Background task: send welcome email."""
+    from app.services.email_service import EmailService
+    try:
+        svc = EmailService()
+        await svc.send_welcome_email(user)
+    except Exception as e:
+        logger.warning("Welcome email failed", user_id=user.id, error=str(e))
+
+
 @router.post("/register", response_model=schemas.user.UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit(get_auth_rate_limit())
 async def register_user(
     request: Request,
     user_data: schemas.user.UserCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """Register a new user."""
@@ -53,6 +64,8 @@ async def register_user(
             email=user.email,
             ip=client_ip
         )
+
+        background_tasks.add_task(_send_welcome_email_task, user)
         
         return schemas.user.UserResponse.model_validate(user)
         
