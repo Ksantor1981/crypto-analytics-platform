@@ -9,7 +9,10 @@ def client():
     import os
     os.environ["USE_SQLITE"] = "true"
     os.environ["SECRET_KEY"] = "test-secret-key-32-chars-minimum"
+    os.environ["DEBUG"] = "true"
     from app.main import app
+    from app.core.database import Base, engine
+    Base.metadata.create_all(bind=engine)
     return TestClient(app)
 
 

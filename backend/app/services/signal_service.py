@@ -35,9 +35,11 @@ class SignalService:
             )
         
         # Create signal
+        asset_upper = signal_data.asset.upper()
         db_signal = Signal(
             channel_id=signal_data.channel_id,
-            asset=signal_data.asset.upper(),
+            asset=asset_upper,
+            symbol=asset_upper.replace("/", ""),  # e.g. BTC/USDT -> BTCUSDT
             direction=signal_data.direction,
             entry_price=Decimal(str(signal_data.entry_price)),
             tp1_price=Decimal(str(signal_data.tp1_price)) if signal_data.tp1_price else None,
@@ -284,9 +286,8 @@ class SignalService:
         
         return ChannelSignalStats(
             channel_id=channel_id,
-            channel_name=channel_name,
-            period_days=days,
-            **stats.dict()
+            channel_name=channel_name or "",
+            stats=stats
         )
     
     def get_asset_performance(self, days: int = 30) -> List[AssetPerformance]:

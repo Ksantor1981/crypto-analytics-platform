@@ -8,7 +8,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.core.database import get_db
-from app.models.feedback import Feedback, FeedbackType, FeedbackStatus
+from app.models.feedback import Feedback, FeedbackType as ModelFeedbackType, FeedbackStatus
 from app.schemas.feedback import (
     FeedbackCreate, FeedbackRead, FeedbackUpdate, FeedbackResponse,
     FeedbackList, FeedbackStats
@@ -31,12 +31,14 @@ async def create_feedback(
     user_agent = request.headers.get("user-agent", "")
     ip_address = request.client.host if request.client else None
     
-    # Create feedback object
+    # Create feedback object (convert schema enum to model enum for SQLAlchemy)
+    model_feedback_type = getattr(ModelFeedbackType, feedback.feedback_type.name, ModelFeedbackType.GENERAL)
+
     db_feedback = Feedback(
         user_id=current_user.id if current_user else None,
         user_email=feedback.user_email,
         user_telegram=feedback.user_telegram,
-        feedback_type=feedback.feedback_type,
+        feedback_type=model_feedback_type,
         subject=feedback.subject,
         message=feedback.message,
         tags=feedback.tags,
@@ -56,7 +58,7 @@ async def get_feedback_list(
     page: int = 1,
     per_page: int = 20,
     status_filter: Optional[FeedbackStatus] = None,
-    type_filter: Optional[FeedbackType] = None,
+    type_filter: Optional[ModelFeedbackType] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user_optional)
 ):
@@ -210,7 +212,7 @@ async def get_feedback_stats(
     
     # Get counts by type
     by_type = {}
-    for feedback_type in FeedbackType:
+    for feedback_type in ModelFeedbackType:
         count = db.query(Feedback).filter(Feedback.feedback_type == feedback_type).count()
         by_type[feedback_type.value] = count
     

@@ -192,16 +192,17 @@ class UserService:
         roi_values = [s.profit_loss_percentage for s in user_signals if s.profit_loss_percentage is not None]
         avg_roi = sum(roi_values) / len(roi_values) if roi_values else 0.0
         
-        signals_stats = {
-            "total_signals": total_signals,
+        failed_signals = len([s for s in user_signals if s.is_successful is False])
+        total_profit_loss = sum(float(s.profit_loss_percentage) for s in user_signals if s.profit_loss_percentage is not None) or 0.0
+
+        return {
+            "total_signals_received": total_signals,
             "successful_signals": successful_signals,
-            "accuracy_rate": round(accuracy_rate, 1),
-            "avg_roi": round(avg_roi, 2)
+            "failed_signals": failed_signals,
+            "total_profit_loss": round(total_profit_loss, 2),
+            "win_rate": round(accuracy_rate, 2),
+            "active_subscriptions": 0,
         }
-        
-        return signals_stats
-        
-        return stats
     
     def authenticate(self, email: str, password: str) -> Optional[User]:
         """Authenticate user by email and password."""
