@@ -30,6 +30,13 @@ except ImportError:
 # Добавляем текущую директорию в путь для импортов
 sys.path.append(str(Path(__file__).parent))
 
+# Initialize structured logging
+try:
+    from app.core.logging_config import setup_logging
+    setup_logging(json_format=os.getenv("ENVIRONMENT") == "production")
+except Exception:
+    pass
+
 # Обработка импортов с fallback
 try:
     from .core.config import get_settings

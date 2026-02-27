@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
-_price_cache: Dict[str, tuple] = {}
 CACHE_TTL = 300  # 5 minutes
 
 
@@ -34,11 +33,10 @@ async def get_current_price(symbol: str) -> Optional[float]:
     if not coingecko_id:
         return None
 
-    now = datetime.utcnow()
-    if pair in _price_cache:
-        cached_price, cached_time = _price_cache[pair]
-        if (now - cached_time).total_seconds() < CACHE_TTL:
-            return cached_price
+    from app.services.redis_cache import cache_get, cache_set
+    cached = cache_get(f"price:{pair}")
+    if cached and "price" in cached:
+        return cached["price"]
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -50,7 +48,7 @@ async def get_current_price(symbol: str) -> Optional[float]:
                 data = resp.json()
                 price = data.get(coingecko_id, {}).get("usd")
                 if price:
-                    _price_cache[pair] = (price, now)
+                    cache_set(f"price:{pair}", {"price": price}, CACHE_TTL)
                     return price
     except Exception as e:
         logger.warning(f"CoinGecko price fetch failed for {pair}: {e}")
