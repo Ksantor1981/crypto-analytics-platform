@@ -35,16 +35,16 @@ const getSizeClasses = (size: BadgeSize) => {
   }
 };
 
-export const Badge: React.FC<BadgeProps> = ({
-  variant = 'default',
-  size = 'default',
-  className = '',
-  children,
-  ...props
+export const Badge: React.FC<BadgeProps> = ({ 
+  variant = 'default', 
+  size = 'default', 
+  className = '', 
+  children, 
+  ...props 
 }) => {
   const variantClasses = getVariantClasses(variant);
   const sizeClasses = getSizeClasses(size);
-
+  
   return (
     <div
       className={`inline-flex items-center rounded-full border font-semibold ${variantClasses} ${sizeClasses} ${className}`}
