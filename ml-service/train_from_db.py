@@ -1,10 +1,15 @@
 """
 Train ML model from real signal data in the database.
 Usage: python train_from_db.py
+Saves models with version: signal_model_v{version}_{timestamp}.pkl
 """
 import sys
 import os
 import logging
+import json
+import shutil
+from datetime import datetime
+
 import numpy as np
 import requests
 
@@ -12,6 +17,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+MODELS_DIR = os.path.join(os.path.dirname(__file__), "models")
+MANIFEST_FILE = os.path.join(MODELS_DIR, "model_manifest.json")
 
 
 def fetch_signals():
@@ -132,7 +139,21 @@ def train():
     feature_names = ["confidence", "risk_reward", "price_dev", "direction", "rsi", "macd", "ch_accuracy", "ch_signals"]
     importance = dict(zip(feature_names, model.feature_importances_.tolist()))
 
+    os.makedirs(MODELS_DIR, exist_ok=True)
+
+    # Versioning: load manifest, increment version
+    manifest = {"versions": [], "current": None}
+    if os.path.exists(MANIFEST_FILE):
+        with open(MANIFEST_FILE, "r") as f:
+            manifest = _json.load(f)
+    next_version = len(manifest.get("versions", [])) + 1
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    versioned_name = f"signal_model_v{next_version}_{timestamp}.pkl"
+    model_path = os.path.join(MODELS_DIR, versioned_name)
+
     eval_report = {
+        "version": next_version,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
         "train_accuracy": round(train_acc * 100, 1),
         "cv_accuracy": round(accuracy * 100, 1),
         "cv_std": round(cv_scores.std() * 100, 1),
@@ -142,23 +163,36 @@ def train():
         "real_signals": len(signals),
         "total_samples": len(features),
         "random_seed": 42,
+        "model_file": versioned_name,
     }
 
-    report_path = os.path.join(os.path.dirname(__file__), "models", "evaluation_report.json")
+    report_path = os.path.join(MODELS_DIR, f"evaluation_report_v{next_version}.json")
     with open(report_path, "w") as f:
         _json.dump(eval_report, f, indent=2)
 
-    logger.info(f"Train: {train_acc:.1%}, CV: {accuracy:.1%} (+/- {cv_scores.std():.1%})")
-    logger.info(f"Confusion matrix: {cm.tolist()}")
-    logger.info(f"Top features: {list(eval_report['feature_importance'].items())[:3]}")
-    logger.info(f"Evaluation report saved to {report_path}")
-    logger.info(f"Training accuracy: {accuracy:.1%}")
-
-    model_path = os.path.join(os.path.dirname(__file__), "models", "signal_model.pkl")
     joblib.dump(model, model_path)
-    logger.info(f"Model saved to {model_path} ({os.path.getsize(model_path)} bytes)")
+    logger.info(f"Model saved to {model_path} (v{next_version})")
 
-    return {"accuracy": round(accuracy * 100, 1), "samples": len(features), "real_signals": len(signals)}
+    # Update manifest
+    manifest.setdefault("versions", []).append({
+        "version": next_version,
+        "file": versioned_name,
+        "cv_accuracy": round(accuracy * 100, 1),
+        "timestamp": eval_report["timestamp"],
+    })
+    manifest["current"] = next_version
+    manifest["current_file"] = versioned_name
+    with open(MANIFEST_FILE, "w") as f:
+        _json.dump(manifest, f, indent=2)
+
+    # Symlink/copy current to signal_model.pkl for backwards compatibility
+    legacy_path = os.path.join(MODELS_DIR, "signal_model.pkl")
+    shutil.copy(model_path, legacy_path)
+
+    logger.info(f"Train: {train_acc:.1%}, CV: {accuracy:.1%} (+/- {cv_scores.std():.1%})")
+    logger.info(f"Model v{next_version} saved, manifest updated")
+
+    return {"version": next_version, "accuracy": round(accuracy * 100, 1), "samples": len(features), "real_signals": len(signals)}
 
 
 if __name__ == "__main__":

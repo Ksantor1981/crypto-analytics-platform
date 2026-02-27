@@ -171,7 +171,32 @@ services:
       - crypto_analytics_network
     restart: unless-stopped
 
-  # Celery worker для сбора сигналов
+  # Celery worker для сбора сигналов (backend celery_worker)
+  celery-collect:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crypto-analytics-celery-collect
+    command: celery -A app.celery_worker worker --beat --loglevel=info
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - celery_collect_logs:/app/logs
+    networks:
+      - crypto_analytics_network
+    restart: unless-stopped
+
+  # Celery worker для сбора сигналов (workers package)
   signal-worker:
     build: 
       context: ./workers
@@ -203,6 +228,7 @@ volumes:
   backend_logs:
   trading_worker_logs:
   signal_worker_logs:
+  celery_collect_logs:
   ml_models:
   ml_logs:
   worker_logs:

@@ -78,3 +78,34 @@ jobs:
       - name: Check for session files
         run: |
           ! find . -name "*.session" -not -path "./.git/*" | grep . || echo "No session files ✅"
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install backend deps
+        run: pip install -r backend/requirements.txt bcrypt uvicorn
+      - name: Install frontend deps
+        run: cd frontend && npm install --legacy-peer-deps
+      - name: Build frontend
+        run: cd frontend && npm run build
+      - name: Install E2E deps
+        run: cd e2e && npm install
+      - name: Run E2E tests
+        env:
+          USE_SQLITE: "true"
+          SECRET_KEY: "ci-e2e-secret-key-32-chars-minimum"
+          BASE_URL: "http://localhost:3000"
+          API_URL: "http://localhost:8000"
+        run: |
+          (cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000) &
+          sleep 5
+          (cd frontend && npm run start) &
+          sleep 10
+          cd e2e && npx playwright install chromium && npx playwright test --reporter=list

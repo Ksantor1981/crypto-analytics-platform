@@ -15,6 +15,7 @@ os.environ['ENVIRONMENT'] = 'development'
 
 from app.core.config import get_settings
 from app.models.base import Base
+import app.models  # noqa: F401 - load all models for autogenerate
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -35,7 +36,7 @@ target_metadata = Base.metadata
 # ... etc.
 
 def get_url():
-    """Get database URL from settings."""
+    """Get database URL. Use PostgreSQL for migrations (SQLite incompatible with now())."""
     settings = get_settings()
     return settings.DATABASE_URL
 

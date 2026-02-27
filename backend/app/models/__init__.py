@@ -42,6 +42,7 @@ from .performance_metric import PerformanceMetric
 # Импортируем остальные модели
 from .apikey import APIKey
 from .custom_alert import CustomAlert
+from .feedback import Feedback
 
 # Экспортируем все модели для удобного импорта
 __all__ = [
@@ -90,6 +91,7 @@ __all__ = [
     # Other models
     "APIKey",
     "CustomAlert",
+    "Feedback",
     "Payment",
     "PaymentStatus"
 ]
