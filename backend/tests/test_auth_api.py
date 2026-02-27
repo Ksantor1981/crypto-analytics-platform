@@ -1,15 +1,20 @@
 """Auth API tests using TestClient (sync)."""
 import pytest
 import uuid
+import os
 from fastapi.testclient import TestClient
+
+os.environ["USE_SQLITE"] = "true"
+os.environ["SECRET_KEY"] = "test-secret-key-32-chars-minimum"
+os.environ["SENTRY_DSN"] = ""
 
 
 @pytest.fixture
 def client():
-    import os
-    os.environ["USE_SQLITE"] = "true"
-    os.environ["SECRET_KEY"] = "test-secret-key-32-chars-minimum"
     from app.main import app
+    from app.core.database import engine, Base
+    if engine and Base:
+        Base.metadata.create_all(bind=engine)
     return TestClient(app)
 
 
