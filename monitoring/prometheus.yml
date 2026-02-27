@@ -6,12 +6,7 @@ scrape_configs:
   - job_name: 'backend'
     static_configs:
       - targets: ['backend:8000']
-  - job_name: 'frontend'
+    metrics_path: /metrics
+  - job_name: 'prometheus'
     static_configs:
-      - targets: ['frontend:3000']
-  - job_name: 'ml-service'
-    static_configs:
-      - targets: ['ml-service:8001']
-  - job_name: 'workers'
-    static_configs:
-      - targets: ['workers:5555'] 
+      - targets: ['localhost:9090']

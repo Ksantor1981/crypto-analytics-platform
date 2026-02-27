@@ -12,6 +12,7 @@ import re
 from datetime import datetime, timezone, timedelta
 
 from ...core.database import get_db
+from ...core.auth import get_current_active_user, require_admin
 from ...models.channel import Channel
 from ...models.user import User
 from ...models.signal import Signal
@@ -26,7 +27,10 @@ router = APIRouter(tags=["User Sources"])
 logger = logging.getLogger(__name__)
 
 @router.post("/init-db")
-async def init_db(db: Session = Depends(get_db)):
+async def init_db(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     """Инициализация таблиц базы данных"""
     try:
         from ...models.base import Base
@@ -53,7 +57,7 @@ async def init_db(db: Session = Depends(get_db)):
 async def add_user_source(
     source_data: Dict[str, Any],
     db: Session = Depends(get_db),
-    # current_user: User = Depends(get_current_active_user)  # Раскомментировать когда будет auth
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Добавляет пользовательский источник сигналов и запускает его анализ
@@ -93,8 +97,7 @@ async def add_user_source(
         
         # Создаем новый канал
         new_channel = Channel(
-            # owner_id=current_user.id,  # Раскомментировать когда будет auth
-            owner_id=1,  # Временно - демо пользователь
+            owner_id=current_user.id,
             username=username,
             name=source_data["name"],
             description=source_data.get("description", ""),
@@ -553,12 +556,11 @@ def extract_username_from_url(url: str, platform: str) -> Optional[str]:
 @router.get("/my-sources")
 async def get_user_sources(
     db: Session = Depends(get_db),
-    # current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ):
     """Получает список источников пользователя"""
     try:
-        # channels = db.query(Channel).filter(Channel.owner_id == current_user.id).all()
-        channels = db.query(Channel).filter(Channel.owner_id == 1).all()  # Временно
+        channels = db.query(Channel).filter(Channel.owner_id == current_user.id).all()
         
         sources_data = []
         for channel in channels:

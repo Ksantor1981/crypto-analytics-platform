@@ -88,8 +88,8 @@ def read_channels(
 @router.post("/discover", response_model=dict)
 def discover_channels(
     *,
-    db: Session = Depends(get_db)
-    # current_user: models.User = Depends(auth.get_current_active_user)  # Временно отключено для тестирования
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user),
 ):
     """
     Discover new channels with crypto signals and add them to the database.

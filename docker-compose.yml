@@ -222,6 +222,40 @@ services:
       - crypto_analytics_network
     restart: unless-stopped
 
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: crypto-analytics-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - crypto_analytics_network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: crypto-analytics-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3001}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - crypto_analytics_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
@@ -232,6 +266,8 @@ volumes:
   ml_models:
   ml_logs:
   worker_logs:
+  prometheus_data:
+  grafana_data:
 
 networks:
   crypto_analytics_network:

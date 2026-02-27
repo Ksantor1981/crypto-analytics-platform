@@ -78,6 +78,10 @@ jobs:
       - name: Check for session files
         run: |
           ! find . -name "*.session" -not -path "./.git/*" | grep . || echo "No session files ✅"
+      - name: Python dependency audit
+        run: pip install pip-audit && pip-audit -r backend/requirements.txt || true
+      - name: npm audit (frontend)
+        run: cd frontend && npm audit --audit-level=high || true
 
   e2e:
     runs-on: ubuntu-latest
