@@ -16,6 +16,7 @@ sys.path.insert(0, str(backend_path))
 os.environ.setdefault("USE_SQLITE", "true")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-32-chars-minimum")
 os.environ.setdefault("DEBUG", "true")
+os.environ.setdefault("AUTH_RATE_LIMIT_REQUESTS", "1000")  # Relax rate limit for tests
 
 # Ensure redis module exists for patch — inject fake if not installed (e.g. minimal CI env)
 try:

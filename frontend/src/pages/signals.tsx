@@ -62,17 +62,17 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
         <meta name="description" content="Торговые сигналы криптовалют" />
       </Head>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="space-y-4 sm:space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Сигналы</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Сигналы</h1>
               <p className="text-gray-600">
                 Торговые сигналы от проверенных каналов
               </p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-2 sm:space-x-3">
               <div className="flex items-center bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('list')}

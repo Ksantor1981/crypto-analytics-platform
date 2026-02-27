@@ -127,10 +127,10 @@ export default function RatingsPage() {
       </Head>
 
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
               Рейтинги каналов
             </h1>
             <p className="text-gray-600">
@@ -164,9 +164,9 @@ export default function RatingsPage() {
           {/* TOP CHANNELS */}
           {(activeCategory === 'top' || activeCategory === 'all') && (
             <div className="mb-12">
-              <div className="flex items-center mb-6">
-                <Crown className="h-6 w-6 text-yellow-500 mr-2" />
-                <h2 className="text-2xl font-bold text-gray-900">
+              <div className="flex items-center mb-4 sm:mb-6">
+                <Crown className="h-6 w-6 text-yellow-500 mr-2 flex-shrink-0" />
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                   Топ-3 лучших каналов
                 </h2>
               </div>

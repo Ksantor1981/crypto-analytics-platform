@@ -6,6 +6,8 @@ from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from ...core.database import get_db
+from ...core.auth import get_current_active_user
+from ...models.user import User
 from ...services.ocr_service import AdvancedOCRService
 from ...schemas.ocr import OCRResponse, OCRStatistics, ImageUploadResponse
 
@@ -18,7 +20,8 @@ async def extract_signals_from_image(
     image: UploadFile = File(...),
     channel_id: int = Form(...),
     message_id: str = Form(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Извлечение крипто-сигналов из изображения с помощью OCR
@@ -82,7 +85,10 @@ async def extract_signals_from_image(
         )
 
 @router.get("/statistics", response_model=OCRStatistics)
-async def get_ocr_statistics(db: Session = Depends(get_db)):
+async def get_ocr_statistics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
     """
     Получение статистики работы OCR
     
@@ -105,7 +111,8 @@ async def get_ocr_statistics(db: Session = Depends(get_db)):
 @router.post("/test-ocr")
 async def test_ocr_capabilities(
     image: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Тестирование возможностей OCR без сохранения сигналов

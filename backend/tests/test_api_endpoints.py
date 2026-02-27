@@ -10,6 +10,7 @@ def client():
     os.environ["USE_SQLITE"] = "true"
     os.environ["SECRET_KEY"] = "test-secret-key-32-chars-minimum"
     os.environ["DEBUG"] = "true"
+    os.environ["AUTH_RATE_LIMIT_REQUESTS"] = "1000"
     from app.main import app
     from app.core.database import SessionLocal, Base, engine
     Base.metadata.create_all(bind=engine)
@@ -66,14 +67,18 @@ class TestChannelsAPI:
 
 
 class TestSignalsAPI:
-    def test_get_signals_list(self, client):
-        r = client.get("/api/v1/signals/")
+    def test_get_signals_list(self, client, auth_headers):
+        if not auth_headers:
+            pytest.skip("Auth not available")
+        r = client.get("/api/v1/signals/", headers=auth_headers)
         assert r.status_code == 200
         data = r.json()
         assert "signals" in data or "total" in data or isinstance(data, list)
 
-    def test_get_signals_with_channel_filter(self, client):
-        r = client.get("/api/v1/signals/?channel_id=1")
+    def test_get_signals_with_channel_filter(self, client, auth_headers):
+        if not auth_headers:
+            pytest.skip("Auth not available")
+        r = client.get("/api/v1/signals/?channel_id=1", headers=auth_headers)
         assert r.status_code == 200
 
     def test_get_signals_dashboard(self, client):
@@ -111,18 +116,24 @@ class TestCollectAPI:
 
 
 class TestDashboardAPI:
-    def test_dashboard_signals(self, client):
-        r = client.get("/api/v1/dashboard/signals")
+    def test_dashboard_signals(self, client, auth_headers):
+        if not auth_headers:
+            pytest.skip("Auth not available")
+        r = client.get("/api/v1/dashboard/signals", headers=auth_headers)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
-    def test_dashboard_channels(self, client):
-        r = client.get("/api/v1/dashboard/channels")
+    def test_dashboard_channels(self, client, auth_headers):
+        if not auth_headers:
+            pytest.skip("Auth not available")
+        r = client.get("/api/v1/dashboard/channels", headers=auth_headers)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
-    def test_dashboard_signals_pagination(self, client):
-        r = client.get("/api/v1/dashboard/signals?skip=0&limit=10")
+    def test_dashboard_signals_pagination(self, client, auth_headers):
+        if not auth_headers:
+            pytest.skip("Auth not available")
+        r = client.get("/api/v1/dashboard/signals?skip=0&limit=10", headers=auth_headers)
         assert r.status_code == 200
         assert len(r.json()) <= 10
 

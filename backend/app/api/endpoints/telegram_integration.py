@@ -10,6 +10,8 @@ import random
 from datetime import timedelta
 
 from ...core.database import get_db
+from ...core.auth import get_current_active_user
+from ...models.user import User
 try:
     from ...services.telegram_service import TelegramService
 except ImportError:
@@ -28,7 +30,8 @@ router = APIRouter(tags=["telegram"])
 @router.post("/collect-signals")
 async def trigger_signal_collection(
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Trigger signal collection from Telegram channels
@@ -50,7 +53,10 @@ async def trigger_signal_collection(
         raise HTTPException(status_code=500, detail=f"Failed to start collection: {str(e)}")
 
 @router.get("/collect-signals-sync")
-async def collect_signals_sync(db: Session = Depends(get_db)):
+async def collect_signals_sync(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
     """
     Synchronously collect signals from Telegram channels
     """
@@ -84,7 +90,10 @@ async def test_telegram_integration():
     }
 
 @router.get("/channels")
-async def get_telegram_channels(db: Session = Depends(get_db)):
+async def get_telegram_channels(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
     """
     Get list of configured Telegram channels
     """
@@ -120,7 +129,10 @@ async def get_telegram_channels(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Failed to get channels: {str(e)}")
 
 @router.get("/channels-simple")
-async def get_telegram_channels_simple(db: Session = Depends(get_db)):
+async def get_telegram_channels_simple(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
     """Get list of Telegram channels from database."""
     try:
         channels = db.query(Channel).filter(
@@ -139,7 +151,9 @@ async def get_telegram_channels_simple(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Failed to get channels: {str(e)}")
 
 @router.get("/channels-mock")
-async def get_telegram_channels_mock():
+async def get_telegram_channels_mock(
+    current_user: User = Depends(get_current_active_user),
+):
     """
     Get list of configured Telegram channels (mock data without DB)
     """
@@ -343,7 +357,8 @@ async def get_telegram_channels_mock():
 async def get_channel_signals_endpoint(
     channel_id: int,
     limit: int = 50,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Get signals from a specific Telegram channel
@@ -389,7 +404,8 @@ async def get_channel_signals_endpoint(
 @router.get("/channels/{channel_id}/statistics")
 async def get_channel_statistics(
     channel_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Get detailed statistics for a Telegram channel
@@ -414,7 +430,8 @@ async def get_channel_statistics(
 @router.get("/signals/recent")
 async def get_recent_telegram_signals(
     limit: int = 50,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Get recent signals from all Telegram channels
@@ -442,7 +459,8 @@ async def get_recent_telegram_signals(
 @router.post("/channels/{channel_id}/toggle")
 async def toggle_channel_status(
     channel_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Toggle active status of a Telegram channel
@@ -476,8 +494,6 @@ async def toggle_channel_status(
     except Exception as e:
         logger.error(f"Error toggling channel status: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to toggle status: {str(e)}")
-
-@router.get("/health")
 
 @router.get("/health")
 async def telegram_health():
