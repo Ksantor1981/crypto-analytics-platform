@@ -4,6 +4,8 @@ Uses asyncio instead of Celery for simplicity.
 """
 import asyncio
 import logging
+import os
+from pathlib import Path
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -12,6 +14,7 @@ COLLECTION_INTERVAL = 300  # 5 minutes (ROADMAP: было 15 мин)
 REDDIT_INTERVAL = 300  # 5 minutes (ROADMAP: было 30 мин)
 WEEKLY_DIGEST_INTERVAL = 604800  # 7 days
 DAILY_REVALIDATION_INTERVAL = 86400  # 24 hours
+ML_TRAIN_INTERVAL = 86400  # 24 hours — переобучение ML раз в сутки
 
 
 async def periodic_collection():
@@ -217,3 +220,39 @@ async def periodic_daily_revalidation():
             db.rollback()
         finally:
             db.close()
+
+
+async def periodic_ml_train():
+    """Run ML model training once per day (train_from_db.py in ml-service)."""
+    while True:
+        await asyncio.sleep(ML_TRAIN_INTERVAL)
+        logger.info("[Scheduler] ML training starting...")
+
+        try:
+            from app.core.config import get_settings
+            settings = get_settings()
+            # Path to ml-service (sibling of backend)
+            backend_dir = Path(__file__).resolve().parents[2]
+            project_root = backend_dir.parent
+            ml_service_dir = project_root / "ml-service"
+            train_script = ml_service_dir / "train_from_db.py"
+            if not train_script.exists():
+                logger.warning("[Scheduler] ml-service/train_from_db.py not found, skip ML train")
+                continue
+            env = os.environ.copy()
+            env["DATABASE_URL"] = settings.database_url
+            proc = await asyncio.create_subprocess_exec(
+                os.environ.get("PYTHON_EXE", "python"),
+                str(train_script),
+                cwd=str(ml_service_dir),
+                env=env,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await proc.communicate()
+            if proc.returncode == 0:
+                logger.info("[Scheduler] ML training finished successfully")
+            else:
+                logger.warning("[Scheduler] ML training exit code %s: %s", proc.returncode, (stderr or stdout).decode()[:500])
+        except Exception as e:
+            logger.error("[Scheduler] ML training error: %s", e)

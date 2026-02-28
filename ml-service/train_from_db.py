@@ -1,40 +1,160 @@
 """
 Train ML model from real signal data in the database.
-Usage: python train_from_db.py
+Uses direct DB connection (DATABASE_URL). No API auth required.
+
+Usage:
+  export DATABASE_URL=postgresql://user:pass@host:5432/dbname
+  python train_from_db.py
+
+  Or from backend root: python -m ml_service.train_from_db (if PYTHONPATH includes project root)
+
 Saves models with version: signal_model_v{version}_{timestamp}.pkl
 """
-import sys
 import os
+import sys
 import logging
 import json
 import shutil
-from datetime import datetime
+from datetime import datetime, timezone
+from decimal import Decimal
 
 import numpy as np
-import requests
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Database: same as backend. Example: postgresql://user:pass@localhost:5432/crypto_analytics
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    os.getenv("BACKEND_DATABASE_URL", "postgresql://REDACTED:REDACTED@localhost:5432/crypto_analytics"),
+)
+# Fallback for SQLite (e.g. tests)
+if os.getenv("USE_SQLITE", "").lower() in ("1", "true", "yes"):
+    DATABASE_URL = "sqlite:///./crypto_analytics.db"
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "models")
 MANIFEST_FILE = os.path.join(MODELS_DIR, "model_manifest.json")
 
+# Обучать только при наличии минимум N сигналов с известным исходом (TP/SL/EXPIRED)
+MIN_CLOSED_SIGNALS_FOR_TRAIN = 15
+# Минимум всего сигналов для обучения (иначе — синтетика или пропуск)
+MIN_TOTAL_SIGNALS = 5
+# Целевой размер выборки после аугментации
+AUGMENT_TARGET_SIZE = 500
 
-def fetch_signals():
-    """Fetch signals from backend API."""
+
+def fetch_signals_from_db():
+    """Fetch signals with channel metrics directly from DB."""
     try:
-        resp = requests.get(f"{BACKEND_URL}/api/v1/signals/", params={"limit": 1000}, timeout=10)
+        from sqlalchemy import create_engine, text
+        from sqlalchemy.engine import Engine
+
+        if DATABASE_URL.startswith("sqlite"):
+            engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+        else:
+            engine = create_engine(DATABASE_URL)
+
+        with engine.connect() as conn:
+            # signals + channel.accuracy, channel.signals_count
+            q = text("""
+                SELECT
+                    s.id, s.entry_price, s.tp1_price, s.stop_loss, s.confidence_score,
+                    s.direction, s.status, s.risk_reward_ratio,
+                    c.accuracy AS channel_accuracy,
+                    c.signals_count AS channel_signals_count
+                FROM signals s
+                LEFT JOIN channels c ON c.id = s.channel_id
+                ORDER BY s.created_at DESC
+                LIMIT 5000
+            """)
+            rows = conn.execute(q).fetchall()
+
+        out = []
+        for row in rows:
+            row_dict = row._mapping if hasattr(row, "_mapping") else row._asdict()
+            entry = row_dict.get("entry_price")
+            if entry is not None and hasattr(entry, "__float__"):
+                entry = float(entry)
+            tp = row_dict.get("tp1_price")
+            if tp is not None and hasattr(tp, "__float__"):
+                tp = float(tp)
+            sl = row_dict.get("stop_loss")
+            if sl is not None and hasattr(sl, "__float__"):
+                sl = float(sl)
+            conf = row_dict.get("confidence_score")
+            if conf is not None and hasattr(conf, "__float__"):
+                conf = float(conf)
+            rr = row_dict.get("risk_reward_ratio")
+            if rr is not None and hasattr(rr, "__float__"):
+                rr = float(rr)
+            ch_acc = row_dict.get("channel_accuracy")
+            ch_acc = float(ch_acc) if ch_acc is not None else None
+            ch_sigs = row_dict.get("channel_signals_count")
+            ch_sigs = int(ch_sigs) if ch_sigs is not None else None
+            direction = row_dict.get("direction")
+            if hasattr(direction, "value"):
+                direction = direction.value
+            status = row_dict.get("status")
+            if hasattr(status, "value"):
+                status = status.value
+            out.append({
+                "entry_price": entry or 0,
+                "tp1_price": tp,
+                "stop_loss": sl,
+                "confidence_score": conf,
+                "risk_reward_ratio": rr,
+                "direction": direction or "LONG",
+                "status": status or "PENDING",
+                "channel_accuracy": ch_acc,
+                "channel_signals_count": ch_sigs,
+            })
+        return out
+    except Exception as e:
+        logger.warning("DB fetch failed: %s. Fallback to API.", e)
+        return _fetch_signals_from_api()
+
+
+def _fetch_signals_from_api():
+    """Fallback: fetch from backend API (requires auth token or public endpoint)."""
+    try:
+        import requests
+        token = os.getenv("TRAIN_API_TOKEN")
+        headers = {"Authorization": f"Bearer {token}"} if token else {}
+        resp = requests.get(
+            f"{BACKEND_URL}/api/v1/signals/",
+            params={"limit": 1000},
+            timeout=10,
+            headers=headers,
+        )
         if resp.status_code == 200:
             data = resp.json()
-            return data.get("signals", [])
+            signals = data.get("signals", [])
+            for s in signals:
+                s.setdefault("channel_accuracy", None)
+                s.setdefault("channel_signals_count", None)
+            return signals
     except Exception as e:
-        logger.warning(f"Could not fetch from API: {e}")
+        logger.warning("API fallback failed: %s", e)
     return []
 
 
+def fetch_signals():
+    """Preferred: DB. Fallback: API."""
+    signals = fetch_signals_from_db()
+    if not signals:
+        return []
+    return signals
+
+
+def count_closed_signals(signals):
+    """Number of signals with resolved outcome (TP/SL/EXPIRED/CANCELLED)."""
+    closed = ("TP1_HIT", "TP2_HIT", "TP3_HIT", "SL_HIT", "EXPIRED", "CANCELLED")
+    return sum(1 for s in signals if (s.get("status") or "").upper() in closed)
+
+
 def build_features(signals):
-    """Build feature matrix from signals."""
+    """Build feature matrix from signals. Real channel_accuracy and channel_signals_count."""
     features = []
     labels = []
 
@@ -42,24 +162,26 @@ def build_features(signals):
         entry = s.get("entry_price") or 0
         tp = s.get("tp1_price") or 0
         sl = s.get("stop_loss") or 0
-        conf = s.get("confidence_score") or 0.5
+        conf = float(s.get("confidence_score") or 0.5)
+        if isinstance(conf, Decimal):
+            conf = float(conf)
 
-        rr_ratio = 0
-        if entry > 0 and sl > 0 and tp > 0:
+        rr_ratio = float(s.get("risk_reward_ratio") or 0)
+        if rr_ratio <= 0 and entry > 0 and sl and tp:
             risk = abs(entry - sl)
             reward = abs(tp - entry)
             rr_ratio = reward / max(risk, 0.001)
 
-        price_dev = 0.05  # default
-        direction_num = 1.0 if s.get("direction") == "LONG" else 0.0
-        rsi = 50 + np.random.normal(0, 10)
-        macd = np.random.normal(0, 0.05)
-        channel_acc = 50.0
-        channel_sigs = 10
+        price_dev = 0.05
+        direction_num = 1.0 if (s.get("direction") or "").upper() in ("LONG", "BUY") else 0.0
+        rsi = 50.0  # placeholder until real market data
+        macd = 0.0  # placeholder
+        channel_acc = float(s.get("channel_accuracy") or 50.0)
+        channel_sigs = float(s.get("channel_signals_count") or 10.0)
 
         features.append([conf, rr_ratio, price_dev, direction_num, rsi, macd, channel_acc, channel_sigs])
 
-        status = s.get("status", "PENDING")
+        status = (s.get("status") or "PENDING").upper()
         if status in ("TP1_HIT", "TP2_HIT", "TP3_HIT"):
             labels.append(1)
         elif status in ("SL_HIT", "EXPIRED", "CANCELLED"):
@@ -74,10 +196,8 @@ def augment_data(features, labels, target_size=500):
     """Augment small dataset with noise variations."""
     if len(features) >= target_size:
         return features, labels
-
     augmented_f = list(features)
     augmented_l = list(labels)
-
     while len(augmented_f) < target_size:
         idx = np.random.randint(0, len(features))
         noise = np.random.normal(0, 0.05, features.shape[1])
@@ -85,75 +205,95 @@ def augment_data(features, labels, target_size=500):
         new_f = np.clip(new_f, 0, None)
         augmented_f.append(new_f)
         augmented_l.append(labels[idx])
-
     return np.array(augmented_f), np.array(augmented_l)
 
 
 def train():
-    """Main training function."""
+    """Main training function. Skips real training if too few closed signals."""
     signals = fetch_signals()
-    logger.info(f"Fetched {len(signals)} signals from API")
+    logger.info("Fetched %d signals (DB or API)", len(signals))
 
-    if len(signals) < 5:
-        logger.warning("Too few signals for training, using synthetic augmentation")
-        signals = signals or [
+    closed_count = count_closed_signals(signals)
+    logger.info("Closed signals (TP/SL/EXPIRED): %d", closed_count)
+
+    if len(signals) < MIN_TOTAL_SIGNALS:
+        logger.warning("Too few signals (min %d). Using synthetic data.", MIN_TOTAL_SIGNALS)
+        signals = [
             {"entry_price": 65000, "tp1_price": 72000, "stop_loss": 63000,
-             "confidence_score": 0.8, "direction": "LONG", "status": "TP1_HIT"},
+             "confidence_score": 0.8, "direction": "LONG", "status": "TP1_HIT",
+             "channel_accuracy": 55, "channel_signals_count": 100},
             {"entry_price": 2000, "tp1_price": 2200, "stop_loss": 1900,
-             "confidence_score": 0.7, "direction": "LONG", "status": "PENDING"},
-        ]
+             "confidence_score": 0.7, "direction": "LONG", "status": "PENDING",
+             "channel_accuracy": 50, "channel_signals_count": 50},
+        ] * 3
 
     features, labels = build_features(signals)
-    logger.info(f"Built {len(features)} feature vectors ({sum(labels)} positive, {len(labels)-sum(labels)} negative)")
+    n_pos = int(labels.sum())
+    n_neg = len(labels) - n_pos
+    logger.info("Built %d feature vectors (%d positive, %d negative)", len(features), n_pos, n_neg)
 
-    features, labels = augment_data(features, labels, target_size=500)
-    logger.info(f"After augmentation: {len(features)} samples")
+    if closed_count < MIN_CLOSED_SIGNALS_FOR_TRAIN and len(signals) >= MIN_TOTAL_SIGNALS:
+        logger.warning(
+            "Closed signals %d < %d. Training will use PENDING labels (confidence proxy). "
+            "Retrain when more outcomes are available.",
+            closed_count, MIN_CLOSED_SIGNALS_FOR_TRAIN,
+        )
 
-    from xgboost import XGBClassifier
-    import joblib
+    features, labels = augment_data(features, labels, target_size=AUGMENT_TARGET_SIZE)
+    logger.info("After augmentation: %d samples", len(features))
 
-    # Use regularization to prevent overfit on small datasets
-    from sklearn.model_selection import cross_val_score
-
-    model = XGBClassifier(
-        n_estimators=50, max_depth=3, learning_rate=0.05,
-        min_child_weight=5, subsample=0.8, colsample_bytree=0.8,
-        reg_alpha=1.0, reg_lambda=2.0,
-        random_state=42, use_label_encoder=False, eval_metric='logloss',
-    )
-    model.fit(features, labels)
-
-    from sklearn.metrics import classification_report, confusion_matrix
+    try:
+        from xgboost import XGBClassifier
+        import joblib
+        from sklearn.model_selection import cross_val_score
+        from sklearn.metrics import classification_report, confusion_matrix
+    except ModuleNotFoundError as e:
+        logger.error(
+            "Missing ML dependency: %s. From project root: pip install -r ml-service/requirements-train.txt",
+            e.name,
+        )
+        raise SystemExit(1) from e
     import json as _json
 
+    xgb_params = dict(
+        n_estimators=50, max_depth=3, learning_rate=0.05,
+        min_child_weight=5, subsample=0.8, colsample_bytree=0.8,
+        reg_alpha=1.0, reg_lambda=2.0, random_state=42,
+    )
+    try:
+        import xgboost as _xgb
+        if getattr(_xgb, "__version__", "0").startswith(("0.", "1.", "2.")):
+            xgb_params["use_label_encoder"] = False
+            xgb_params["eval_metric"] = "logloss"
+    except Exception:
+        pass
+    model = XGBClassifier(**xgb_params)
+    model.fit(features, labels)
+
     train_acc = (model.predict(features) == labels).mean()
-    cv_scores = cross_val_score(model, features, labels, cv=min(5, len(features)//10 or 2), scoring='accuracy')
+    cv_folds = min(5, max(2, len(features) // 10))
+    cv_scores = cross_val_score(model, features, labels, cv=cv_folds, scoring="accuracy")
     accuracy = cv_scores.mean()
 
-    # Confusion matrix
     y_pred = model.predict(features)
     cm = confusion_matrix(labels, y_pred)
     report = classification_report(labels, y_pred, target_names=["FAIL", "SUCCESS"], output_dict=True)
-
-    # Feature importance
     feature_names = ["confidence", "risk_reward", "price_dev", "direction", "rsi", "macd", "ch_accuracy", "ch_signals"]
     importance = dict(zip(feature_names, model.feature_importances_.tolist()))
 
     os.makedirs(MODELS_DIR, exist_ok=True)
-
-    # Versioning: load manifest, increment version
     manifest = {"versions": [], "current": None}
     if os.path.exists(MANIFEST_FILE):
         with open(MANIFEST_FILE, "r") as f:
             manifest = _json.load(f)
     next_version = len(manifest.get("versions", [])) + 1
-    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     versioned_name = f"signal_model_v{next_version}_{timestamp}.pkl"
     model_path = os.path.join(MODELS_DIR, versioned_name)
 
     eval_report = {
         "version": next_version,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "train_accuracy": round(train_acc * 100, 1),
         "cv_accuracy": round(accuracy * 100, 1),
         "cv_std": round(cv_scores.std() * 100, 1),
@@ -161,6 +301,7 @@ def train():
         "classification_report": {k: v for k, v in report.items() if k in ("FAIL", "SUCCESS", "accuracy")},
         "feature_importance": {k: round(v, 4) for k, v in sorted(importance.items(), key=lambda x: -x[1])},
         "real_signals": len(signals),
+        "closed_signals": count_closed_signals(signals),
         "total_samples": len(features),
         "random_seed": 42,
         "model_file": versioned_name,
@@ -171,9 +312,6 @@ def train():
         _json.dump(eval_report, f, indent=2)
 
     joblib.dump(model, model_path)
-    logger.info(f"Model saved to {model_path} (v{next_version})")
-
-    # Update manifest
     manifest.setdefault("versions", []).append({
         "version": next_version,
         "file": versioned_name,
@@ -185,16 +323,20 @@ def train():
     with open(MANIFEST_FILE, "w") as f:
         _json.dump(manifest, f, indent=2)
 
-    # Symlink/copy current to signal_model.pkl for backwards compatibility
     legacy_path = os.path.join(MODELS_DIR, "signal_model.pkl")
     shutil.copy(model_path, legacy_path)
 
-    logger.info(f"Train: {train_acc:.1%}, CV: {accuracy:.1%} (+/- {cv_scores.std():.1%})")
-    logger.info(f"Model v{next_version} saved, manifest updated")
-
-    return {"version": next_version, "accuracy": round(accuracy * 100, 1), "samples": len(features), "real_signals": len(signals)}
+    logger.info("Train: %.1f%%, CV: %.1f%% (+/- %.1f%%)", train_acc * 100, accuracy * 100, cv_scores.std() * 100)
+    logger.info("Model v%d saved, manifest updated", next_version)
+    return {
+        "version": int(next_version),
+        "accuracy": float(round(accuracy * 100, 1)),
+        "samples": int(len(features)),
+        "real_signals": len(signals),
+        "closed_signals": int(closed_count),
+    }
 
 
 if __name__ == "__main__":
     result = train()
-    print(f"Training result: {result}")
+    print("Training result:", result)

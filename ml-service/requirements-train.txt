@@ -1,0 +1,10 @@
+# Минимальные зависимости только для train_from_db.py (без сборки из исходников).
+# Используйте на Windows, если pip install -r requirements.txt падает из-за отсутствия C-компилятора.
+# Установка: из корня проекта: pip install -r ml-service/requirements-train.txt
+numpy>=1.26,<3
+scikit-learn>=1.3
+xgboost>=2.0
+joblib>=1.3
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
+requests>=2.28
