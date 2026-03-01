@@ -98,14 +98,14 @@ def sample_signals(db_session, sample_channel):
 
 # --- ChannelService ---
 class TestChannelServiceIntegration:
-    @pytest.mark.skip(reason="Seed data makes this test invalid")
-    def test_get_channels_empty(self, db_session):
+    def test_get_channels_returns_list(self, db_session):
+        """Возвращает список (БД может быть с seed)."""
         channels = ChannelService.get_channels(db_session, limit=10)
-        assert channels == []
+        assert isinstance(channels, list)
 
-    @pytest.mark.skip(reason="Seed data count varies")
     def test_get_channels_with_data(self, db_session, sample_channel):
-        channels = ChannelService.get_channels(db_session, limit=10)
+        """В выборке есть каналы и созданный sample_channel (limit достаточный при seed)."""
+        channels = ChannelService.get_channels(db_session, limit=100)
         assert len(channels) >= 1
         assert any(c.id == sample_channel.id for c in channels)
 

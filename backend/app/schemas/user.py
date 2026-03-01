@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator, EmailStr, model_validator
+from pydantic import BaseModel, Field, field_validator, EmailStr, model_validator, ConfigDict
 from typing import Optional, List, Any, Dict
 from datetime import datetime
 from enum import Enum
@@ -68,8 +68,7 @@ class UserInDB(UserBase):
     updated_at: datetime
     subscriptions: List[Any] = []  # Will be resolved in model_rebuild
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserResponse(UserInDB):
@@ -110,8 +109,7 @@ class UserProfile(BaseModel):
     is_premium: bool = False
     is_admin: bool = False
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserStats(BaseModel):
@@ -123,8 +121,7 @@ class UserStats(BaseModel):
     win_rate: float = 0.0
     active_subscriptions: int = 0
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserListResponse(BaseModel):

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -124,8 +124,7 @@ class SignalResponse(SignalBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Схема для представления в базе данных
 class SignalInDB(SignalResponse):
@@ -181,8 +180,7 @@ class SignalStats(BaseModel):
     worst_signal_roi: float = 0.0
     average_duration_hours: float = 0.0
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Схема для статистики канала
 class ChannelSignalStats(BaseModel):
@@ -191,8 +189,7 @@ class ChannelSignalStats(BaseModel):
     channel_name: str
     stats: SignalStats
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Схема для статистики актива
 class AssetPerformance(BaseModel):
@@ -204,8 +201,7 @@ class AssetPerformance(BaseModel):
     average_roi: float
     total_roi: float
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Telegram-specific schemas for direct integration
 class TelegramSignalCreate(BaseModel):
@@ -234,5 +230,4 @@ class TelegramSignalResponse(BaseModel):
     created_at: datetime
     metadata: Optional[Dict]
     
-    class Config:
-        from_attributes = True 
+    model_config = ConfigDict(from_attributes=True) 

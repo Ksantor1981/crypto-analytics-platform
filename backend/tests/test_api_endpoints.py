@@ -191,7 +191,6 @@ class TestStripeCheckoutAPI:
 
 
 class TestFeedbackAPI:
-    @pytest.mark.skip(reason="Feedback enum serialization needs fix")
     def test_create_feedback_anonymous(self, client):
         r = client.post("/api/v1/feedback/", json={
             "feedback_type": "general",
@@ -201,6 +200,8 @@ class TestFeedbackAPI:
         assert r.status_code == 201
         data = r.json()
         assert data["subject"] == "Test feedback subject"
+        assert data.get("feedback_type") == "general"
+        assert data.get("status") == "new"
 
     def test_get_feedback_requires_admin(self, client, auth_headers):
         r = client.get("/api/v1/feedback/", headers=auth_headers or {})

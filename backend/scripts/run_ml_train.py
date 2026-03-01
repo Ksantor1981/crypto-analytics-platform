@@ -18,7 +18,7 @@ from pathlib import Path
 backend_dir = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(backend_dir))
 
-from app.core.config import get_settings
+from app.core.config import get_settings, database_url_for_host
 
 
 def _get_ml_python(ml_service_dir: Path):
@@ -32,30 +32,6 @@ def _get_ml_python(ml_service_dir: Path):
     return sys.executable
 
 
-def _database_url_for_host(db_url: str) -> str:
-    """
-    Для запуска на хосте (не в Docker): подменить хост postgres на localhost,
-    порт привести к 5432, добавить имя БД если нет.
-    В .env для Docker указан postgres:543 — с хоста так не подключиться.
-    """
-    if "@postgres" not in db_url and "@postgres:" not in db_url:
-        return db_url
-    try:
-        from urllib.parse import urlparse, urlunparse
-        p = urlparse(db_url)
-        if p.port in (None, 543):
-            netloc = f"{p.hostname or 'localhost'}:5432" if p.username else "localhost:5432"
-        else:
-            netloc = f"{p.hostname or 'localhost'}:{p.port}"
-        if p.username:
-            netloc = f"{p.username}:{p.password or ''}@{netloc}" if p.password else f"{p.username}@{netloc}"
-        path = p.path if p.path and p.path != "/" else "/crypto_analytics"
-        new_url = urlunparse((p.scheme, netloc.replace("postgres:", "localhost:").replace("@postgres", "@localhost"), path, p.params, p.query, p.fragment))
-        return new_url
-    except Exception:
-        return db_url
-
-
 def main():
     settings = get_settings()
     project_root = backend_dir.parent
@@ -67,7 +43,7 @@ def main():
         print("Install deps: pip install -r ml-service/requirements-train.txt (or ml-service/requirements.txt)", file=sys.stderr)
         sys.exit(1)
     env = os.environ.copy()
-    env["DATABASE_URL"] = _database_url_for_host(settings.database_url)
+    env["DATABASE_URL"] = database_url_for_host(settings.database_url)
     python_exe = _get_ml_python(ml_service_dir)
     if python_exe != sys.executable:
         print("Using ml-service venv:", python_exe, file=sys.stderr)

@@ -2,8 +2,8 @@
 Feedback schemas for API
 """
 
-from pydantic import BaseModel, Field, EmailStr
-from typing import Optional, List
+from pydantic import BaseModel, Field, EmailStr, field_serializer
+from typing import Optional, List, Any
 from datetime import datetime
 from enum import Enum
 
@@ -62,8 +62,14 @@ class FeedbackRead(BaseModel):
     source: str
     tags: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
+
+    @field_serializer("feedback_type", "status")
+    def _serialize_enum(self, v: Any) -> str:
+        """SQLAlchemy returns native enum; API must return string value for JSON."""
+        if v is not None and hasattr(v, "value"):
+            return v.value
+        return v if isinstance(v, str) else str(v)
 
 class FeedbackList(BaseModel):
     """Schema for feedback list with pagination"""

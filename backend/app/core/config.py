@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import os
-from pydantic import BaseModel, Field
 
 class RedisConfig(BaseModel):
     """Redis configuration"""
@@ -147,11 +147,38 @@ class Settings(BaseSettings):
     AUTH_RATE_LIMIT_REQUESTS: int = 5
     AUTH_RATE_LIMIT_WINDOW: int = 900
     
-    class Config:
-        case_sensitive = True
+    model_config = ConfigDict(case_sensitive=True)
 
 def get_settings() -> Settings:
     return Settings()
+
+
+def database_url_for_host(db_url: str) -> str:
+    """
+    Для запуска на хосте (не в Docker): подменить хост postgres на localhost,
+    порт 543 → 5432, добавить имя БД если нет.
+    """
+    if "@postgres" not in db_url and "@postgres:" not in db_url:
+        return db_url
+    try:
+        from urllib.parse import urlparse, urlunparse
+        p = urlparse(db_url)
+        if p.port in (None, 543):
+            netloc = f"{p.hostname or 'localhost'}:5432" if p.username else "localhost:5432"
+        else:
+            netloc = f"{p.hostname or 'localhost'}:{p.port}"
+        if p.username:
+            netloc = f"{p.username}:{p.password or ''}@{netloc}" if p.password else f"{p.username}@{netloc}"
+        path = p.path if p.path and p.path != "/" else "/crypto_analytics"
+        new_url = urlunparse((
+            p.scheme,
+            netloc.replace("postgres:", "localhost:").replace("@postgres", "@localhost"),
+            path, p.params, p.query, p.fragment,
+        ))
+        return new_url
+    except Exception:
+        return db_url
+
 
 # Создаем экземпляры конфигураций для импорта в тестах
 settings = get_settings()

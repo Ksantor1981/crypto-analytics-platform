@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 from typing import Optional, List, Any
 from datetime import datetime
 from enum import Enum
@@ -87,8 +87,7 @@ class SubscriptionResponse(SubscriptionBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Schema with user info
 class SubscriptionWithUser(SubscriptionResponse):

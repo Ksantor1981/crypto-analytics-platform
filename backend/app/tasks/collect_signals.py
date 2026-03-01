@@ -46,13 +46,16 @@ def run_collection():
                     collect_signals_from_channel(username)
                 )
 
+            from sqlalchemy import func
             new_count = 0
+            text_500_col = func.left(Signal.original_text, 500)
             for sig in signals:
                 if not sig.entry_price:
                     continue
+                text_500 = (sig.original_text or "")[:500]
                 existing = db.query(Signal).filter(
                     Signal.channel_id == channel.id,
-                    Signal.original_text == sig.original_text[:500],
+                    text_500_col == text_500,
                 ).first()
                 if existing:
                     continue

@@ -110,7 +110,7 @@ jobs:
           API_URL: "http://localhost:8000"
         run: |
           (cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000) &
-          sleep 5
+          sleep 8
           (cd frontend && npm run start) &
-          sleep 10
+          sleep 15
           cd e2e && npx playwright install chromium && npx playwright test --reporter=list

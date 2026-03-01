@@ -2,6 +2,7 @@
 Production-specific configuration overrides
 """
 import os
+from pydantic import ConfigDict
 from .config import Settings
 
 class ProductionSettings(Settings):
@@ -66,9 +67,9 @@ class ProductionSettings(Settings):
     AUTH_RATE_LIMIT_REQUESTS: int = 3  # Reduced from 5
     
     # Logging - Production format
-    class Config:
-        case_sensitive = True
-        
+    model_config = ConfigDict(case_sensitive=True)
+
+
 def get_production_settings() -> ProductionSettings:
     """Get production settings with validation"""
     settings = ProductionSettings()

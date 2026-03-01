@@ -1,7 +1,7 @@
 """
 Trading schemas for API
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from decimal import Decimal
@@ -48,8 +48,7 @@ class TradingAccountResponse(TradingAccountBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Position schemas
 class TradingPositionBase(BaseModel):
@@ -91,8 +90,7 @@ class TradingPositionResponse(TradingPositionBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Order schemas
 class TradingOrderBase(BaseModel):
@@ -120,8 +118,7 @@ class TradingOrderResponse(TradingOrderBase):
     filled_at: Optional[datetime]
     metadata: Optional[Dict[str, Any]]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Strategy schemas
 class TradingStrategyBase(BaseModel):
@@ -150,8 +147,7 @@ class TradingStrategyResponse(TradingStrategyBase):
     created_at: datetime
     last_executed_at: Optional[datetime]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Risk management schemas
 class RiskManagementBase(BaseModel):
@@ -197,8 +193,7 @@ class RiskManagementResponse(RiskManagementBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Trading API schemas
 class PlaceOrderRequest(BaseModel):

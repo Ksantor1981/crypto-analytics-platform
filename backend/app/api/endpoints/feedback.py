@@ -142,7 +142,7 @@ async def update_feedback(
         )
     
     # Update fields
-    update_data = feedback_update.dict(exclude_unset=True)
+    update_data = feedback_update.model_dump(exclude_unset=True)
     
     # Set responded_at if admin_response is provided
     if "admin_response" in update_data and update_data["admin_response"]:

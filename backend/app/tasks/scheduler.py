@@ -25,9 +25,12 @@ async def periodic_collection():
     from app.services.telegram_scraper import collect_signals_from_channel
     from app.services.metrics_calculator import recalculate_all_channels
     from app.services.signal_checker import check_pending_signals
+    from app.services.dedup import cleanup_duplicates
 
+    collection_cycle = 0
     while True:
         await asyncio.sleep(COLLECTION_INTERVAL)
+        collection_cycle += 1
         logger.info(f"[Scheduler] Starting periodic collection at {datetime.utcnow().isoformat()}")
 
         db = SessionLocal()
@@ -42,13 +45,16 @@ async def periodic_collection():
                 if not uname:
                     continue
                 try:
+                    from sqlalchemy import func
                     sigs = await collect_signals_from_channel(uname)
+                    text_500_col = func.left(Signal.original_text, 500)
                     for s in sigs:
                         if not s.entry_price:
                             continue
+                        text_500 = (s.original_text or "")[:500]
                         if db.query(Signal).filter(
                             Signal.channel_id == ch.id,
-                            Signal.original_text == s.original_text[:500]
+                            text_500_col == text_500,
                         ).first():
                             continue
                         db.add(Signal(
@@ -65,6 +71,15 @@ async def periodic_collection():
                     logger.warning(f"[Scheduler] @{uname}: {e}")
 
             db.commit()
+
+            # Периодическая очистка дубликатов по полному тексту (раз в ~1 час при интервале 5 мин)
+            if collection_cycle % 12 == 0:
+                try:
+                    removed = cleanup_duplicates(db)
+                    if removed:
+                        logger.info(f"[Scheduler] cleanup_duplicates removed {removed} duplicates")
+                except Exception as e:
+                    logger.warning(f"[Scheduler] cleanup_duplicates: {e}")
 
             # Check pending signals against market
             result = await check_pending_signals(db)
@@ -94,6 +109,8 @@ async def periodic_reddit_collection():
 
         db = SessionLocal()
         try:
+            from sqlalchemy import func
+            text_500_col = func.left(Signal.original_text, 500)
             total = 0
             for sub in CRYPTO_SUBREDDITS:
                 try:
@@ -111,7 +128,8 @@ async def periodic_reddit_collection():
                             )
                             db.add(channel)
                             db.flush()
-                        if db.query(Signal).filter(Signal.channel_id == channel.id, Signal.original_text == sig.original_text[:500]).first():
+                        text_500 = (sig.original_text or "")[:500]
+                        if db.query(Signal).filter(Signal.channel_id == channel.id, text_500_col == text_500).first():
                             continue
                         db.add(Signal(
                             channel_id=channel.id, asset=sig.asset, symbol=sig.asset.replace("/", ""),
@@ -239,8 +257,9 @@ async def periodic_ml_train():
             if not train_script.exists():
                 logger.warning("[Scheduler] ml-service/train_from_db.py not found, skip ML train")
                 continue
+            from app.core.config import database_url_for_host
             env = os.environ.copy()
-            env["DATABASE_URL"] = settings.database_url
+            env["DATABASE_URL"] = database_url_for_host(settings.database_url)
             proc = await asyncio.create_subprocess_exec(
                 os.environ.get("PYTHON_EXE", "python"),
                 str(train_script),

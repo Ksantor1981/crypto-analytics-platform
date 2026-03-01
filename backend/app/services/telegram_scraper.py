@@ -41,6 +41,15 @@ NEWS_SKIP_KW = re.compile(
     re.I
 )
 
+# DeFi / news-style — not a trading signal (protocol news, announcements)
+DEFI_NEWS_LIKE = re.compile(
+    r'\b(protocol|TVL|launch|audit|announcement|airdrop|governance|'
+    r'ecosystem|partnership|integration|mainnet|testnet|upgrade|'
+    r'listing|delisting|halving|conference|summit)\b',
+    re.I
+)
+MIN_TEXT_LEN_FOR_STRICT_SIGNAL = 120  # below this, allow signal without TP/SL
+
 # Garbage / spam / non-signal content — filter out
 GARBAGE_SKIP_KW = re.compile(
     r'\b(join\s+channel|join\s+group|t\.me/|telegram\.me/join|'
@@ -279,6 +288,11 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
         entry_price = valid_prices[0]
     if not take_profit and len(valid_prices) >= 2:
         take_profit = valid_prices[1]
+
+    # DeFi/news filter: long text with news-like keywords but no TP/SL = not a signal
+    if entry_price and not take_profit and not stop_loss:
+        if len(text.strip()) >= MIN_TEXT_LEN_FOR_STRICT_SIGNAL and DEFI_NEWS_LIKE.search(text):
+            return None
 
     confidence = 0.4
     if entry_price:
