@@ -249,14 +249,18 @@ async def lifespan(app: FastAPI):
                 periodic_weekly_digest,
                 periodic_daily_revalidation,
                 periodic_ml_train,
+                periodic_source_health,
+                periodic_source_discovery,
             )
             t2 = asyncio.create_task(periodic_collection())
             t3 = asyncio.create_task(periodic_reddit_collection())
             t4 = asyncio.create_task(periodic_weekly_digest())
             t5 = asyncio.create_task(periodic_daily_revalidation())
             t6 = asyncio.create_task(periodic_ml_train())
-            _background_tasks.extend([t2, t3, t4, t5, t6])
-            logger.info("Schedulers started: collect 5min, digest 7d, revalidation 24h, ML train 24h")
+            t7 = asyncio.create_task(periodic_source_health())
+            t8 = asyncio.create_task(periodic_source_discovery())
+            _background_tasks.extend([t2, t3, t4, t5, t6, t7, t8])
+            logger.info("Schedulers started: collect 5min, digest 7d, revalidation 24h, ML train 24h, source health 24h, source discovery 24h")
         except Exception as sched_err:
             logger.warning("Scheduler not started", error=str(sched_err))
 

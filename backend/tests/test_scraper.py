@@ -1,4 +1,7 @@
 """Tests for telegram scraper and signal parser."""
+import json
+from pathlib import Path
+
 import pytest
 from app.services.telegram_scraper import parse_signal_from_text, _detect_asset, _validate_price
 
@@ -89,6 +92,34 @@ class TestSignalParsing:
         text = "#BTC LONG"
         sig = parse_signal_from_text(text)
         assert sig.confidence == 0.4
+
+
+class TestSignalParsingCorpus:
+    """Small corpus-based tests using real-world-like examples."""
+
+    @pytest.mark.parametrize("case", json.loads(
+        Path(__file__).with_name("data").joinpath("sample_telegram_messages.json").read_text(encoding="utf-8")
+    ))
+    def test_corpus_cases(self, case):
+        text = case["text"]
+        expected = case["expected"]
+        sig = parse_signal_from_text(text)
+
+        if expected is None:
+            assert sig is None
+            return
+
+        assert sig is not None, f"Expected signal for case {case['id']}"
+        if "asset" in expected:
+            assert sig.asset == expected["asset"]
+        if "direction" in expected:
+            assert sig.direction == expected["direction"]
+        if "entry_price" in expected:
+            assert sig.entry_price == expected["entry_price"]
+        if "take_profit" in expected:
+            assert sig.take_profit == expected["take_profit"]
+        if "stop_loss" in expected:
+            assert sig.stop_loss == expected["stop_loss"]
 
 
 class TestMetricsCalculator:

@@ -32,7 +32,7 @@ jobs:
           python -m pytest tests/ --ignore=tests/test_z_production_integration.py -v --tb=short \
             --cov=app \
             --cov-report=term-missing \
-            --cov-fail-under=25
+            --cov-fail-under=60
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -83,6 +83,7 @@ jobs:
       - name: npm audit (frontend)
         run: cd frontend && npm audit --audit-level=high || true
 
+  # E2E: continue-on-error — Playwright может флакать (таймауты, сеть); стабилизировать при необходимости
   e2e:
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -110,7 +111,7 @@ jobs:
           API_URL: "http://localhost:8000"
         run: |
           (cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000) &
-          sleep 8
+          for i in 1 2 3 4 5 6 7 8 9 10; do sleep 2; curl -sf http://localhost:8000/api/v1/health/ >/dev/null && break; done
           (cd frontend && npm run start) &
-          sleep 15
+          for i in 1 2 3 4 5 6 7 8 9 10; do sleep 3; curl -sf http://localhost:3000 >/dev/null && break; done
           cd e2e && npx playwright install chromium && npx playwright test --reporter=list

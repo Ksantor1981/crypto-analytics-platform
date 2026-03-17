@@ -17,6 +17,14 @@ os.environ.setdefault("USE_SQLITE", "true")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-32-chars-minimum")
 os.environ.setdefault("DEBUG", "true")
 os.environ.setdefault("AUTH_RATE_LIMIT_REQUESTS", "1000")  # Relax rate limit for tests
+# Use separate test DB; remove stale file so create_all gets fresh schema (discovered_at etc.)
+_test_db = Path(__file__).parent.parent / "test_crypto_analytics.db"
+if _test_db.exists():
+    try:
+        _test_db.unlink()
+    except OSError:
+        pass
+os.environ.setdefault("DATABASE_URL", f"sqlite:///./{_test_db.name}")
 
 # Ensure redis module exists for patch — inject fake if not installed (e.g. minimal CI env)
 try:

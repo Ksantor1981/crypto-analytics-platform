@@ -4,7 +4,7 @@ Database seeding script for development and testing
 """
 import sys
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -12,8 +12,9 @@ from pathlib import Path
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
-# Set environment
-os.environ['ENVIRONMENT'] = 'development'
+# Set environment (USE_SQLITE must be set before app imports if no PostgreSQL)
+os.environ.setdefault('ENVIRONMENT', 'development')
+os.environ.setdefault('USE_SQLITE', 'true')
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -22,14 +23,10 @@ from passlib.hash import bcrypt
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.models import (
-    Base, User, Channel, Signal, Subscription, APIKey, Payment, 
+    Base, User, Channel, Signal, Subscription, APIKey, Payment,
     PerformanceMetric, UserRole, SignalDirection, SignalStatus,
     SubscriptionPlan, SubscriptionStatus, PaymentStatus, PaymentMethod
 )
-from app.schemas.user import UserCreate
-from app.schemas.channel import ChannelCreate
-from app.services.user_service import UserService
-from app.services.channel_service import ChannelService
 
 def create_test_users(session):
     """Create test users"""
@@ -58,7 +55,7 @@ def create_test_users(session):
         role=UserRole.PREMIUM_USER,
         is_active=True,
         is_verified=True,
-        current_subscription_expires=datetime.utcnow() + timedelta(days=30),
+        subscription_end_date=datetime.now(timezone.utc) + timedelta(days=30),
         timezone="UTC",
         language="en"
     )
@@ -87,72 +84,72 @@ def create_test_channels(session):
     
     channels = [
         Channel(
+            username="cryptosignalspro",
             name="Crypto Signals Pro",
             platform="telegram",
             url="https://t.me/cryptosignalspro",
             category="premium",
             description="Premium crypto trading signals with high accuracy",
             accuracy=75.5,
-            signals_count=150,
-            successful_signals=113,
+            signals_count=0,
+            successful_signals=0,
             average_roi=12.5,
-            max_drawdown=8.2,
             is_active=True,
             is_verified=True
         ),
         Channel(
+            username="bitcoinalerts",
             name="Bitcoin Alerts",
             platform="telegram",
             url="https://t.me/bitcoinalerts",
             category="bitcoin",
             description="Focused on Bitcoin trading signals",
             accuracy=68.3,
-            signals_count=98,
-            successful_signals=67,
+            signals_count=0,
+            successful_signals=0,
             average_roi=9.8,
-            max_drawdown=12.1,
             is_active=True,
             is_verified=True
         ),
         Channel(
+            username="altcoingems",
             name="Altcoin Gems",
-            platform="telegram", 
+            platform="telegram",
             url="https://t.me/altcoingems",
             category="altcoins",
             description="Hidden gems in altcoin market",
             accuracy=82.1,
-            signals_count=76,
-            successful_signals=62,
+            signals_count=0,
+            successful_signals=0,
             average_roi=18.7,
-            max_drawdown=15.3,
             is_active=True,
             is_verified=False
         ),
         Channel(
+            username="defisignals",
             name="DeFi Signals",
             platform="telegram",
             url="https://t.me/defisignals",
             category="defi",
             description="DeFi protocol trading signals",
             accuracy=71.2,
-            signals_count=124,
-            successful_signals=88,
+            signals_count=0,
+            successful_signals=0,
             average_roi=14.2,
-            max_drawdown=10.7,
             is_active=True,
             is_verified=True
         ),
         Channel(
+            username="quickscalps",
             name="Quick Scalps",
             platform="telegram",
             url="https://t.me/quickscalps",
             category="scalping",
             description="Fast scalping signals for day traders",
             accuracy=65.8,
-            signals_count=203,
-            successful_signals=134,
+            signals_count=0,
+            successful_signals=0,
             average_roi=6.3,
-            max_drawdown=7.8,
             is_active=True,
             is_verified=False
         )
@@ -238,9 +235,12 @@ def create_test_signals(session, channels):
     ]
     
     for signal_data in signals_data:
+        ch = signal_data["channel"]
+        asset = signal_data["asset"]
         signal = Signal(
-            channel=signal_data["channel"],
-            asset=signal_data["asset"],
+            channel_id=ch.id,
+            asset=asset,
+            symbol=asset.replace("/", ""),
             direction=signal_data["direction"],
             entry_price=signal_data["entry_price"],
             tp1_price=signal_data.get("tp1_price"),
@@ -252,8 +252,12 @@ def create_test_signals(session, channels):
             reached_tp2=signal_data.get("reached_tp2", False),
             hit_stop_loss=signal_data.get("hit_stop_loss", False),
             profit_loss_percentage=signal_data.get("profit_loss_percentage"),
+            profit_loss_absolute=(
+                round(float(signal_data["entry_price"]) * float(signal_data.get("profit_loss_percentage") or 0) / 100, 8)
+                if signal_data.get("profit_loss_percentage") is not None else None
+            ),
             original_text=f"🚀 {signal_data['asset']} {signal_data['direction'].value}\nEntry: {signal_data['entry_price']}\nTP1: {signal_data.get('tp1_price', 'N/A')}\nSL: {signal_data.get('stop_loss', 'N/A')}",
-            message_timestamp=datetime.utcnow() - timedelta(hours=24),
+            message_timestamp=datetime.now(timezone.utc) - timedelta(hours=24),
             confidence_score=Decimal("85.5"),
             ml_success_probability=Decimal("0.73")
         )
@@ -274,9 +278,9 @@ def create_test_subscriptions(session, users):
         status=SubscriptionStatus.ACTIVE,
         price=Decimal("29.99"),
         currency="USD",
-        started_at=datetime.utcnow() - timedelta(days=5),
-        current_period_start=datetime.utcnow() - timedelta(days=5),
-        current_period_end=datetime.utcnow() + timedelta(days=25),
+        started_at=datetime.now(timezone.utc) - timedelta(days=5),
+        current_period_start=datetime.now(timezone.utc) - timedelta(days=5),
+        current_period_end=datetime.now(timezone.utc) + timedelta(days=25),
         api_requests_limit=1000,
         can_access_all_channels=True,
         can_export_data=True,
@@ -292,9 +296,9 @@ def create_test_subscriptions(session, users):
         status=SubscriptionStatus.ACTIVE,
         price=Decimal("0.00"),
         currency="USD",
-        started_at=datetime.utcnow() - timedelta(days=10),
-        current_period_start=datetime.utcnow() - timedelta(days=10),
-        current_period_end=datetime.utcnow() + timedelta(days=355),
+        started_at=datetime.now(timezone.utc) - timedelta(days=10),
+        current_period_start=datetime.now(timezone.utc) - timedelta(days=10),
+        current_period_end=datetime.now(timezone.utc) + timedelta(days=355),
         max_channels_access=5,
         can_access_all_channels=False,
         can_export_data=False,
@@ -342,7 +346,7 @@ def create_test_payments(session, users):
         description="Monthly Premium Subscription",
         status=PaymentStatus.SUCCEEDED,
         payment_method=PaymentMethod.STRIPE_CARD,
-        processed_at=datetime.utcnow() - timedelta(days=5),
+        processed_at=datetime.now(timezone.utc) - timedelta(days=5),
         billing_name="Premium User",
         billing_email="premium@example.com"
     )
@@ -357,8 +361,8 @@ def create_test_performance_metrics(session, channels):
     # Monthly metrics for first channel
     metric = PerformanceMetric(
         channel=channels[0],
-        period_start=datetime.utcnow() - timedelta(days=30),
-        period_end=datetime.utcnow(),
+        period_start=datetime.now(timezone.utc) - timedelta(days=30),
+        period_end=datetime.now(timezone.utc),
         period_type="monthly",
         total_signals=150,
         successful_signals=113,
@@ -383,92 +387,42 @@ def create_test_performance_metrics(session, channels):
 
 def seed_database():
     """Seed database with initial data."""
-    settings = get_settings()
-    print("🌱 Starting database seeding...")
-    
-    # Get database session
+    from app.core.database import engine
+    from app.models.base import Base
+
+    print("Starting database seeding...")
+    db_locked = False
+    # SQLite: remove stale DB so create_all gets fresh schema (discovered_at etc.)
+    url = str(engine.url)
+    if "sqlite" in url and "memory" not in url:
+        db_path = Path(url.replace("sqlite:///", "").split("?")[0])
+        if db_path.exists():
+            try:
+                db_path.unlink()
+            except PermissionError:
+                db_locked = True
+                print("Warning: crypto_analytics.db is locked (backend running?). Stop backend first for fresh seed.")
+    Base.metadata.create_all(bind=engine)
+
     db = next(get_db())
-    
     try:
-        # Create admin user
-        admin_data = UserCreate(
-            email="admin@crypto-analytics.com",
-            username="admin",
-            password=os.getenv("ADMIN_PASSWORD", "ChangeMeInProduction!"),
-            full_name="System Administrator",
-            is_active=True,
-            is_admin=True
-        )
-        
-        user_service = UserService(db)
-        admin_user = user_service.create_user(admin_data)
-        print(f"✅ Created admin user: {admin_user.email}")
-        
-        # Create test channels
-        channel_service = ChannelService(db)
-        
-        test_channels = [
-            {
-                "name": "Binance Killers",
-                "description": "Premium crypto trading signals",
-                "telegram_channel_id": "binancekillers",
-                "is_active": True,
-                "subscription_price": Decimal("49.99")
-            },
-            {
-                "name": "Crypto Signals Pro",
-                "description": "Professional trading signals",
-                "telegram_channel_id": "cryptosignalspro",
-                "is_active": True,
-                "subscription_price": Decimal("29.99")
-            },
-            {
-                "name": "Altcoin Alerts",
-                "description": "Altcoin trading opportunities",
-                "telegram_channel_id": "altcoinalerts",
-                "is_active": True,
-                "subscription_price": Decimal("19.99")
-            }
-        ]
-        
-        for channel_data in test_channels:
-            channel_create = ChannelCreate(**channel_data)
-            channel = channel_service.create_channel(channel_create)
-            print(f"✅ Created channel: {channel.name}")
-        
-        # Create test signals
-        channels = db.query(Channel).all()
-        
-        for channel in channels:
-            for i in range(5):
-                signal = Signal(
-                    channel_id=channel.id,
-                    coin_symbol=f"BTC{i}" if i == 0 else f"ETH{i}",
-                    signal_type="BUY",
-                    entry_price=Decimal("50000.00") + (i * 1000),
-                    target_price=Decimal("55000.00") + (i * 1000),
-                    stop_loss=Decimal("48000.00") + (i * 1000),
-                    leverage=10,
-                    confidence_score=0.85,
-                    message_text=f"🚀 {channel.name} Signal #{i+1}",
-                    created_at=datetime.utcnow() - timedelta(hours=i)
-                )
-                db.add(signal)
-        
-        db.commit()
-        print("✅ Created test signals")
-        
-        print("🎉 Database seeding completed successfully!")
-        
+        if db_locked and db.query(User).count() > 0:
+            print("Data already seeded (db in use). Skipping.")
+            return True
+        admin, premium_user, free_user = create_test_users(db)
+        channels = create_test_channels(db)
+        create_test_signals(db, channels)
+        print("Created admin user:", admin.email)
+        print("Created channels:", len(channels))
+        print("Database seeding completed successfully!")
     except Exception as e:
-        print(f"❌ Error seeding database: {e}")
+        print(f"Error seeding database: {e}")
         import traceback
         traceback.print_exc()
         db.rollback()
         return False
     finally:
         db.close()
-    
     return True
 
 if __name__ == "__main__":

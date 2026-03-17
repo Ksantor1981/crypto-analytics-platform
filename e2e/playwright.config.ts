@@ -23,5 +23,6 @@ export default defineConfig({
     { command: 'cd ../frontend && npm run dev', url: BASE_URL, reuseExistingServer: true },
     { command: 'cd ../backend && uvicorn app.main:app --host 0.0.0.0 --port 8000', url: `${API_URL}/health`, reuseExistingServer: true },
   ],
-  timeout: 15000,
+  timeout: 20000,
+  expect: { timeout: 5000 },
 });

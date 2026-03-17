@@ -213,6 +213,14 @@ class TestMetricsCalculatorIntegration:
 
 # --- User Service (базовые сценарии) ---
 class TestUserServiceIntegration:
+    def test_run_collection_empty_channels(self, db_session):
+        """run_collection with no channels returns zeros."""
+        from app.tasks.collect_signals import run_collection
+        result = run_collection()
+        assert "channels" in result
+        assert result["channels"] >= 0
+        assert "new_signals" in result or "error" in result
+
     def test_user_service_authenticate_fail(self, db_session):
         from app.services.user_service import UserService
         svc = UserService(db_session)

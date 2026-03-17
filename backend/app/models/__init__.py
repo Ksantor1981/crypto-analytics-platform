@@ -13,7 +13,7 @@ from .channel import Channel
 from .signal import SignalDirection, SignalStatus
 from .signal_result import SignalResultStatus
 from .subscription import Subscription
-from .payment import PaymentStatus
+from .payment import PaymentStatus, PaymentMethod
 
 # Затем импортируем модели с зависимостями
 from .user import User
@@ -93,5 +93,6 @@ __all__ = [
     "CustomAlert",
     "Feedback",
     "Payment",
-    "PaymentStatus"
+    "PaymentStatus",
+    "PaymentMethod"
 ]

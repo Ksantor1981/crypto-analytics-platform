@@ -1,0 +1,40 @@
+[
+  {
+    "id": "btc_long_full",
+    "text": "#BTC LONG entry $65,500 TP $72,000 SL $63,000",
+    "expected": {
+      "asset": "BTC/USDT",
+      "direction": "LONG",
+      "entry_price": 65500.0,
+      "take_profit": 72000.0,
+      "stop_loss": 63000.0
+    }
+  },
+  {
+    "id": "eth_short_simple",
+    "text": "$ETH SHORT from $2100",
+    "expected": {
+      "asset": "ETH/USDT",
+      "direction": "SHORT"
+    }
+  },
+  {
+    "id": "russian_long",
+    "text": "BTC/USDT Лонг вход 64000",
+    "expected": {
+      "asset": "BTC/USDT",
+      "direction": "LONG"
+    }
+  },
+  {
+    "id": "news_skip",
+    "text": "Weekly Digest: BTC, ETH and market overview for institutional investors",
+    "expected": null
+  },
+  {
+    "id": "garbage_promo",
+    "text": "Join our channel for 100% free guaranteed profit! t.me/xxxx",
+    "expected": null
+  }
+]
+

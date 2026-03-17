@@ -14,4 +14,4 @@ npx playwright test --ui
 npx playwright test --headed
 ```
 
-В CI E2E запускаются автоматически.
+В CI E2E запускаются автоматически (job `e2e`, `continue-on-error: true` — возможны флаки из‑за таймаутов/сети).

@@ -51,7 +51,8 @@ async def check_pending_signals(db: Session) -> dict:
             signal.status = new_status
             if pnl is not None:
                 signal.profit_loss_percentage = pnl
-                signal.profit_loss_absolute = pnl
+                entry = float(signal.entry_price)
+                signal.profit_loss_absolute = round(entry * pnl / 100, 8)
             signal.is_successful = new_status == "TP1_HIT"
             updated += 1
             results.append({

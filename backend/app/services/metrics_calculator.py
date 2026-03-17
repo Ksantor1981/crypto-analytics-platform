@@ -36,13 +36,14 @@ def recalculate_channel_metrics(db: Session, channel_id: int) -> dict:
         channel.accuracy = None
         channel.successful_signals = 0
 
-    total_roi = 0.0
+    # average_roi = средний ROI в процентах (используем profit_loss_percentage)
+    total_roi_pct = 0.0
     roi_count = 0
     for s in signals:
-        if s.profit_loss_absolute is not None:
-            total_roi += float(s.profit_loss_absolute)
+        if s.profit_loss_percentage is not None:
+            total_roi_pct += float(s.profit_loss_percentage)
             roi_count += 1
-    channel.average_roi = round(total_roi / roi_count, 2) if roi_count > 0 else None
+    channel.average_roi = round(total_roi_pct / roi_count, 2) if roi_count > 0 else None
 
     db.commit()
 

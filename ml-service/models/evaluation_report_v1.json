@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "timestamp": "2026-02-28T22:06:51.704174Z",
+  "train_accuracy": 95.8,
+  "cv_accuracy": 94.2,
+  "cv_std": 3.3,
+  "confusion_matrix": [
+    [
+      241,
+      8
+    ],
+    [
+      13,
+      238
+    ]
+  ],
+  "classification_report": {
+    "FAIL": {
+      "precision": 0.9488188976377953,
+      "recall": 0.9678714859437751,
+      "f1-score": 0.9582504970178926,
+      "support": 249.0
+    },
+    "SUCCESS": {
+      "precision": 0.967479674796748,
+      "recall": 0.9482071713147411,
+      "f1-score": 0.9577464788732395,
+      "support": 251.0
+    },
+    "accuracy": 0.958
+  },
+  "feature_importance": {
+    "confidence": 0.8012,
+    "direction": 0.0501,
+    "risk_reward": 0.0469,
+    "ch_accuracy": 0.0262,
+    "price_dev": 0.0226,
+    "macd": 0.0193,
+    "rsi": 0.0181,
+    "ch_signals": 0.0155
+  },
+  "real_signals": 50,
+  "closed_signals": 23,
+  "total_samples": 500,
+  "random_seed": 42,
+  "model_file": "signal_model_v1_20260228_220651.pkl"
+}

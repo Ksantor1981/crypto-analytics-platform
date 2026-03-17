@@ -22,6 +22,7 @@ export default function () {
   const urls = [
     `${BASE_URL}/`,
     `${BASE_URL}/health`,
+    `${BASE_URL}/metrics`,
     `${BASE_URL}/api/v1/channels/`,
     `${BASE_URL}/api/v1/dashboard/`,
   ];

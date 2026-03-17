@@ -14,13 +14,11 @@ from ...core.database import get_db
 from ...models.signal import Signal
 from ...models.user import User
 from ...core.auth import get_current_user
+from ...core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["ml-integration"])
-
-# ML Service configuration
-ML_SERVICE_URL = "http://localhost:8001"  # В продакшене из env переменных
 
 # Pydantic models
 class MLPredictionRequest(BaseModel):
@@ -80,11 +78,17 @@ async def predict_signal(
             "confidence": float(signal.confidence) if signal.confidence else 0.5
         }
         
-        # Call ML service
+        # Call ML service (A6: optional version header for A/B)
+        settings = get_settings()
+        base_url = settings.ML_SERVICE_URL
+        headers = {}
+        if getattr(settings, "ML_MODEL_VERSION", None):
+            headers["X-ML-Model-Version"] = settings.ML_MODEL_VERSION
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{ML_SERVICE_URL}/api/v1/predictions/signal",
-                json=ml_request_data
+                f"{base_url}/api/v1/predictions/signal",
+                json=ml_request_data,
+                headers=headers or None,
             )
             
             if response.status_code != 200:
@@ -153,10 +157,14 @@ async def predict_batch_signals(
         
         batch_request_data = {"signals": ml_signals}
         
-        # Call ML service
+        settings = get_settings()
+        base_url = settings.ML_SERVICE_URL
+        headers = {}
+        if getattr(settings, "ML_MODEL_VERSION", None):
+            headers["X-ML-Model-Version"] = settings.ML_MODEL_VERSION
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
-                f"{ML_SERVICE_URL}/api/v1/predictions/batch",
+                f"{base_url}/api/v1/predictions/batch",
                 json=batch_request_data
             )
             
@@ -221,9 +229,10 @@ async def direct_ml_predict(request: DirectMLPredictionRequest):
         ml_payload = {k: v for k, v in ml_payload.items() if v is not None}
         
         # Call ML service directly
+        settings = get_settings()
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{ML_SERVICE_URL}/api/v1/predictions/predict",
+                f"{settings.ML_SERVICE_URL}/api/v1/predictions/predict",
                 json=ml_payload
             )
             
@@ -256,8 +265,9 @@ async def ml_service_health():
     Check ML service health
     """
     try:
+        settings = get_settings()
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(f"{ML_SERVICE_URL}/api/v1/health/")
+            response = await client.get(f"{settings.ML_SERVICE_URL}/api/v1/health/")
             
             if response.status_code == 200:
                 return {
@@ -283,8 +293,9 @@ async def get_ml_model_info():
     Get ML model information
     """
     try:
+        settings = get_settings()
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(f"{ML_SERVICE_URL}/api/v1/predictions/model/info")
+            response = await client.get(f"{settings.ML_SERVICE_URL}/api/v1/predictions/model/info")
             
             if response.status_code == 200:
                 return response.json()

@@ -76,6 +76,9 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         """Returns database URL — PostgreSQL by default, SQLite if USE_SQLITE=true"""
         if self.USE_SQLITE:
+            url = self.DATABASE_URL or ""
+            if "sqlite" in url:
+                return self.DATABASE_URL
             return "sqlite:///./crypto_analytics.db"
         return self.DATABASE_URL
     
@@ -108,9 +111,12 @@ class Settings(BaseSettings):
     TELEGRAM_API_ID: Optional[str] = None
     TELEGRAM_API_HASH: Optional[str] = None
     TELEGRAM_SESSION_NAME: Optional[str] = None
+    # C1: сбор без Telegram — при False периодический сбор только Reddit/seed
+    COLLECT_TELEGRAM: bool = True
     
-    # ML Service
+    # ML Service (A6: опциональная версия модели для A/B — передаётся в заголовке в ML service)
     ML_SERVICE_URL: str = "http://localhost:8001"
+    ML_MODEL_VERSION: Optional[str] = None
     
     # Stripe
     STRIPE_PUBLISHABLE_KEY: Optional[str] = None

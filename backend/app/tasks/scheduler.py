@@ -15,11 +15,14 @@ REDDIT_INTERVAL = 300  # 5 minutes (ROADMAP: было 30 мин)
 WEEKLY_DIGEST_INTERVAL = 604800  # 7 days
 DAILY_REVALIDATION_INTERVAL = 86400  # 24 hours
 ML_TRAIN_INTERVAL = 86400  # 24 hours — переобучение ML раз в сутки
+SOURCE_HEALTH_INTERVAL = 86400  # 24 hours — регулярная проверка источников
+SOURCE_DISCOVERY_INTERVAL = 86400  # 24 hours — auto-add/cleanup источников
 
 
 async def periodic_collection():
-    """Run signal collection every 15 minutes."""
+    """Run signal collection every 15 minutes. C1: if COLLECT_TELEGRAM=false, skip Telegram (Reddit runs separately)."""
     from app.core.database import SessionLocal
+    from app.core.config import get_settings
     from app.models.channel import Channel
     from app.models.signal import Signal
     from app.services.telegram_scraper import collect_signals_from_channel
@@ -35,9 +38,14 @@ async def periodic_collection():
 
         db = SessionLocal()
         try:
-            channels = db.query(Channel).filter(
-                Channel.is_active == True, Channel.platform == "telegram"
-            ).all()
+            settings = get_settings()
+            channels = (
+                db.query(Channel).filter(
+                    Channel.is_active == True, Channel.platform == "telegram"
+                ).all()
+                if settings.COLLECT_TELEGRAM
+                else []
+            )
 
             total = 0
             for ch in channels:
@@ -275,3 +283,107 @@ async def periodic_ml_train():
                 logger.warning("[Scheduler] ML training exit code %s: %s", proc.returncode, (stderr or stdout).decode()[:500])
         except Exception as e:
             logger.error("[Scheduler] ML training error: %s", e)
+
+
+async def periodic_source_health():
+    """
+    Regular health check for all data sources (channels).
+
+    Считаем, сколько сигналов пришло за последнюю неделю по каждому каналу,
+    и логируем агрегированную статистику, чтобы видеть «живость» источников.
+    """
+    from datetime import datetime, timedelta
+    from app.core.database import SessionLocal
+    from app.models.channel import Channel
+    from app.models.signal import Signal
+
+    while True:
+        await asyncio.sleep(SOURCE_HEALTH_INTERVAL)
+        logger.info("[Scheduler] Source health check starting...")
+
+        db = SessionLocal()
+        try:
+            now = datetime.utcnow()
+            week_ago = now - timedelta(days=7)
+
+            total_channels = 0
+            active_channels = 0
+            zero_signals = 0
+
+            for ch in db.query(Channel).all():
+                total_channels += 1
+                recent_count = (
+                    db.query(Signal)
+                    .filter(Signal.channel_id == ch.id, Signal.created_at >= week_ago)
+                    .count()
+                )
+                if recent_count > 0:
+                    active_channels += 1
+                else:
+                    zero_signals += 1
+
+            logger.info(
+                "[Scheduler] Source health: total_channels=%d, active_last_7d=%d, zero_last_7d=%d",
+                total_channels,
+                active_channels,
+                zero_signals,
+            )
+        except Exception as e:
+            logger.error("[Scheduler] Source health error: %s", e)
+        finally:
+            db.close()
+
+
+async def periodic_source_discovery():
+    """
+    Auto-add new sources and auto-clean stale sources.
+
+    - Reddit: discover new subreddits via public search RSS and add them as channels.
+    - Telegram: best-effort discovery via public directory search pages (no TG API keys).
+    - Cleanup: auto-deactivate channels that stopped producing signals.
+    """
+    from app.core.database import SessionLocal
+    from app.services.source_discovery import (
+        discover_reddit_sources,
+        discover_telegram_sources_tgstat,
+        upsert_sources,
+        deactivate_stale_sources,
+    )
+
+    reddit_queries = [
+        "LONG entry TP SL",
+        "SHORT entry TP SL",
+        "BTCUSDT LONG entry",
+        "ETHUSDT SHORT entry",
+        "signal entry take profit stop loss",
+    ]
+    tg_keywords = [
+        "crypto signals",
+        "binance signals",
+        "BTC signals",
+        "altcoin signals",
+        "futures signals",
+    ]
+
+    while True:
+        await asyncio.sleep(SOURCE_DISCOVERY_INTERVAL)
+        logger.info("[Scheduler] Source discovery starting...")
+
+        db = SessionLocal()
+        try:
+            reddit_sources = await discover_reddit_sources(reddit_queries)
+            tg_sources = await discover_telegram_sources_tgstat(tg_keywords)
+            stats_upsert = upsert_sources(db, [*reddit_sources, *tg_sources])
+            stats_cleanup = deactivate_stale_sources(db, days_without_signals=14)
+            db.commit()
+            logger.info(
+                "[Scheduler] Source discovery done: added=%d updated=%d deactivated=%d",
+                stats_upsert["added"],
+                stats_upsert["updated"],
+                stats_cleanup["deactivated"],
+            )
+        except Exception as e:
+            logger.error("[Scheduler] Source discovery error: %s", e)
+            db.rollback()
+        finally:
+            db.close()

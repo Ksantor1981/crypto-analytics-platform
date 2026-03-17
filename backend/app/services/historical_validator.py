@@ -10,6 +10,12 @@ from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
+try:
+    from app.core.metrics import SIGNALS_VALIDATED
+    _METRICS_AVAILABLE = True
+except ImportError:
+    _METRICS_AVAILABLE = False
+
 COINGECKO_IDS = {
     "BTC": "bitcoin", "ETH": "ethereum", "BNB": "binancecoin",
     "SOL": "solana", "ADA": "cardano", "XRP": "ripple",
@@ -211,14 +217,23 @@ async def validate_all_signals(db) -> dict:
                 tp_count += 1
                 s.status = "TP1_HIT"
                 s.is_successful = True
+                if _METRICS_AVAILABLE:
+                    SIGNALS_VALIDATED.labels(status="hit").inc()
             elif r.outcome == "SL_HIT":
                 sl_count += 1
                 s.status = "SL_HIT"
                 s.is_successful = False
+                if _METRICS_AVAILABLE:
+                    SIGNALS_VALIDATED.labels(status="miss").inc()
+            elif r.outcome == "PENDING":
+                if _METRICS_AVAILABLE:
+                    SIGNALS_VALIDATED.labels(status="pending").inc()
 
             if r.pnl_pct is not None:
-                s.profit_loss_percentage = r.pnl_pct
-                s.profit_loss_absolute = r.pnl_pct
+                s.profit_loss_percentage = r.pnl_pct  # ROI в процентах
+                # profit_loss_absolute = абсолютный PnL в единицах валюты (entry * pnl% / 100)
+                entry = float(s.entry_price)
+                s.profit_loss_absolute = round(entry * r.pnl_pct / 100, 8)
 
         results.append({
             "id": r.signal_id, "asset": r.asset, "direction": r.direction,

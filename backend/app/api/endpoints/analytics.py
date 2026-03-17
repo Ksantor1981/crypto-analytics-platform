@@ -36,6 +36,11 @@ async def get_channel_metrics(
     Get comprehensive metrics for a specific channel
     Core feature: Real channel performance analysis
     """
+    if channel_metrics_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Channel metrics service not initialized",
+        )
     try:
         # Get channel and verify ownership
         channel = db.query(Channel).filter(
@@ -76,6 +81,11 @@ async def get_all_channels_metrics(
     """
     Get metrics for all user's channels
     """
+    if channel_metrics_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Channel metrics service not initialized",
+        )
     try:
         all_metrics = await channel_metrics_service.calculate_all_channels_metrics(
             user=current_user,
@@ -138,6 +148,11 @@ async def get_price_tracking_status(
     """
     Get price tracking service status and statistics
     """
+    if price_tracking_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Price tracking service not initialized",
+        )
     try:
         stats = price_tracking_service.get_tracking_stats()
         
@@ -161,6 +176,11 @@ async def get_symbol_price_data(
     """
     Get current price and history for a symbol
     """
+    if price_tracking_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Price tracking service not initialized",
+        )
     try:
         current_price = await price_tracking_service.get_current_price(symbol.upper())
         price_history = await price_tracking_service.get_price_history(symbol.upper(), hours)
@@ -194,6 +214,11 @@ async def validate_signal_message(
     Validate and parse a signal message
     Core feature: Signal validation and extraction
     """
+    if signal_validation_service is None or price_tracking_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Signal validation or price tracking service not initialized",
+        )
     try:
         # Verify channel ownership
         channel = db.query(Channel).filter(

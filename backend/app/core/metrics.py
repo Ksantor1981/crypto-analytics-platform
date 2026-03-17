@@ -24,6 +24,30 @@ SIGNALS_COLLECTED = Counter("signals_collected_total", "Total signals collected"
 ML_PREDICTIONS = Counter("ml_predictions_total", "Total ML predictions made")
 API_ERRORS = Counter("api_errors_total", "Total API errors", ["endpoint"])
 
+# Pipeline metrics (incoming -> parsed -> saved -> skipped)
+SIGNALS_COLLECTED_RAW = Counter(
+    "signals_collected_raw_total",
+    "Raw posts from scraper that passed basic parsing (ParsedSignal)",
+)
+SIGNALS_PARSED_OK = Counter(
+    "signals_parsed_ok_total",
+    "Signals with entry_price ready for save",
+)
+SIGNALS_SAVED = Counter(
+    "signals_saved_total",
+    "New signals written to DB",
+)
+SIGNALS_SKIPPED = Counter(
+    "signals_skipped_total",
+    "Signals skipped by reason",
+    ["reason"],  # no_entry_price, duplicate
+)
+SIGNALS_VALIDATED = Counter(
+    "signals_validated_total",
+    "Signals processed by historical validator",
+    ["status"],  # hit, miss, pending
+)
+
 
 def get_metrics() -> bytes:
     """Return Prometheus metrics in text format."""

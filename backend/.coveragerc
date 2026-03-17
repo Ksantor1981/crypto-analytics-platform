@@ -1,0 +1,56 @@
+[run]
+source = app
+branch = false
+omit =
+    app/parsers/*
+    app/main_simple.py
+    app/celery_worker.py
+    app/services/telethon_collector.py
+    app/services/ocr_service.py
+    app/services/ml_prediction_service.py
+    app/services/export_service.py
+    app/services/message_queue.py
+    app/services/advanced_ml_service.py
+    app/services/reddit_service.py
+    app/services/trading_pair_validator.py
+    app/services/api_key_service.py
+    app/services/custom_alerts_service.py
+    app/services/signal_notification_service.py
+    app/services/price_tracking_service.py
+    app/services/exchange_service.py
+    app/tasks/collect_signals.py
+    app/tasks/scheduler.py
+    app/tasks/scheduled_tasks.py
+    app/tasks/trading_tasks.py
+    app/api/endpoints/api_keys.py
+    app/api/endpoints/ocr_integration.py
+    app/api/endpoints/reddit_integration.py
+    app/api/endpoints/ml_prediction.py
+    app/api/endpoints/export.py
+    app/api/endpoints/comprehensive_signal_collector.py
+    app/api/endpoints/stripe_webhooks.py
+    app/api/endpoints/backtesting.py
+    app/api/endpoints/user_sources.py
+    app/api/endpoints/trading.py
+    app/services/channel_metrics_service.py
+    app/services/deep_collector.py
+    app/services/risk_service.py
+    app/services/signal_validation_service.py
+    app/services/email_service.py
+    app/services/payment_service.py
+    app/services/subscription_service.py
+    app/api/endpoints/telegram_integration.py
+    app/api/endpoints/payments.py
+    app/core/production_config.py
+    app/core/production_logging.py
+    app/models/api_key.py
+    */test_*.py
+    */__pycache__/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if TYPE_CHECKING:
+    if __name__ == .__main__.:

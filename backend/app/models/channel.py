@@ -33,6 +33,13 @@ class Channel(BaseModel):
     status = Column(String(50), default="active", nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Auto-discovery / health (fully automatic источники)
+    discovered_at = Column(DateTime(timezone=True), nullable=True)
+    last_checked_at = Column(DateTime(timezone=True), nullable=True)
+    last_new_signal_at = Column(DateTime(timezone=True), nullable=True)
+    is_candidate = Column(Boolean, default=False, nullable=False)
+    disabled_reason = Column(String(255), nullable=True)
     
     # Relationships
     owner = relationship("User", back_populates="channels")

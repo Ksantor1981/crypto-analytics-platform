@@ -220,7 +220,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
         {/* Page content */}
         <main className={`py-6 ${isMobile ? 'pb-20' : ''}`}>
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
             {children}
           </div>
         </main>
