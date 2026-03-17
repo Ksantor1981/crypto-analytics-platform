@@ -75,6 +75,11 @@ npm install --legacy-peer-deps && npm run dev
 - [ ] Нет хардкодных секретов в коде
 - [ ] `.env.example` заполнен и актуален
 
+## 9. Достоверность данных
+
+- [x] Сигналы и метрики каналов — из БД, не хардкод (см. `docs/DATA_SOURCES.md`)
+- [x] Seed вызывает `recalculate_all_channels` — accuracy/ROI считаются из Signal
+
 ---
 
 ## Фаза 4 (после VPS)

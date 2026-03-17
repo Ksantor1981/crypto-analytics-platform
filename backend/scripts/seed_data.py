@@ -412,6 +412,8 @@ def seed_database():
         admin, premium_user, free_user = create_test_users(db)
         channels = create_test_channels(db)
         create_test_signals(db, channels)
+        from app.services.metrics_calculator import recalculate_all_channels
+        recalculate_all_channels(db)
         print("Created admin user:", admin.email)
         print("Created channels:", len(channels))
         print("Database seeding completed successfully!")
