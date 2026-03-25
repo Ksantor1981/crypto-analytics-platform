@@ -51,7 +51,7 @@ jobs:
       - name: Unit tests
         run: npm test
       - name: Lint
-        run: npx next lint
+        run: npx next lint --max-warnings 0
       - name: Build
         run: npx next build
 
