@@ -189,7 +189,7 @@ export function UpgradeModal({
           <Button
             onClick={() => {
               // В реальном приложении здесь будет редирект на страницу оплаты
-              console.log('Upgrading to:', selectedPlan);
+              console.warn('Upgrading to:', selectedPlan);
               onClose();
             }}
             className="flex-1 bg-blue-600 hover:bg-blue-700"

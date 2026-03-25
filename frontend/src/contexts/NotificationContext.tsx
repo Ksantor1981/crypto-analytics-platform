@@ -197,7 +197,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
-          console.log('📡 WebSocket connected for notifications');
+          console.warn('📡 WebSocket connected for notifications');
           dispatch({ type: 'SET_WEBSOCKET_STATUS', payload: true });
         };
 
@@ -221,7 +221,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         };
 
         ws.onclose = () => {
-          console.log('📡 WebSocket disconnected');
+          console.warn('📡 WebSocket disconnected');
           dispatch({ type: 'SET_WEBSOCKET_STATUS', payload: false });
 
           // Автопереподключение через 5 секунд
@@ -403,10 +403,10 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       audio.volume = 0.3;
       audio.play().catch(error => {
         // Игнорируем ошибки воспроизведения (возможно нет файлов звуков)
-        console.debug('Sound play failed:', error);
+        console.warn('Sound play failed:', error);
       });
     } catch (error) {
-      console.debug('Sound notification failed:', error);
+      console.warn('Sound notification failed:', error);
     }
   };
 

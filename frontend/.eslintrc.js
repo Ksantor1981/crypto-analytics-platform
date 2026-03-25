@@ -143,8 +143,6 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'off',
         // Защитные проверки шире, чем выводит TS (данные с API)
         '@typescript-eslint/no-unnecessary-condition': 'off',
-        // Диагностика в dev; критичные пути — warn/error в правиле no-console выше
-        'no-console': 'off',
         'react-hooks/exhaustive-deps': 'off',
         'react-hooks/incompatible-library': 'off',
       },

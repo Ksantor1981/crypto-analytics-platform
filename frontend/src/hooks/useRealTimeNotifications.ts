@@ -56,7 +56,7 @@ export function useRealTimeNotifications() {
       wsRef.current = new WebSocket(`${wsUrl}?token=${token}`);
 
       wsRef.current.onopen = () => {
-        console.log('🔔 Real-time notifications connected');
+        console.warn('🔔 Real-time notifications connected');
         reconnectAttempts.current = 0;
 
         // Подписываемся на нужные типы событий
@@ -78,7 +78,7 @@ export function useRealTimeNotifications() {
       };
 
       wsRef.current.onclose = event => {
-        console.log('🔔 WebSocket disconnected:', event.code);
+        console.warn('🔔 WebSocket disconnected:', event.code);
 
         // Попытка переподключения
         if (reconnectAttempts.current < maxReconnectAttempts) {
@@ -185,7 +185,7 @@ export function useRealTimeNotifications() {
         break;
 
       default:
-        console.log('Unknown notification event:', event);
+        console.warn('Unknown notification event:', event);
     }
   };
 
@@ -218,7 +218,7 @@ export function useRealTimeNotifications() {
           });
         }
       } catch (error) {
-        console.debug('Polling notifications failed:', error);
+        console.warn('Polling notifications failed:', error);
       }
     };
 

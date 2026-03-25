@@ -54,7 +54,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
   const handleAnalyzeSignal = async (signal: Signal) => {
     try {
       // Временно просто логируем, так как analyzeSignal не реализован в API
-      console.log('ML Analysis for signal:', signal.id);
+      console.warn('ML Analysis for signal:', signal.id);
       // Здесь можно показать модальное окно с результатами анализа
     } catch (error) {
       console.error('Error analyzing signal:', error);
