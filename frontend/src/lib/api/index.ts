@@ -3,7 +3,8 @@ const API_BASE =
     ? process.env.NEXT_PUBLIC_API_URL
     : 'http://localhost:8000/api/v1';
 
-const SERVER_BASE = API_BASE.replace(/\/api\/v1\/?$/, '') || 'http://localhost:8000';
+const SERVER_BASE =
+  API_BASE.replace(/\/api\/v1\/?$/, '') || 'http://localhost:8000';
 
 const getToken = (): string | null =>
   typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
@@ -13,7 +14,9 @@ async function request<T>(
   options: RequestInit & { base?: string } = {}
 ): Promise<T> {
   const { base = API_BASE, ...init } = options;
-  const fullUrl = url.startsWith('http') ? url : `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+  const fullUrl = url.startsWith('http')
+    ? url
+    : `${base}${url.startsWith('/') ? '' : '/'}${url}`;
   const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -25,7 +28,9 @@ async function request<T>(
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(
-      Array.isArray(err.detail) ? err.detail.map((d: { msg?: string }) => d.msg).join(', ') : err.detail || res.statusText
+      Array.isArray(err.detail)
+        ? err.detail.map((d: { msg?: string }) => d.msg).join(', ')
+        : err.detail || res.statusText
     );
   }
   return res.json();
@@ -116,7 +121,7 @@ export const apiClient = {
     const query = q.toString();
     const path = `/signals${query ? `?${query}` : ''}`;
     return request<{ signals?: any[]; items?: any[] }>(path).then(
-      (r) => r.signals ?? r.items ?? []
+      r => r.signals ?? r.items ?? []
     );
   },
 
@@ -124,7 +129,9 @@ export const apiClient = {
     const q = new URLSearchParams();
     if (channelId) q.set('channel_id', channelId);
     q.set('limit', String(limit));
-    return request<{ signals?: any[]; total?: number }>(`/signals?${q.toString()}`);
+    return request<{ signals?: any[]; total?: number }>(
+      `/signals?${q.toString()}`
+    );
   },
 
   getSignal: (id: string) => request<any>(`/signals/${id}`),
@@ -132,15 +139,17 @@ export const apiClient = {
   getSubscriptions: () => request<any>('/subscriptions/me'),
 
   getSubscriptionPlans: () =>
-    request<Array<{
-      plan: string;
-      name: string;
-      description: string;
-      price_monthly: number;
-      price_yearly?: number;
-      features: string[];
-      is_popular?: boolean;
-    }>>('/subscriptions/plans'),
+    request<
+      Array<{
+        plan: string;
+        name: string;
+        description: string;
+        price_monthly: number;
+        price_yearly?: number;
+        features: string[];
+        is_popular?: boolean;
+      }>
+    >('/subscriptions/plans'),
 
   updateSubscription: (planType: string) =>
     request('/subscriptions/me', {

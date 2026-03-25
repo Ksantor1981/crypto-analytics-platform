@@ -7,7 +7,7 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(config => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('access_token');
     if (token) {
@@ -32,7 +32,12 @@ export const apiClient = {
     return data;
   },
 
-  async register(userData: { email: string; password: string; first_name: string; last_name: string }) {
+  async register(userData: {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+  }) {
     const { data } = await api.post('/api/v1/users/register', {
       email: userData.email,
       password: userData.password,
@@ -118,7 +123,9 @@ export const apiClient = {
   },
 
   async updateSubscription(planType: 'free' | 'pro' | 'enterprise') {
-    const { data } = await api.post('/api/v1/subscriptions', { plan_type: planType });
+    const { data } = await api.post('/api/v1/subscriptions', {
+      plan_type: planType,
+    });
     return data;
   },
 
@@ -149,7 +156,9 @@ export const apiClient = {
     }
 
     const blob = response.data as Blob;
-    const disposition = response.headers['content-disposition'] as string | undefined;
+    const disposition = response.headers['content-disposition'] as
+      | string
+      | undefined;
     let filename = `${kind}.${format === 'excel' ? 'xlsx' : format}`;
     if (disposition) {
       const utf8Match = /filename\*=UTF-8''([^;\s]+)/i.exec(disposition);
@@ -180,7 +189,10 @@ export const apiClient = {
     const { data } = await api.get(
       `/api/v1/analytics/analytics/price/${encodeURIComponent(sym)}`
     );
-    return data as { success?: boolean; data?: { current_price?: number | null } };
+    return data as {
+      success?: boolean;
+      data?: { current_price?: number | null };
+    };
   },
 
   async downloadSignalsCsvSnapshot(): Promise<void> {

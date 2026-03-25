@@ -17,7 +17,10 @@ export interface TableHeaderContext {
 }
 
 export interface ColumnDefinition<TData> {
-  header: string | React.ReactNode | ((context: TableHeaderContext) => React.ReactNode);
+  header:
+    | string
+    | React.ReactNode
+    | ((context: TableHeaderContext) => React.ReactNode);
   accessorKey: keyof TData;
   cell?: (context: TableCellContext<TData>) => React.ReactNode;
   sortable?: boolean;

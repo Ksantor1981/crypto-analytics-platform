@@ -2,14 +2,6 @@ import React, { useMemo } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
   TrendingUp,
   Search,
   Users,
@@ -17,14 +9,20 @@ import {
   Plus,
   CheckCircle,
 } from 'lucide-react';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useChannels } from '@/hooks/useChannels';
 import { Loading } from '@/components/ui/Loading';
-import { AddChannelModal, ChannelFormData } from '@/components/channels/AddChannelModal';
+import {
+  AddChannelModal,
+  ChannelFormData,
+} from '@/components/channels/AddChannelModal';
 import { ChannelActions } from '@/components/channels/ChannelActions';
 import { StatusBadge } from '@/components/channels/StatusBadge';
 import { ChannelView } from '@/types/view';
 import { Channel } from '@/types';
-
 
 const categories = [
   { value: 'all', label: 'Все каналы' },
@@ -58,9 +56,14 @@ const ChannelsPage: React.FC = () => {
 
   const filteredAndSortedChannels = useMemo(() => {
     if (!channels) return [];
-    let filtered = channels.filter((channel) => {
-      const matchesCategory = activeCategory === 'all' || !channel.category || channel.category === activeCategory;
-      const matchesSearch = channel.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const filtered = channels.filter(channel => {
+      const matchesCategory =
+        activeCategory === 'all' ||
+        !channel.category ||
+        channel.category === activeCategory;
+      const matchesSearch = channel.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
       return matchesCategory && matchesSearch;
     });
 
@@ -80,12 +83,12 @@ const ChannelsPage: React.FC = () => {
   }, [channels, activeCategory, searchTerm, sortOption]);
 
   const handleAddChannel = async (data: ChannelFormData) => {
-    const newChannelData = { 
-      ...data, 
+    const newChannelData = {
+      ...data,
       type: 'telegram' as const,
       status: 'pending' as const,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
     await createChannel(newChannelData);
     setIsModalOpen(false);
@@ -99,11 +102,16 @@ const ChannelsPage: React.FC = () => {
     <>
       <Head>
         <title>Каналы - Crypto Analytics</title>
-        <meta name="description" content="Просмотр и управление каналами для анализа крипто-сигналов." />
+        <meta
+          name="description"
+          content="Просмотр и управление каналами для анализа крипто-сигналов."
+        />
       </Head>
       <div className="container mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Каналы</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Каналы
+          </h1>
           <Button onClick={() => setIsModalOpen(true)} className="mt-4 sm:mt-0">
             <Plus className="mr-2 h-4 w-4" />
             Добавить канал
@@ -124,7 +132,7 @@ const ChannelsPage: React.FC = () => {
                 <Input
                   placeholder="Поиск по названию..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="w-full pl-10"
                 />
               </div>
@@ -132,17 +140,25 @@ const ChannelsPage: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <select
                 value={activeCategory}
-                onChange={(e) => setActiveCategory(e.target.value)}
+                onChange={e => setActiveCategory(e.target.value)}
                 className="form-select rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
               >
-                {categories.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
+                {categories.map(c => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
               </select>
               <select
                 value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
+                onChange={e => setSortOption(e.target.value)}
                 className="form-select rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
               >
-                {sortOptions.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
+                {sortOptions.map(s => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
               </select>
             </div>
           </CardContent>
@@ -150,15 +166,24 @@ const ChannelsPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredAndSortedChannels.length > 0 ? (
-            filteredAndSortedChannels.map((channel) => (
-              <Card key={channel.id} className="flex flex-col justify-between transition-shadow duration-300 hover:shadow-lg rounded-lg overflow-hidden">
+            filteredAndSortedChannels.map(channel => (
+              <Card
+                key={channel.id}
+                className="flex flex-col justify-between transition-shadow duration-300 hover:shadow-lg rounded-lg overflow-hidden"
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3 min-w-0">
-                      <div className="text-3xl flex-shrink-0">{channel.avatar || '📢'}</div>
+                      <div className="text-3xl flex-shrink-0">
+                        {channel.avatar || '📢'}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-lg leading-tight truncate">
-                          <Link href={`/channels/${channel.id}`} className="hover:underline" title={channel.name}>
+                          <Link
+                            href={`/channels/${channel.id}`}
+                            className="hover:underline"
+                            title={channel.name}
+                          >
                             {channel.name}
                           </Link>
                         </CardTitle>
@@ -168,23 +193,66 @@ const ChannelsPage: React.FC = () => {
                     <ChannelActions
                       channel={channel as Channel & { url: string }}
                       onDelete={() => deleteChannel(channel.id)}
-                      onActivate={() => updateChannel(channel.id, { status: 'active' }).then(() => {})}
-                      onDeactivate={() => updateChannel(channel.id, { status: 'inactive' }).then(() => {})}
+                      onActivate={() =>
+                        updateChannel(channel.id, { status: 'active' }).then(
+                          () => {}
+                        )
+                      }
+                      onDeactivate={() =>
+                        updateChannel(channel.id, { status: 'inactive' }).then(
+                          () => {}
+                        )
+                      }
                     />
                   </div>
                 </CardHeader>
                 <CardContent className="flex-grow">
-                  <p className="text-sm text-gray-600 mb-4 h-10 overflow-hidden">{channel.description}</p>
+                  <p className="text-sm text-gray-600 mb-4 h-10 overflow-hidden">
+                    {channel.description}
+                  </p>
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center truncate"><CheckCircle className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" /> <span>Точность: {channel.accuracy != null ? `${Math.round(channel.accuracy * 10) / 10}%` : '—'}</span></div>
-                    <div className="flex items-center truncate"><TrendingUp className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" /> <span>ROI: {(channel as any).average_roi?.toFixed(1) ?? channel.roi?.toFixed(1) ?? '—'}%</span></div>
-                    <div className="flex items-center truncate"><Users className="h-4 w-4 mr-2 text-purple-500 flex-shrink-0" /> <span>Подписчики: {(channel as any).subscribers_count ?? channel.subscribers ?? '—'}</span></div>
-                    <div className="flex items-center truncate"><BarChart3 className="h-4 w-4 mr-2 text-yellow-500 flex-shrink-0" /> <span>Сигналы: {(channel as any).signals_count ?? channel.signals ?? 0}</span></div>
+                    <div className="flex items-center truncate">
+                      <CheckCircle className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" />{' '}
+                      <span>
+                        Точность:{' '}
+                        {channel.accuracy != null
+                          ? `${Math.round(channel.accuracy * 10) / 10}%`
+                          : '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-center truncate">
+                      <TrendingUp className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" />{' '}
+                      <span>
+                        ROI:{' '}
+                        {(channel as any).average_roi?.toFixed(1) ??
+                          channel.roi?.toFixed(1) ??
+                          '—'}
+                        %
+                      </span>
+                    </div>
+                    <div className="flex items-center truncate">
+                      <Users className="h-4 w-4 mr-2 text-purple-500 flex-shrink-0" />{' '}
+                      <span>
+                        Подписчики:{' '}
+                        {(channel as any).subscribers_count ??
+                          channel.subscribers ??
+                          '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-center truncate">
+                      <BarChart3 className="h-4 w-4 mr-2 text-yellow-500 flex-shrink-0" />{' '}
+                      <span>
+                        Сигналы:{' '}
+                        {(channel as any).signals_count ?? channel.signals ?? 0}
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
                 <div className="p-4 border-t mt-auto bg-gray-50">
                   <Link href={`/channels/${channel.id}`} passHref>
-                    <Button variant="outline" className="w-full">Подробнее</Button>
+                    <Button variant="outline" className="w-full">
+                      Подробнее
+                    </Button>
                   </Link>
                 </div>
               </Card>
@@ -192,8 +260,12 @@ const ChannelsPage: React.FC = () => {
           ) : (
             <div className="col-span-full text-center py-16">
               <Search className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Каналы не найдены</h3>
-              <p className="mt-1 text-sm text-gray-500">Попробуйте изменить фильтры или добавить новый канал.</p>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                Каналы не найдены
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Попробуйте изменить фильтры или добавить новый канал.
+              </p>
             </div>
           )}
         </div>
@@ -203,6 +275,3 @@ const ChannelsPage: React.FC = () => {
 };
 
 export default ChannelsPage;
-
-
-

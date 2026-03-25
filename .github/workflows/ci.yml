@@ -51,7 +51,7 @@ jobs:
       - name: Unit tests
         run: npm test
       - name: Lint
-        run: npx next lint || true
+        run: npx next lint
       - name: Build
         run: npx next build
 

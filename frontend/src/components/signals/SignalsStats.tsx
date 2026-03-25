@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Signal } from '@/types';
@@ -45,7 +46,9 @@ export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
 
     // Direction stats
     const longSignals = safeSignals.filter(s => s.direction === 'long').length;
-    const shortSignals = safeSignals.filter(s => s.direction === 'short').length;
+    const shortSignals = safeSignals.filter(
+      s => s.direction === 'short'
+    ).length;
 
     return {
       total,
@@ -226,4 +229,3 @@ export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
     </div>
   );
 };
-

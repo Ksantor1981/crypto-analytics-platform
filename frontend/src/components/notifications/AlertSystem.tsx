@@ -8,6 +8,7 @@ import {
   Clock,
   X,
 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -317,8 +318,9 @@ export function AlertSystem() {
           <div className="space-y-3">
             {alerts.length === 0 && (
               <p className="text-sm text-gray-500 py-4 text-center">
-                Нет предустановленных системных алертов. Создайте price alert выше
-                или дождитесь интеграции с пользовательскими правилами (Pro).
+                Нет предустановленных системных алертов. Создайте price alert
+                выше или дождитесь интеграции с пользовательскими правилами
+                (Pro).
               </p>
             )}
             {alerts.map(alert => (
@@ -427,5 +429,3 @@ export function AlertSystem() {
 }
 
 export default AlertSystem;
-
-

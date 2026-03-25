@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Award,
 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import MobileMenu from '@/components/layout/MobileMenu';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
@@ -127,7 +128,9 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
                   {user?.name || user?.email || 'Профиль'}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {user?.subscription?.plan ? `${user.subscription.plan} план` : 'Аккаунт'}
+                  {user?.subscription?.plan
+                    ? `${user.subscription.plan} план`
+                    : 'Аккаунт'}
                 </p>
               </div>
             </div>
@@ -256,4 +259,3 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 }
 
 export default DashboardLayout;
-

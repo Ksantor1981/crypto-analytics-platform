@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,7 +64,10 @@ const SignalItem = React.memo<{
 
   const getDirectionBadge = (direction: string) => {
     return (
-      <Badge variant={direction === 'long' ? 'default' : 'destructive'} size="sm">
+      <Badge
+        variant={direction === 'long' ? 'default' : 'destructive'}
+        size="sm"
+      >
         {direction.toUpperCase()}
       </Badge>
     );
@@ -140,6 +144,7 @@ const SignalItem = React.memo<{
     </div>
   );
 });
+SignalItem.displayName = 'SignalItem';
 
 export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
   signals,
@@ -157,12 +162,17 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
   const debouncedSearchTerm = useDebounced(searchTerm, 300);
   const searchedSignals = React.useMemo(() => {
     if (!debouncedSearchTerm) return signals;
-    return signals.filter(signal =>
-      (signal.asset ?? signal.pair ?? '')
-        .toLowerCase()
-        .includes(debouncedSearchTerm.toLowerCase()) ||
-      signal.status.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      signal.direction.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    return signals.filter(
+      signal =>
+        (signal.asset ?? signal.pair ?? '')
+          .toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase()) ||
+        signal.status
+          .toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase()) ||
+        signal.direction
+          .toLowerCase()
+          .includes(debouncedSearchTerm.toLowerCase())
     );
   }, [signals, debouncedSearchTerm]);
 
@@ -187,17 +197,19 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
 
   // Функция сортировки удалена - не используется в интерфейсе
 
-  // Мемоизированный рендер элемента
-  const renderItem = useMemo(() => {
-    return (signal: Signal) => (
-      <SignalItem
-        key={signal.id}
-        signal={signal}
-        onSignalSelect={onSignalSelect}
-        showChannel={showChannel}
-      />
-    );
-  }, [onSignalSelect, showChannel]);
+  const renderItem = useCallback(
+    function renderSignalItem(signal: Signal) {
+      return (
+        <SignalItem
+          key={signal.id}
+          signal={signal}
+          onSignalSelect={onSignalSelect}
+          showChannel={showChannel}
+        />
+      );
+    },
+    [onSignalSelect, showChannel]
+  );
 
   if (isLoading) {
     return (
@@ -286,5 +298,3 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
     </Card>
   );
 };
-
-

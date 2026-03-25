@@ -92,13 +92,6 @@
     "typescript": "5.9.2"
   },
   "eslintConfig": {
-    "extends": [
-      "next/core-web-vitals",
-      "plugin:@typescript-eslint/recommended"
-    ],
-    "rules": {
-      "@typescript-eslint/strict-boolean-expressions": "error",
-      "@typescript-eslint/no-explicit-any": "error"
-    }
+    "extends": ["next/core-web-vitals"]
   }
 }

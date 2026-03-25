@@ -1,13 +1,13 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
+
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { SectionLoading, EmptyState } from '@/components/ui/Loading';
-import { useAuth } from '@/contexts/AuthContext';
 import { useSignals } from '@/hooks/useSignals';
 import { useDebounced } from '@/lib/performance';
 import { Signal, SignalFilters } from '@/types';
@@ -51,7 +51,6 @@ interface OptimizedSignalsPageProps {
 export default function OptimizedSignalsPage({
   initialSignals,
 }: OptimizedSignalsPageProps) {
-  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<SignalFilters>({});
@@ -66,7 +65,7 @@ export default function OptimizedSignalsPage({
     search: debouncedSearchTerm,
   };
 
-  const { signals, isLoading, error, refetch, analyzeSignal, isAnalyzing } =
+  const { signals, isLoading, error, refetch, analyzeSignal } =
     useSignals(combinedFilters);
 
   // Используем начальные данные, если еще не загружены новые
@@ -275,7 +274,7 @@ export default function OptimizedSignalsPage({
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
+export const getServerSideProps: GetServerSideProps = async _context => {
   try {
     // В реальном приложении здесь будет запрос к API с кэшированием
     const initialSignals: Signal[] = [
@@ -314,6 +313,3 @@ export const getServerSideProps: GetServerSideProps = async context => {
     };
   }
 };
-
-
-

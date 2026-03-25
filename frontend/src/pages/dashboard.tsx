@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   TrendingUp,
   Users,
@@ -20,8 +11,16 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Clock,
-  LogOut,
 } from 'lucide-react';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import DashboardTour from '@/components/tour/DashboardTour';
 import { DataExportCard } from '@/components/dashboard/DataExportCard';
 import { apiClient } from '@/lib/api';
@@ -49,30 +48,30 @@ interface DashboardSignal {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user: authUser, logout, isAuthenticated } = useAuth();
+  const { user: authUser, isAuthenticated } = useAuth();
   const [runTour, setRunTour] = useState(false);
   const [channels, setChannels] = useState<DashboardChannel[]>([]);
   const [recentSignals, setRecentSignals] = useState<DashboardSignal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [healthData, setHealthData] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     async function loadDashboard() {
       try {
-        const health = await apiClient.healthCheck();
-        setHealthData(health);
+        await apiClient.healthCheck();
 
         try {
           const channelsData = await apiClient.getChannels();
           if (Array.isArray(channelsData)) {
-            setChannels(channelsData.map((ch: Record<string, unknown>) => ({
-              id: ch.id as number,
-              name: (ch.name || ch.username || 'Unknown') as string,
-              accuracy: (ch.accuracy || ch.expected_accuracy || 0) as number,
-              signals: (ch.signals_count || 0) as number,
-              roi: (ch.average_roi || 0) as number,
-              status: (ch.status || 'active') as string,
-            })));
+            setChannels(
+              channelsData.map((ch: Record<string, unknown>) => ({
+                id: ch.id as number,
+                name: (ch.name || ch.username || 'Unknown') as string,
+                accuracy: (ch.accuracy || ch.expected_accuracy || 0) as number,
+                signals: (ch.signals_count || 0) as number,
+                roi: (ch.average_roi || 0) as number,
+                status: (ch.status || 'active') as string,
+              }))
+            );
           }
         } catch {
           // channels endpoint may require auth
@@ -80,19 +79,31 @@ export default function DashboardPage() {
 
         try {
           const signalsRaw = await apiClient.getSignals();
-          const signalsData = Array.isArray(signalsRaw) ? signalsRaw : (signalsRaw?.signals || []);
+          const signalsData = Array.isArray(signalsRaw)
+            ? signalsRaw
+            : signalsRaw?.signals || [];
           if (signalsData.length > 0) {
-            setRecentSignals(signalsData.slice(0, 5).map((s: Record<string, unknown>) => ({
-              id: s.id as number,
-              channel: (s.channel_name || `Channel ${s.channel_id}`) as string,
-              pair: (s.asset || s.symbol || 'N/A') as string,
-              direction: (s.direction || 'LONG') as string,
-              entry: (s.entry_price || 0) as number,
-              status: ((s.status as string) || '').toLowerCase().includes('success') ? 'success'
-                : ((s.status as string) || '').toLowerCase().includes('fail') ? 'failed' : 'pending',
-              profit: (s.profit_loss || 0) as number,
-              time: s.created_at ? new Date(s.created_at as string).toLocaleString('ru-RU') : '',
-            })));
+            setRecentSignals(
+              signalsData.slice(0, 5).map((s: Record<string, unknown>) => ({
+                id: s.id as number,
+                channel: (s.channel_name ||
+                  `Channel ${s.channel_id}`) as string,
+                pair: (s.asset || s.symbol || 'N/A') as string,
+                direction: (s.direction || 'LONG') as string,
+                entry: (s.entry_price || 0) as number,
+                status: ((s.status as string) || '')
+                  .toLowerCase()
+                  .includes('success')
+                  ? 'success'
+                  : ((s.status as string) || '').toLowerCase().includes('fail')
+                    ? 'failed'
+                    : 'pending',
+                profit: (s.profit_loss || 0) as number,
+                time: s.created_at
+                  ? new Date(s.created_at as string).toLocaleString('ru-RU')
+                  : '',
+              }))
+            );
           }
         } catch {
           // signals endpoint may require auth
@@ -202,8 +213,12 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold">
                   {channels.length > 0
-                    ? (channels.reduce((s, c) => s + c.accuracy, 0) / channels.length).toFixed(1)
-                    : '—'}%
+                    ? (
+                        channels.reduce((s, c) => s + c.accuracy, 0) /
+                        channels.length
+                      ).toFixed(1)
+                    : '—'}
+                  %
                 </div>
                 <p className="text-xs text-muted-foreground">
                   <span className="text-green-600">+2.1%</span> за последний
@@ -221,7 +236,8 @@ export default function DashboardPage() {
                 <div className="text-2xl font-bold text-green-600">
                   {channels.length > 0
                     ? `+${(channels.reduce((s, c) => s + c.roi, 0) / channels.length).toFixed(1)}`
-                    : '—'}%
+                    : '—'}
+                  %
                 </div>
                 <p className="text-xs text-muted-foreground">
                   за последние 30 дней
@@ -249,7 +265,9 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="space-y-4">
                   {channels.length === 0 && (
-                    <p className="text-gray-500 text-center py-4">Нет отслеживаемых каналов. Добавьте первый канал!</p>
+                    <p className="text-gray-500 text-center py-4">
+                      Нет отслеживаемых каналов. Добавьте первый канал!
+                    </p>
                   )}
                   {channels.map(channel => (
                     <div
@@ -295,7 +313,9 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="space-y-4">
                   {recentSignals.length === 0 && (
-                    <p className="text-gray-500 text-center py-4">Пока нет сигналов.</p>
+                    <p className="text-gray-500 text-center py-4">
+                      Пока нет сигналов.
+                    </p>
                   )}
                   {recentSignals.map(signal => (
                     <div
@@ -386,23 +406,35 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
-                    onClick={() => router.push('/channels')}>
+                  <Button
+                    className="h-20 flex flex-col items-center justify-center"
+                    variant="outline"
+                    onClick={() => router.push('/channels')}
+                  >
                     <Plus className="h-6 w-6 mb-2" />
                     Добавить канал
                   </Button>
-                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
-                    onClick={() => router.push('/ratings')}>
+                  <Button
+                    className="h-20 flex flex-col items-center justify-center"
+                    variant="outline"
+                    onClick={() => router.push('/ratings')}
+                  >
                     <BarChart3 className="h-6 w-6 mb-2" />
                     Рейтинги
                   </Button>
-                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
-                    onClick={() => router.push('/signals')}>
+                  <Button
+                    className="h-20 flex flex-col items-center justify-center"
+                    variant="outline"
+                    onClick={() => router.push('/signals')}
+                  >
                     <TrendingUp className="h-6 w-6 mb-2" />
                     Все сигналы
                   </Button>
-                  <Button className="h-20 flex flex-col items-center justify-center" variant="outline"
-                    onClick={() => router.push('/alerts')}>
+                  <Button
+                    className="h-20 flex flex-col items-center justify-center"
+                    variant="outline"
+                    onClick={() => router.push('/alerts')}
+                  >
                     <AlertTriangle className="h-6 w-6 mb-2" />
                     Алерты
                   </Button>
@@ -410,11 +442,8 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-
         </div>
       </div>
     </>
   );
 }
-
-

@@ -11,7 +11,7 @@ export function useApiCall<T>(
   const execute = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await apiCall();
       setData(result);
@@ -30,7 +30,7 @@ export function useApiCall<T>(
     data,
     loading,
     error,
-    refetch: execute
+    refetch: execute,
   };
 }
 

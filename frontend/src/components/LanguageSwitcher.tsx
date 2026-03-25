@@ -1,9 +1,10 @@
 import React from 'react';
+
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 
-export function LanguageSwitcher() {
-  const { language, setLanguage, t } = useLanguage();
+export function LanguageSwitcher(): React.ReactElement {
+  const { language, setLanguage } = useLanguage();
 
   return (
     <div className="flex items-center space-x-1">

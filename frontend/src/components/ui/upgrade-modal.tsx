@@ -1,20 +1,5 @@
 import { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
   Crown,
   Star,
   Zap,
@@ -24,6 +9,17 @@ import {
   BarChart3,
   Shield,
 } from 'lucide-react';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { PLANS, UserPlan } from '@/hooks/useUserLimits';
 
 interface UpgradeModalProps {
@@ -209,5 +205,3 @@ export function UpgradeModal({
     </Dialog>
   );
 }
-
-

@@ -13,8 +13,8 @@ const customJestConfig = {
   
   // Модули и расширения
   moduleNameMapper: {
-    '^@/lib/api$': '<rootDir>/lib/api.ts',
-    '^@/lib/(.*)$': '<rootDir>/lib/$1',
+    '^@/lib/api$': '<rootDir>/src/lib/api.ts',
+    '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   coverageThreshold: undefined,  // временно отключить порог для прохождения CI

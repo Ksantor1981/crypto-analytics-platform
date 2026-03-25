@@ -1,5 +1,6 @@
 // Неиспользуемые импорты удалены
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { apiClient } from '@/lib/api';
 // import { SubscriptionPlan } from '@/types';
 
@@ -54,8 +55,10 @@ export const useSubscriptions = () => {
 
 export const useSubscriptionPlan = (id: string) => {
   const { subscriptions, isLoading, error } = useSubscriptions();
-  
-  const subscription = subscriptions.find((plan: { id: string }) => plan.id === id);
+
+  const subscription = subscriptions.find(
+    (plan: { id: string }) => plan.id === id
+  );
 
   return {
     subscription,

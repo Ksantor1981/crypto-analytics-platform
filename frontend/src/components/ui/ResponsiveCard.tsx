@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import useResponsive from '@/hooks/useResponsive';
 
@@ -255,4 +256,3 @@ export function ResponsiveTabs({
 }
 
 export default ResponsiveCard;
-

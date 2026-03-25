@@ -1,6 +1,25 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
+import {
+  User,
+  Settings,
+  Bell,
+  Shield,
+  CreditCard,
+  Eye,
+  EyeOff,
+  Save,
+  Edit2,
+  Camera,
+  BarChart3,
+  DollarSign,
+  Target,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Info,
+} from 'lucide-react';
+
 import { User as UserType } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
@@ -12,32 +31,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  TrendingUp,
-  User,
-  Settings,
-  Bell,
-  Shield,
-  CreditCard,
-  Eye,
-  EyeOff,
-  Save,
-  Edit2,
-  Camera,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Award,
-  TrendingDown,
-  BarChart3,
-  DollarSign,
-  Target,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Info,
-} from 'lucide-react';
 
 const defaultUser: UserType = {
   id: '0',
@@ -49,14 +42,23 @@ const defaultUser: UserType = {
   role: 'user',
   subscription: { plan: 'Free', status: 'active', price: 0 },
   stats: {
-    channelsFollowed: 0, successRate: 0, profit: 0,
-    totalProfit: 0, totalSignals: 0, winRate: 0,
-    totalReturn: 0, daysActive: 0,
+    channelsFollowed: 0,
+    successRate: 0,
+    profit: 0,
+    totalProfit: 0,
+    totalSignals: 0,
+    winRate: 0,
+    totalReturn: 0,
+    daysActive: 0,
   },
   settings: {
-    emailNotifications: true, pushNotifications: true,
-    telegramAlerts: false, weeklyReports: false,
-    darkMode: false, language: 'ru', timezone: 'Europe/Moscow',
+    emailNotifications: true,
+    pushNotifications: true,
+    telegramAlerts: false,
+    weeklyReports: false,
+    darkMode: false,
+    language: 'ru',
+    timezone: 'Europe/Moscow',
   },
 };
 
@@ -103,11 +105,19 @@ export default function ProfilePage() {
         const channelList = Array.isArray(channels) ? channels : [];
         const signals = signalsResp?.signals ?? [];
         const signalCount = signalsResp?.total ?? signals.length;
-        const avgAccuracy = channelList.length > 0
-          ? channelList.reduce((s: number, c: Record<string, number>) => s + (c.accuracy || 0), 0) / channelList.length
-          : 0;
+        const avgAccuracy =
+          channelList.length > 0
+            ? channelList.reduce(
+                (s: number, c: Record<string, number>) => s + (c.accuracy || 0),
+                0
+              ) / channelList.length
+            : 0;
         const totalRoi = Array.isArray(signals)
-          ? signals.reduce((s: number, sig: Record<string, number>) => s + (sig.profit_loss_percentage || 0), 0)
+          ? signals.reduce(
+              (s: number, sig: Record<string, number>) =>
+                s + (sig.profit_loss_percentage || 0),
+              0
+            )
           : 0;
         setUser(prev => ({
           ...prev,
@@ -122,7 +132,9 @@ export default function ProfilePage() {
             daysActive: prev.stats?.daysActive ?? 0,
           },
         }));
-      } catch { /* API unavailable, keep defaults */ }
+      } catch {
+        /* API unavailable, keep defaults */
+      }
     }
     loadStats();
   }, [authUser]);
@@ -300,7 +312,11 @@ export default function ProfilePage() {
                     <div className="flex items-center mt-1">
                       {showEmail || user.email ? (
                         <p className="text-gray-900">
-                          {showEmail ? user.email : (user.email ? user.email.replace(/(.{3}).*(@.*)/, '$1***$2') : '—')}
+                          {showEmail
+                            ? user.email
+                            : user.email
+                              ? user.email.replace(/(.{3}).*(@.*)/, '$1***$2')
+                              : '—'}
                         </p>
                       ) : (
                         <p className="text-gray-500">—</p>
@@ -531,14 +547,19 @@ export default function ProfilePage() {
                           ...user,
                           settings: {
                             ...user.settings,
-                            [setting.key]: !user.settings[setting.key as keyof typeof user.settings],
+                            [setting.key]:
+                              !user.settings[
+                                setting.key as keyof typeof user.settings
+                              ],
                           },
                         })
                       }
                     >
                       <span
                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          user.settings[setting.key as keyof typeof user.settings]
+                          user.settings[
+                            setting.key as keyof typeof user.settings
+                          ]
                             ? 'translate-x-6'
                             : 'translate-x-1'
                         }`}
@@ -659,5 +680,3 @@ export default function ProfilePage() {
     </>
   );
 }
-
-

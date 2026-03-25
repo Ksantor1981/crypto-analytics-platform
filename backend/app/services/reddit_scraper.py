@@ -43,7 +43,9 @@ async def fetch_subreddit_posts(subreddit: str, limit: int = 25) -> List[dict]:
             )
             if r.status_code == 200:
                 from bs4 import BeautifulSoup
-                soup = BeautifulSoup(r.text, "html.parser")
+
+                # Reddit new.rss — Atom/XML; html.parser даёт XMLParsedAsHTMLWarning
+                soup = BeautifulSoup(r.text, "xml")
                 for entry in soup.find_all("entry")[:limit]:
                     title = entry.find("title")
                     content = entry.find("content")

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-// import { useRouter } from 'next/router';
+import { TrendingUp, ArrowLeft, CheckCircle } from 'lucide-react';
+
 import {
   Card,
   CardContent,
@@ -10,7 +11,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, ArrowLeft, CheckCircle } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
   // const router = useRouter(); // не используется
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
         const errorData = await response.json();
         setError(errorData.detail || 'Ошибка при отправке запроса');
       }
-    } catch (err) {
+    } catch {
       setError('Ошибка сети. Попробуйте позже.');
     } finally {
       setIsLoading(false);
@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
                     </p>
                     <p className="text-sm text-gray-500 mb-6">
                       Если письмо не пришло в течение 5 минут, проверьте папку
-                      "Спам" или попробуйте еще раз.
+                      &laquo;Спам&raquo; или попробуйте еще раз.
                     </p>
                   </div>
                   <div className="space-y-3">
@@ -137,7 +137,7 @@ export default function ForgotPasswordPage() {
                       id="email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={e => setEmail(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="your@email.com"
                       required
@@ -182,5 +182,3 @@ export default function ForgotPasswordPage() {
     </>
   );
 }
-
-

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
+
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ToastProvider } from '@/contexts/ToastContext';
@@ -14,7 +15,16 @@ import MobileMenu from '@/components/layout/MobileMenu';
 import { Button } from '@/components/ui/button';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 
-const PUBLIC_PAGES = ['/', '/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/pricing', '/demo', '/feedback'];
+const PUBLIC_PAGES = [
+  '/',
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/pricing',
+  '/demo',
+  '/feedback',
+];
 
 function AppNavbar() {
   const router = useRouter();
@@ -45,7 +55,10 @@ function AppNavbar() {
               >
                 <Menu className="h-6 w-6" />
               </Button>
-              <Link href="/" className="flex items-center gap-2 font-bold text-lg text-blue-600 shrink-0">
+              <Link
+                href="/"
+                className="flex items-center gap-2 font-bold text-lg text-blue-600 shrink-0"
+              >
                 CryptoAnalytics
               </Link>
               <div className="hidden md:flex gap-6">
@@ -67,18 +80,27 @@ function AppNavbar() {
             <div className="flex items-center gap-2 sm:gap-3">
               {isAuthenticated ? (
                 <>
-                  <Link href="/profile" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">
+                  <Link
+                    href="/profile"
+                    className="hidden sm:block text-sm text-gray-600 hover:text-gray-900"
+                  >
                     {user?.name || user?.email || 'Профиль'}
                   </Link>
                   <button
-                    onClick={() => { logout(); router.push('/'); }}
+                    onClick={() => {
+                      logout();
+                      router.push('/');
+                    }}
                     className="text-sm text-gray-500 hover:text-red-600"
                   >
                     Выйти
                   </button>
                 </>
               ) : (
-                <Link href="/auth/login" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                <Link
+                  href="/auth/login"
+                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
                   Войти
                 </Link>
               )}

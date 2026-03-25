@@ -34,6 +34,8 @@ class DirectMLPredictionRequest(BaseModel):
     direction: Optional[str] = Field("LONG", description="Signal direction")
     
 class MLPredictionResponse(BaseModel):
+    model_config = {"protected_namespaces": ()}
+
     signal_id: int
     success_probability: float
     confidence: float

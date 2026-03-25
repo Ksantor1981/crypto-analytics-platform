@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,10 @@ export const SignalCard: React.FC<SignalCardProps> = ({
 
   const getDirectionBadge = (direction: string) => {
     return (
-      <Badge variant={direction === 'long' ? 'default' : 'destructive'} size="sm">
+      <Badge
+        variant={direction === 'long' ? 'default' : 'destructive'}
+        size="sm"
+      >
         {direction.toUpperCase()}
       </Badge>
     );
@@ -91,9 +95,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-semibold">
-                {label3}
-              </span>
+              <span className="text-blue-600 font-semibold">{label3}</span>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">{displaySymbol}</h3>
@@ -222,5 +224,3 @@ export const SignalCard: React.FC<SignalCardProps> = ({
     </Card>
   );
 };
-
-

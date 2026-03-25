@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import { Card, CardContent } from '@/components/ui/card';
 
 interface StatsCardProps {
@@ -50,4 +51,3 @@ export const StatsCard: React.FC<StatsCardProps> = ({
     </Card>
   );
 };
-

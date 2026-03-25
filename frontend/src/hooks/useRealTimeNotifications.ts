@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+
 import { useNotifications } from '@/contexts/NotificationContext';
 
 interface SignalEvent {
@@ -218,7 +219,9 @@ export function useRealTimeNotifications() {
     };
 
     // Polling каждые 30 секунд как fallback
-    const pollInterval = setInterval(pollNotifications, 30000);
+    const pollInterval = setInterval(() => {
+      void pollNotifications();
+    }, 30000);
 
     return () => clearInterval(pollInterval);
   }, [state.settings.enabled, addNotification]);

@@ -7,7 +7,10 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDate(date: string | number | Date): string {
   if (!date) return '—';
-  const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
+  const d =
+    typeof date === 'string' || typeof date === 'number'
+      ? new Date(date)
+      : date;
   if (isNaN(d.getTime())) return '—';
   return d.toLocaleDateString('ru-RU', {
     day: '2-digit',

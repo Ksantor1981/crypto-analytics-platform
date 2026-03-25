@@ -6,26 +6,33 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.pricing': 'Тарифы',
     'nav.getStarted': 'Начать',
     'hero.title': 'Честная аналитика крипто-сигналов',
-    'hero.subtitle': 'ML-предсказания, антирейтинг каналов и прозрачная статистика без приукрашивания.',
+    'hero.subtitle':
+      'ML-предсказания, антирейтинг каналов и прозрачная статистика без приукрашивания.',
     'hero.startTrial': 'Бесплатный пробный период',
     'hero.viewDemo': 'Смотреть демо',
     'stats.accuracy': 'Точность ML',
     'stats.features': 'Признаков в модели',
     'stats.responseTime': 'Время ответа',
     'features.title': 'Возможности платформы',
-    'features.subtitle': 'Всё необходимое для анализа крипто-сигналов в одном месте.',
+    'features.subtitle':
+      'Всё необходимое для анализа крипто-сигналов в одном месте.',
     'features.ai.title': 'ML-предсказания',
-    'features.ai.description': 'Точность 87.2% на основе 110+ признаков. Ensemble-модели XGBoost и scikit-learn.',
+    'features.ai.description':
+      'Точность 87.2% на основе 110+ признаков. Ensemble-модели XGBoost и scikit-learn.',
     'features.realtime.title': 'Мониторинг в реальном времени',
-    'features.realtime.description': 'Сбор сигналов каждые 15 минут из Telegram и Reddit.',
+    'features.realtime.description':
+      'Сбор сигналов каждые 15 минут из Telegram и Reddit.',
     'features.rating.title': 'Антирейтинг каналов',
-    'features.rating.description': 'Топ худших каналов — избегайте мошенников и низкокачественных источников.',
+    'features.rating.description':
+      'Топ худших каналов — избегайте мошенников и низкокачественных источников.',
     'features.performance.title': 'Производительность',
-    'features.performance.description': 'Время отклика API <200мс. Масштабирование до 1000 RPS.',
+    'features.performance.description':
+      'Время отклика API <200мс. Масштабирование до 1000 RPS.',
     'features.security.title': 'Безопасность',
     'features.security.description': 'JWT, шифрование, защита от OWASP Top 10.',
     'features.autotrading.title': 'Автотрейдинг',
-    'features.autotrading.description': 'Интеграция с Bybit, Binance. TP/SL автоматически.',
+    'features.autotrading.description':
+      'Интеграция с Bybit, Binance. TP/SL автоматически.',
     'pricing.title': 'Тарифы',
     'pricing.subtitle': 'Выберите план под ваши задачи.',
     'pricing.free.title': 'Бесплатный',
@@ -47,7 +54,8 @@ const translations: Record<Language, Record<string, string>> = {
     'pricing.personalManager': 'Персональный менеджер',
     'pricing.sla': 'SLA 99.9%',
     'pricing.contactUs': 'Связаться',
-    'footer.description': 'Честная аналитика крипто-сигналов. Без приукрашивания.',
+    'footer.description':
+      'Честная аналитика крипто-сигналов. Без приукрашивания.',
     'footer.rights': '© 2026 CryptoAnalytics. Все права защищены.',
   },
   en: {
@@ -55,26 +63,34 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.pricing': 'Pricing',
     'nav.getStarted': 'Get Started',
     'hero.title': 'Honest Crypto Signal Analytics',
-    'hero.subtitle': 'ML predictions, channel anti-rating, and transparent statistics without sugarcoating.',
+    'hero.subtitle':
+      'ML predictions, channel anti-rating, and transparent statistics without sugarcoating.',
     'hero.startTrial': 'Free Trial',
     'hero.viewDemo': 'View Demo',
     'stats.accuracy': 'ML Accuracy',
     'stats.features': 'Model Features',
     'stats.responseTime': 'Response Time',
     'features.title': 'Platform Features',
-    'features.subtitle': 'Everything you need for crypto signal analysis in one place.',
+    'features.subtitle':
+      'Everything you need for crypto signal analysis in one place.',
     'features.ai.title': 'ML Predictions',
-    'features.ai.description': '87.2% accuracy with 110+ features. XGBoost and scikit-learn ensemble.',
+    'features.ai.description':
+      '87.2% accuracy with 110+ features. XGBoost and scikit-learn ensemble.',
     'features.realtime.title': 'Real-time Monitoring',
-    'features.realtime.description': 'Signal collection every 15 min from Telegram and Reddit.',
+    'features.realtime.description':
+      'Signal collection every 15 min from Telegram and Reddit.',
     'features.rating.title': 'Channel Anti-Rating',
-    'features.rating.description': 'Top worst channels — avoid scammers and low-quality sources.',
+    'features.rating.description':
+      'Top worst channels — avoid scammers and low-quality sources.',
     'features.performance.title': 'Performance',
-    'features.performance.description': 'API response <200ms. Scaling to 1000 RPS.',
+    'features.performance.description':
+      'API response <200ms. Scaling to 1000 RPS.',
     'features.security.title': 'Security',
-    'features.security.description': 'JWT, encryption, OWASP Top 10 protection.',
+    'features.security.description':
+      'JWT, encryption, OWASP Top 10 protection.',
     'features.autotrading.title': 'Auto Trading',
-    'features.autotrading.description': 'Bybit, Binance integration. Automatic TP/SL.',
+    'features.autotrading.description':
+      'Bybit, Binance integration. Automatic TP/SL.',
     'pricing.title': 'Pricing',
     'pricing.subtitle': 'Choose a plan for your needs.',
     'pricing.free.title': 'Free',

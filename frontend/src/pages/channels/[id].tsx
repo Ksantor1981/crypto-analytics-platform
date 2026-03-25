@@ -1,45 +1,44 @@
 import { useState } from 'react';
-import { useChannel } from '@/hooks/useChannel';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
+  Loader2,
   TrendingUp,
   ArrowLeft,
   Star,
-  Users,
   BarChart3,
   AlertTriangle,
   Plus,
-  ArrowUpRight,
-  ArrowDownRight,
   Clock,
-  CheckCircle,
-  XCircle,
-  Zap,
   Target,
-  DollarSign,
-  TrendingDown,
-  Calendar,
   Activity,
-  Eye,
   Bell,
   Share2,
   Settings,
-  Shield,
 } from 'lucide-react';
 
-
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useChannel } from '@/hooks/useChannel';
 
 export default function ChannelDetailPage() {
   const router = useRouter();
-    const { id } = router.query;
+  const { id } = router.query;
   const [activeTab, setActiveTab] = useState('overview');
 
-  const { data: channel, isLoading, isError, error } = useChannel(id as string | undefined);
+  const {
+    data: channel,
+    isLoading,
+    isError,
+    error,
+  } = useChannel(id as string | undefined);
 
   if (isLoading) {
     return (
@@ -53,10 +52,17 @@ export default function ChannelDetailPage() {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen">
         <AlertTriangle className="h-16 w-16 text-red-500" />
-        <h2 className="mt-4 text-xl font-semibold">Ошибка при загрузке данных</h2>
-        <p className="text-gray-600">{(error as Error)?.message || 'Не удалось получить информацию о канале.'}</p>
+        <h2 className="mt-4 text-xl font-semibold">
+          Ошибка при загрузке данных
+        </h2>
+        <p className="text-gray-600">
+          {(error as Error)?.message ||
+            'Не удалось получить информацию о канале.'}
+        </p>
         <Link href="/channels">
-          <Button variant="outline" className="mt-4">Вернуться к списку каналов</Button>
+          <Button variant="outline" className="mt-4">
+            Вернуться к списку каналов
+          </Button>
         </Link>
       </div>
     );
@@ -67,7 +73,9 @@ export default function ChannelDetailPage() {
       <div className="flex flex-col justify-center items-center min-h-screen">
         <h2 className="text-xl font-semibold">Канал не найден</h2>
         <Link href="/channels">
-          <Button variant="outline" className="mt-4">Вернуться к списку каналов</Button>
+          <Button variant="outline" className="mt-4">
+            Вернуться к списку каналов
+          </Button>
         </Link>
       </div>
     );
@@ -97,31 +105,14 @@ export default function ChannelDetailPage() {
     }
   };
 
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'low':
-        return 'text-green-600 bg-green-100';
-      case 'medium':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'high':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const tabs = [
-    { id: 'overview', label: 'Обзор', icon: BarChart3 },
-    { id: 'signals', label: 'Сигналы', icon: Zap },
-    { id: 'analytics', label: 'Аналитика', icon: TrendingUp },
-    { id: 'reviews', label: 'Отзывы', icon: Star },
-  ];
-
   return (
     <>
       <Head>
         <title>{channel.name} - Crypto Analytics Platform</title>
-        <meta name="description" content={`Детальная информация о канале ${channel.name}`} />
+        <meta
+          name="description"
+          content={`Детальная информация о канале ${channel.name}`}
+        />
       </Head>
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -210,13 +201,17 @@ export default function ChannelDetailPage() {
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Сигналов:</span>
-                      <span className="font-medium">{channel.signals_count}</span>
+                      <span className="font-medium">
+                        {channel.signals_count}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Рейтинг:</span>
                       <div className="flex items-center">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="ml-1 font-medium">{channel.rating}</span>
+                        <span className="ml-1 font-medium">
+                          {channel.rating}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -244,21 +239,27 @@ export default function ChannelDetailPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <TrendingUp className="h-4 w-4 text-green-500" />
-                      <span className="text-sm text-gray-600">Успешных сигналов</span>
+                      <span className="text-sm text-gray-600">
+                        Успешных сигналов
+                      </span>
                     </div>
                     <span className="font-medium">87%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Clock className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm text-gray-600">Среднее время</span>
+                      <span className="text-sm text-gray-600">
+                        Среднее время
+                      </span>
                     </div>
                     <span className="font-medium">2.3ч</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Target className="h-4 w-4 text-purple-500" />
-                      <span className="text-sm text-gray-600">Точность входа</span>
+                      <span className="text-sm text-gray-600">
+                        Точность входа
+                      </span>
                     </div>
                     <span className="font-medium">92%</span>
                   </div>
@@ -277,7 +278,7 @@ export default function ChannelDetailPage() {
                       { id: 'signals', label: 'Сигналы', icon: Activity },
                       { id: 'analytics', label: 'Аналитика', icon: TrendingUp },
                       { id: 'reviews', label: 'Отзывы', icon: Star },
-                    ].map((tab) => {
+                    ].map(tab => {
                       const Icon = tab.icon;
                       return (
                         <button
@@ -318,42 +319,49 @@ export default function ChannelDetailPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {(channel.recent_signals || []).slice(0, 5).map((signal, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-4 border rounded-lg"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div
-                                className={`w-3 h-3 rounded-full ${
-                                  signal.status === 'open'
-                                    ? 'bg-blue-500'
-                                    : signal.status === 'closed'
-                                    ? 'bg-green-500'
-                                    : 'bg-red-500'
-                                }`}
-                              />
-                              <div>
-                                <div className="font-medium">{signal.symbol}</div>
+                        {(channel.recent_signals || [])
+                          .slice(0, 5)
+                          .map((signal, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-4 border rounded-lg"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div
+                                  className={`w-3 h-3 rounded-full ${
+                                    signal.status === 'open'
+                                      ? 'bg-blue-500'
+                                      : signal.status === 'closed'
+                                        ? 'bg-green-500'
+                                        : 'bg-red-500'
+                                  }`}
+                                />
+                                <div>
+                                  <div className="font-medium">
+                                    {signal.symbol}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {signal.type} • {signal.entry_price}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div
+                                  className={`font-medium ${
+                                    (signal.pnl || 0) > 0
+                                      ? 'text-green-600'
+                                      : 'text-red-600'
+                                  }`}
+                                >
+                                  {(signal.pnl || 0) > 0 ? '+' : ''}
+                                  {signal.pnl || 0}%
+                                </div>
                                 <div className="text-sm text-gray-500">
-                                  {signal.type} • {signal.entry_price}
+                                  {signal.status}
                                 </div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div
-                                className={`font-medium ${
-                                  (signal.pnl || 0) > 0 ? 'text-green-600' : 'text-red-600'
-                                }`}
-                              >
-                                {(signal.pnl || 0) > 0 ? '+' : ''}{(signal.pnl || 0)}%
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {signal.status}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     </CardContent>
                   </Card>
@@ -395,17 +403,21 @@ export default function ChannelDetailPage() {
                             <div>
                               <div className="font-medium">{signal.symbol}</div>
                               <div className="text-sm text-gray-500">
-                                Вход: {signal.entry_price} | Выход: {signal.exit_price || '—'}
+                                Вход: {signal.entry_price} | Выход:{' '}
+                                {signal.exit_price || '—'}
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
                             <div
                               className={`font-medium ${
-                                (signal.pnl || 0) > 0 ? 'text-green-600' : 'text-red-600'
+                                (signal.pnl || 0) > 0
+                                  ? 'text-green-600'
+                                  : 'text-red-600'
                               }`}
                             >
-                              {(signal.pnl || 0) > 0 ? '+' : ''}{(signal.pnl || 0)}%
+                              {(signal.pnl || 0) > 0 ? '+' : ''}
+                              {signal.pnl || 0}%
                             </div>
                             <div className="text-sm text-gray-500">
                               {signal.timestamp}
@@ -428,7 +440,9 @@ export default function ChannelDetailPage() {
                       <div className="h-64 flex items-center justify-center bg-gray-50 rounded">
                         <div className="text-center">
                           <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                          <p className="text-gray-600">Pie Chart - Типы сигналов</p>
+                          <p className="text-gray-600">
+                            Pie Chart - Типы сигналов
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -442,7 +456,9 @@ export default function ChannelDetailPage() {
                       <div className="h-64 flex items-center justify-center bg-gray-50 rounded">
                         <div className="text-center">
                           <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                          <p className="text-gray-600">Pie Chart - Торговые пары</p>
+                          <p className="text-gray-600">
+                            Pie Chart - Торговые пары
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -492,12 +508,14 @@ export default function ChannelDetailPage() {
                               ))}
                             </div>
                           </div>
-                          <span className="text-xs text-gray-600">3 дня назад</span>
+                          <span className="text-xs text-gray-600">
+                            3 дня назад
+                          </span>
                         </div>
                         <p className="text-gray-700">
                           Отличный канал! Сигналы действительно работают, уже
-                          получил +15% за месяц. Особенно нравится детальный анализ
-                          перед каждым сигналом.
+                          получил +15% за месяц. Особенно нравится детальный
+                          анализ перед каждым сигналом.
                         </p>
                       </div>
 
@@ -523,8 +541,8 @@ export default function ChannelDetailPage() {
                           </span>
                         </div>
                         <p className="text-gray-700">
-                          Хороший канал, но иногда сигналы приходят с задержкой. В
-                          целом доволен результатами - стабильная прибыль.
+                          Хороший канал, но иногда сигналы приходят с задержкой.
+                          В целом доволен результатами - стабильная прибыль.
                         </p>
                       </div>
                     </div>

@@ -1,7 +1,3 @@
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Crown,
   Users,
@@ -10,6 +6,11 @@ import {
   AlertTriangle,
   ArrowUpRight,
 } from 'lucide-react';
+
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserLimits } from '@/hooks/useUserLimits';
 
 interface UserLimitsDisplayProps {
@@ -175,5 +176,3 @@ export function UserLimitsDisplay({
     </Card>
   );
 }
-
-

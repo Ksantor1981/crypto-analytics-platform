@@ -22,14 +22,14 @@ const getVariantClasses = (variant: AlertProps['variant']) => {
   }
 };
 
-export const Alert: React.FC<AlertProps> = ({ 
-  variant = 'default', 
-  className = '', 
-  children, 
-  ...props 
+export const Alert: React.FC<AlertProps> = ({
+  variant = 'default',
+  className = '',
+  children,
+  ...props
 }) => {
   const variantClasses = getVariantClasses(variant);
-  
+
   return (
     <div
       className={`relative w-full rounded-lg border p-4 ${variantClasses} ${className}`}
@@ -40,16 +40,13 @@ export const Alert: React.FC<AlertProps> = ({
   );
 };
 
-export const AlertDescription: React.FC<AlertDescriptionProps> = ({ 
-  className = '', 
-  children, 
-  ...props 
+export const AlertDescription: React.FC<AlertDescriptionProps> = ({
+  className = '',
+  children,
+  ...props
 }) => {
   return (
-    <p
-      className={`text-sm leading-relaxed ${className}`}
-      {...props}
-    >
+    <p className={`text-sm leading-relaxed ${className}`} {...props}>
       {children}
     </p>
   );

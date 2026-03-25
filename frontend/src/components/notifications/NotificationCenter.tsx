@@ -9,11 +9,13 @@ import {
   Settings,
   RefreshCw,
 } from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/contexts/NotificationContext';
-import NotificationSettings from './NotificationSettings';
 import useRealTimeNotifications from '@/hooks/useRealTimeNotifications';
+
+import NotificationSettings from './NotificationSettings';
 
 export interface NotificationCenterProps {
   isOpen: boolean;
@@ -336,5 +338,3 @@ export function NotificationCenter({
 }
 
 export default NotificationCenter;
-
-

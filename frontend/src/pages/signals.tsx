@@ -2,10 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { SignalsList, SignalsFilter, SignalsStats, SignalCard } from '@/components/signals';
+
+import {
+  SignalsList,
+  SignalsFilter,
+  SignalsStats,
+  SignalCard,
+} from '@/components/signals';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { CardContent, CardHeader } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
 import { Signal, SignalFilters } from '@/types';
@@ -25,7 +30,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
     setIsLoading(true);
     try {
       const response = await apiClient.getSignals();
-      const data = Array.isArray(response) ? response : (response?.signals || []);
+      const data = Array.isArray(response) ? response : response?.signals || [];
       setSignals(data);
     } catch (error) {
       console.error('Error fetching signals:', error);
@@ -68,7 +73,9 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
           {/* Header */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Сигналы</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                Сигналы
+              </h1>
               <p className="text-gray-600">
                 Торговые сигналы от проверенных каналов
               </p>
@@ -131,7 +138,9 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
                 </div>
               ) : signals.length === 0 ? (
                 <div className="text-center py-12 px-4 text-gray-600">
-                  <p className="text-lg font-medium text-gray-800 mb-2">Пока нет сигналов</p>
+                  <p className="text-lg font-medium text-gray-800 mb-2">
+                    Пока нет сигналов
+                  </p>
                   <p className="text-sm mb-6 max-w-md mx-auto">
                     {isAuthenticated
                       ? 'Данные появятся после сбора из каналов или добавьте каналы в разделе «Каналы».'
@@ -195,5 +204,3 @@ export const getServerSideProps: GetServerSideProps = async () => {
     };
   }
 };
-
-

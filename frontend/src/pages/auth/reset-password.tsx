@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { TrendingUp, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
+
 import {
   Card,
   CardContent,
@@ -10,12 +12,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const { token } = router.query;
-  
+
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: '',
@@ -85,7 +86,7 @@ export default function ResetPasswordPage() {
         const errorData = await response.json();
         setError(errorData.detail || 'Ошибка при сбросе пароля');
       }
-    } catch (err) {
+    } catch {
       setError('Ошибка сети. Попробуйте позже.');
     } finally {
       setIsLoading(false);
@@ -189,7 +190,7 @@ export default function ResetPasswordPage() {
                         id="password"
                         type={showPassword ? 'text' : 'password'}
                         value={formData.password}
-                        onChange={(e) =>
+                        onChange={e =>
                           setFormData({ ...formData, password: e.target.value })
                         }
                         className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -218,7 +219,10 @@ export default function ResetPasswordPage() {
                       </p>
                       <div className="space-y-1">
                         {passwordRequirements.map((req, index) => (
-                          <div key={index} className="flex items-center space-x-2">
+                          <div
+                            key={index}
+                            className="flex items-center space-x-2"
+                          >
                             {req.met ? (
                               <CheckCircle className="h-4 w-4 text-green-500" />
                             ) : (
@@ -250,7 +254,7 @@ export default function ResetPasswordPage() {
                         id="confirmPassword"
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={formData.confirmPassword}
-                        onChange={(e) =>
+                        onChange={e =>
                           setFormData({
                             ...formData,
                             confirmPassword: e.target.value,
@@ -263,7 +267,9 @@ export default function ResetPasswordPage() {
                       <button
                         type="button"
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-4 w-4 text-gray-400" />
@@ -284,7 +290,9 @@ export default function ResetPasswordPage() {
                             passwordsMatch ? 'text-green-700' : 'text-red-700'
                           }`}
                         >
-                          {passwordsMatch ? 'Пароли совпадают' : 'Пароли не совпадают'}
+                          {passwordsMatch
+                            ? 'Пароли совпадают'
+                            : 'Пароли не совпадают'}
                         </span>
                       </div>
                     )}
@@ -316,5 +324,3 @@ export default function ResetPasswordPage() {
     </>
   );
 }
-
-

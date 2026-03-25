@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  ColumnDef, 
-  flexRender, 
-  getCoreRowModel, 
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -25,10 +25,7 @@ export function Table<TData>({ data, columns }: TableProps<TData>) {
         {table.getHeaderGroups().map(headerGroup => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map(header => (
-              <th 
-                key={header.id} 
-                className="text-left py-3 px-4"
-              >
+              <th key={header.id} className="text-left py-3 px-4">
                 {header.isPlaceholder
                   ? null
                   : flexRender(
@@ -44,14 +41,8 @@ export function Table<TData>({ data, columns }: TableProps<TData>) {
         {table.getRowModel().rows.map(row => (
           <tr key={row.id} className="border-b">
             {row.getVisibleCells().map(cell => (
-              <td 
-                key={cell.id} 
-                className="py-3 px-4"
-              >
-                {flexRender(
-                  cell.column.columnDef.cell,
-                  cell.getContext()
-                )}
+              <td key={cell.id} className="py-3 px-4">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </td>
             ))}
           </tr>

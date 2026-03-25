@@ -7,6 +7,7 @@ import {
   TrendingUp,
   DollarSign,
 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { useNotifications, Notification } from '@/contexts/NotificationContext';
 
@@ -231,4 +232,3 @@ export function ToastContainer() {
 }
 
 export default NotificationToast;
-

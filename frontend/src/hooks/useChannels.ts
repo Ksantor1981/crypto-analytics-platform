@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { apiClient } from '@/lib/api';
 import { Channel } from '@/types';
 
@@ -14,18 +15,23 @@ interface UseChannelsResult {
   error: Error | null;
   refetch: () => void;
   createChannel: (data: Omit<Channel, 'id'>) => Promise<Channel>;
-  updateChannel: (id: string, data: Partial<Omit<Channel, 'id'>>) => Promise<Channel>;
+  updateChannel: (
+    id: string,
+    data: Partial<Omit<Channel, 'id'>>
+  ) => Promise<Channel>;
   deleteChannel: (id: string) => Promise<void>;
 }
 
-export const useChannels = (filters: UseChannelsFilters = {}): UseChannelsResult => {
+export const useChannels = (
+  filters: UseChannelsFilters = {}
+): UseChannelsResult => {
   const queryClient = useQueryClient();
 
   const {
     data: channels = [],
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['channels', filters],
     queryFn: async () => {
@@ -36,14 +42,22 @@ export const useChannels = (filters: UseChannelsFilters = {}): UseChannelsResult
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  const createChannelMutation = useMutation<Channel, Error, Omit<Channel, 'id'>>({
-    mutationFn: (data) => apiClient.createChannel(data),
+  const createChannelMutation = useMutation<
+    Channel,
+    Error,
+    Omit<Channel, 'id'>
+  >({
+    mutationFn: data => apiClient.createChannel(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
   });
 
-  const updateChannelMutation = useMutation<Channel, Error, { id: string; data: Partial<Omit<Channel, 'id'>> }>({
+  const updateChannelMutation = useMutation<
+    Channel,
+    Error,
+    { id: string; data: Partial<Omit<Channel, 'id'>> }
+  >({
     mutationFn: ({ id, data }) => apiClient.updateChannel(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['channels'] });
@@ -51,7 +65,7 @@ export const useChannels = (filters: UseChannelsFilters = {}): UseChannelsResult
   });
 
   const deleteChannelMutation = useMutation<void, Error, string>({
-    mutationFn: (id) => apiClient.deleteChannel(id),
+    mutationFn: id => apiClient.deleteChannel(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
@@ -63,7 +77,8 @@ export const useChannels = (filters: UseChannelsFilters = {}): UseChannelsResult
     error,
     refetch,
     createChannel: createChannelMutation.mutateAsync,
-    updateChannel: (id: string, data: Partial<Omit<Channel, 'id'>>) => updateChannelMutation.mutateAsync({ id, data }),
+    updateChannel: (id: string, data: Partial<Omit<Channel, 'id'>>) =>
+      updateChannelMutation.mutateAsync({ id, data }),
     deleteChannel: deleteChannelMutation.mutateAsync,
   };
 };
@@ -75,7 +90,7 @@ export const useChannel = (id: string) => {
     data: channel,
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['channel', id],
     queryFn: async () => {
@@ -87,8 +102,12 @@ export const useChannel = (id: string) => {
     gcTime: 10 * 60 * 1000,
   });
 
-  const updateChannelMutation = useMutation<Channel, Error, Partial<Omit<Channel, 'id'>>>({
-    mutationFn: (data) => apiClient.updateChannel(id, data),
+  const updateChannelMutation = useMutation<
+    Channel,
+    Error,
+    Partial<Omit<Channel, 'id'>>
+  >({
+    mutationFn: data => apiClient.updateChannel(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['channel', id] });
       queryClient.invalidateQueries({ queryKey: ['channels'] });

@@ -5,7 +5,14 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { TrendingUp, Eye, EyeOff } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -32,7 +39,7 @@ export default function LoginPage() {
       } else {
         setError('Неверный email или пароль');
       }
-    } catch (err) {
+    } catch {
       setError('Ошибка подключения к серверу. Попробуйте позже.');
     } finally {
       setIsLoading(false);
@@ -168,5 +175,3 @@ export default function LoginPage() {
     </>
   );
 }
-
-

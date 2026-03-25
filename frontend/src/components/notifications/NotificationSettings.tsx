@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
-import {
-  Bell,
-  Volume2,
-  Monitor,
-  AlertTriangle,
-  Settings,
-} from 'lucide-react';
+import { Bell, Volume2, Monitor, AlertTriangle, Settings } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -365,5 +360,3 @@ export function NotificationSettings({ onClose }: NotificationSettingsProps) {
 }
 
 export default NotificationSettings;
-
-

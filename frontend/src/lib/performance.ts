@@ -24,7 +24,9 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {
-  const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [timeoutId, setTimeoutId] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const debounced = useCallback(
     (...args: Parameters<T>) => {

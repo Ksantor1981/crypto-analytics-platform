@@ -15,25 +15,26 @@ export interface PaginatedResponse<T> {
 
 // Базовые типы данных
 export type ChannelStatus = 'active' | 'inactive' | 'error' | 'pending';
-export type ChannelType = 'telegram' | 'reddit' | 'twitter' | 'custom' | 'rss' | 'tradingview';
+export type ChannelType =
+  | 'telegram'
+  | 'reddit'
+  | 'twitter'
+  | 'custom'
+  | 'rss'
+  | 'tradingview';
 export type SignalStatus = 'active' | 'completed' | 'cancelled' | 'failed';
 export type SignalDirection = 'long' | 'short';
 export type SortOrder = 'asc' | 'desc';
 
 // Типы для сортировки
-export type ChannelSortField = 
-  | 'id' 
-  | 'name' 
-  | 'accuracy' 
-  | 'signals_count' 
+export type ChannelSortField =
+  | 'id'
+  | 'name'
+  | 'accuracy'
+  | 'signals_count'
   | 'created_at';
 
-export type SignalSortField = 
-  | 'id' 
-  | 'pair' 
-  | 'status' 
-  | 'created_at' 
-  | 'pnl';
+export type SignalSortField = 'id' | 'pair' | 'status' | 'created_at' | 'pnl';
 
 // API User тип (для данных с бэкенда /users/me и совместимости полей)
 export interface APIUser {
@@ -58,16 +59,16 @@ export interface User {
   email: string;
   avatar?: string;
   joinDate: string;
-  
+
   // ДОБАВЛЯЕМ РОЛЬ - это единственное изменение
   role: 'user' | 'admin' | 'moderator';
-  
+
   subscription: {
     plan: SubscriptionPlan['name'];
     status: 'active' | 'cancelled' | 'expired';
     price: number;
   };
-  
+
   stats?: {
     channelsFollowed: number;
     successRate: number;
@@ -78,7 +79,7 @@ export interface User {
     totalReturn: number;
     daysActive: number;
   };
-  
+
   settings: {
     emailNotifications: boolean;
     pushNotifications: boolean;
@@ -97,21 +98,21 @@ export interface Channel {
   name: string;
   username?: string;
   type?: ChannelType;
-  
+
   // Статус и метаданные
   status: ChannelStatus;
   created_at: string;
   updated_at?: string;
-  
+
   // Статистические показатели
   accuracy?: number;
   signals_count?: number;
   subscribers_count?: number;
-  
+
   // Финансовые метрики
   avg_profit?: number;
   avg_roi?: number;
-  
+
   // Дополнительные метаданные
   description?: string;
   url?: string;
@@ -127,18 +128,18 @@ export interface Signal {
   entry_price?: number;
   target_price?: number;
   stop_loss?: number;
-  
+
   status: SignalStatus;
   direction: SignalDirection;
-  
+
   created_at: string;
   closed_at?: string;
-  
+
   pnl?: number;
   roi?: number;
   confidence?: number; // Уверенность в сигнале (0-1)
   description?: string; // Описание сигнала
-  
+
   // Связанный канал (опционально)
   channel?: {
     id: string;
@@ -157,7 +158,13 @@ export interface SubscriptionPlan {
 // Интерфейс уведомления
 export interface Notification {
   id: string;
-  type: 'signal' | 'target_reached' | 'stop_loss' | 'info' | 'success' | 'warning';
+  type:
+    | 'signal'
+    | 'target_reached'
+    | 'stop_loss'
+    | 'info'
+    | 'success'
+    | 'warning';
   title: string;
   message: string;
   timestamp: string;

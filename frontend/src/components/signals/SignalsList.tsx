@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -69,7 +70,10 @@ export const SignalsList: React.FC<SignalsListProps> = ({
 
   const getDirectionBadge = (direction: string) => {
     return (
-      <Badge variant={direction === 'long' ? 'default' : 'destructive'} size="sm">
+      <Badge
+        variant={direction === 'long' ? 'default' : 'destructive'}
+        size="sm"
+      >
         {direction.toUpperCase()}
       </Badge>
     );
@@ -183,104 +187,105 @@ export const SignalsList: React.FC<SignalsListProps> = ({
               {sortedSignals.map(signal => {
                 const sym = (signal.asset ?? signal.pair ?? '—').toString();
                 return (
-                <tr
-                  key={signal.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="py-3 px-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-semibold text-xs">
-                          {sym.slice(0, 3)}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {sym}
+                  <tr
+                    key={signal.id}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="py-3 px-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 font-semibold text-xs">
+                            {sym.slice(0, 3)}
+                          </span>
                         </div>
-                        {signal.confidence && (
-                          <div className="text-xs text-gray-500">
-                            Уверенность: {(signal.confidence * 100).toFixed(0)}%
+                        <div>
+                          <div className="font-medium text-gray-900">{sym}</div>
+                          {signal.confidence && (
+                            <div className="text-xs text-gray-500">
+                              Уверенность:{' '}
+                              {(signal.confidence * 100).toFixed(0)}%
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      {getDirectionBadge(signal.direction)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-medium text-gray-900">
+                        {signal.entry_price != null
+                          ? formatPrice(signal.entry_price)
+                          : '—'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="text-sm">
+                        {signal.target_price && (
+                          <div className="text-green-600">
+                            🎯 {formatPrice(signal.target_price)}
+                          </div>
+                        )}
+                        {signal.stop_loss && (
+                          <div className="text-red-600">
+                            🛑 {formatPrice(signal.stop_loss)}
                           </div>
                         )}
                       </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    {getDirectionBadge(signal.direction)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="font-medium text-gray-900">
-                      {signal.entry_price != null
-                        ? formatPrice(signal.entry_price)
-                        : '—'}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="text-sm">
-                      {signal.target_price && (
-                        <div className="text-green-600">
-                          🎯 {formatPrice(signal.target_price)}
-                        </div>
-                      )}
-                      {signal.stop_loss && (
-                        <div className="text-red-600">
-                          🛑 {formatPrice(signal.stop_loss)}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  {showChannel && (
+                    </td>
+                    {showChannel && (
+                      <td className="py-3 px-4">
+                        {signal.channel ? (
+                          <Link href={`/channels/${signal.channel.id}`}>
+                            <span className="text-blue-600 hover:text-blue-800 text-sm">
+                              {signal.channel.name}
+                            </span>
+                          </Link>
+                        ) : (
+                          <span className="text-gray-500 text-sm">—</span>
+                        )}
+                      </td>
+                    )}
                     <td className="py-3 px-4">
-                      {signal.channel ? (
-                        <Link href={`/channels/${signal.channel.id}`}>
-                          <span className="text-blue-600 hover:text-blue-800 text-sm">
-                            {signal.channel.name}
-                          </span>
-                        </Link>
+                      {getStatusBadge(signal.status)}
+                    </td>
+                    <td className="py-3 px-4">
+                      {signal.pnl !== undefined ? (
+                        <span
+                          className={`font-medium ${getPnlColor(signal.pnl)}`}
+                        >
+                          {signal.pnl > 0 ? '+' : ''}
+                          {signal.pnl.toFixed(2)}%
+                        </span>
                       ) : (
-                        <span className="text-gray-500 text-sm">—</span>
+                        <span className="text-gray-500">—</span>
                       )}
                     </td>
-                  )}
-                  <td className="py-3 px-4">{getStatusBadge(signal.status)}</td>
-                  <td className="py-3 px-4">
-                    {signal.pnl !== undefined ? (
-                      <span
-                        className={`font-medium ${getPnlColor(signal.pnl)}`}
-                      >
-                        {signal.pnl > 0 ? '+' : ''}
-                        {signal.pnl.toFixed(2)}%
+                    <td className="py-3 px-4">
+                      <span className="text-gray-600 text-sm">
+                        {formatDate(signal.created_at)}
                       </span>
-                    ) : (
-                      <span className="text-gray-500">—</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="text-gray-600 text-sm">
-                      {formatDate(signal.created_at)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <Link href={`/signals/${signal.id}`}>
-                        <Button variant="outline" size="sm">
-                          Подробнее
-                        </Button>
-                      </Link>
-                      {onSignalSelect && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => onSignalSelect(signal)}
-                        >
-                          Выбрать
-                        </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end space-x-2">
+                        <Link href={`/signals/${signal.id}`}>
+                          <Button variant="outline" size="sm">
+                            Подробнее
+                          </Button>
+                        </Link>
+                        {onSignalSelect && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => onSignalSelect(signal)}
+                          >
+                            Выбрать
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
               })}
             </tbody>
           </table>
@@ -289,5 +294,3 @@ export const SignalsList: React.FC<SignalsListProps> = ({
     </Card>
   );
 };
-
-

@@ -1,12 +1,45 @@
 import React, { useState } from 'react';
-import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Alert, Box, Typography, Paper } from '@mui/material';
+import {
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Alert,
+  Box,
+  Typography,
+  Paper,
+} from '@mui/material';
 
 interface FeedbackFormData {
-  feedback_type: 'question' | 'suggestion' | 'bug_report' | 'feature_request' | 'general';
+  feedback_type:
+    | 'question'
+    | 'suggestion'
+    | 'bug_report'
+    | 'feature_request'
+    | 'general';
   subject: string;
   message: string;
   user_email: string;
   user_telegram: string;
+}
+
+function parseErrorDetail(data: unknown): string {
+  if (typeof data !== 'object' || data === null) {
+    return '';
+  }
+  if (!('detail' in data)) {
+    return '';
+  }
+  const d = (data as { detail: unknown }).detail;
+  if (typeof d === 'string') {
+    return d;
+  }
+  if (Array.isArray(d)) {
+    return d.map(String).join(', ');
+  }
+  return '';
 }
 
 const FeedbackForm: React.FC = () => {
@@ -15,21 +48,27 @@ const FeedbackForm: React.FC = () => {
     subject: '',
     message: '',
     user_email: '',
-    user_telegram: ''
+    user_telegram: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
+  const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(
+    null
+  );
   const [submitMessage, setSubmitMessage] = useState('');
 
-  const handleInputChange = (field: keyof FeedbackFormData) => (
-    event: React.ChangeEvent<HTMLInputElement> | { target: { value: unknown } }
-  ) => {
-    setFormData({
-      ...formData,
-      [field]: event.target.value
-    });
-  };
+  const handleInputChange =
+    (field: keyof FeedbackFormData) =>
+    (
+      event:
+        | React.ChangeEvent<HTMLInputElement>
+        | { target: { value: unknown } }
+    ): void => {
+      setFormData({
+        ...formData,
+        [field]: event.target.value,
+      });
+    };
 
   const validateForm = (): boolean => {
     if (!formData.subject.trim()) {
@@ -44,7 +83,10 @@ const FeedbackForm: React.FC = () => {
       return false;
     }
 
-    if (formData.user_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.user_email)) {
+    if (
+      formData.user_email.length > 0 &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.user_email)
+    ) {
       setSubmitMessage('Пожалуйста, укажите корректный email адрес');
       setSubmitStatus('error');
       return false;
@@ -53,7 +95,9 @@ const FeedbackForm: React.FC = () => {
     return true;
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     event.preventDefault();
 
     if (!validateForm()) {
@@ -78,35 +122,63 @@ const FeedbackForm: React.FC = () => {
 
       if (response.ok) {
         setSubmitStatus('success');
-        setSubmitMessage('Спасибо за вашу обратную связь! Мы ответим вам в ближайшее время.');
-        
-        // Очищаем форму
+        setSubmitMessage(
+          'Спасибо за вашу обратную связь! Мы ответим вам в ближайшее время.'
+        );
+
         setFormData({
           feedback_type: 'general',
           subject: '',
           message: '',
           user_email: '',
-          user_telegram: ''
+          user_telegram: '',
         });
       } else {
-        const errorData = await response.json();
+        const errorData: unknown = await response.json();
+        const detail = parseErrorDetail(errorData);
         setSubmitStatus('error');
-        setSubmitMessage(errorData.detail || 'Произошла ошибка при отправке обратной связи');
+        setSubmitMessage(
+          detail.length > 0
+            ? detail
+            : 'Произошла ошибка при отправке обратной связи'
+        );
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus('error');
-      setSubmitMessage('Произошла ошибка при отправке обратной связи. Пожалуйста, попробуйте позже.');
+      setSubmitMessage(
+        'Произошла ошибка при отправке обратной связи. Пожалуйста, попробуйте позже.'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const feedbackTypes = [
-    { value: 'question', label: '❓ Вопрос', description: 'Задать вопрос о продукте' },
-    { value: 'suggestion', label: '💡 Предложение', description: 'Предложить улучшения' },
-    { value: 'bug_report', label: '🐛 Ошибка', description: 'Сообщить о проблеме' },
-    { value: 'feature_request', label: '🚀 Функция', description: 'Запросить новую функцию' },
-    { value: 'general', label: '📝 Общее', description: 'Любое другое сообщение' }
+    {
+      value: 'question',
+      label: '❓ Вопрос',
+      description: 'Задать вопрос о продукте',
+    },
+    {
+      value: 'suggestion',
+      label: '💡 Предложение',
+      description: 'Предложить улучшения',
+    },
+    {
+      value: 'bug_report',
+      label: '🐛 Ошибка',
+      description: 'Сообщить о проблеме',
+    },
+    {
+      value: 'feature_request',
+      label: '🚀 Функция',
+      description: 'Запросить новую функцию',
+    },
+    {
+      value: 'general',
+      label: '📝 Общее',
+      description: 'Любое другое сообщение',
+    },
   ];
 
   return (
@@ -114,18 +186,29 @@ const FeedbackForm: React.FC = () => {
       <Typography variant="h4" component="h2" gutterBottom align="center">
         📝 Обратная связь
       </Typography>
-      
-      <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 3 }}>
+
+      <Typography
+        variant="body1"
+        color="text.secondary"
+        align="center"
+        sx={{ mb: 3 }}
+      >
         Есть вопросы или предложения? Мы будем рады услышать от вас!
       </Typography>
 
-      {submitStatus && (
+      {submitStatus !== null && (
         <Alert severity={submitStatus} sx={{ mb: 3 }}>
           {submitMessage}
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+      <Box
+        component="form"
+        onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+          void handleSubmit(e);
+        }}
+        sx={{ mt: 2 }}
+      >
         <FormControl fullWidth sx={{ mb: 3 }}>
           <InputLabel>Тип обратной связи</InputLabel>
           <Select
@@ -133,7 +216,7 @@ const FeedbackForm: React.FC = () => {
             label="Тип обратной связи"
             onChange={handleInputChange('feedback_type')}
           >
-            {feedbackTypes.map((type) => (
+            {feedbackTypes.map(type => (
               <MenuItem key={type.value} value={type.value}>
                 <Box>
                   <Typography variant="body1">{type.label}</Typography>

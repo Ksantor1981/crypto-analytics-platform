@@ -1,13 +1,19 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+
 import { apiClient } from '@/lib/api';
 import { User, APIUser } from '@/types';
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: { email: string; password: string; first_name: string; last_name: string }) => Promise<boolean>;
+  register: (userData: {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+  }) => Promise<boolean>;
   logout: () => Promise<void>;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -17,9 +23,13 @@ interface AuthContextType {
 // Функция для маппинга APIUser в User
 const mapAPIUserToUser = (apiUser: APIUser): User => {
   const planByRole = (r?: string) =>
-    r === 'PREMIUM_USER' || r === 'premium' ? 'Premium' :
-    r === 'PRO_USER' || r === 'pro' ? 'Pro' : 'Free';
-  const subPlan = apiUser.subscription_plan || apiUser.subscription_type || apiUser.role;
+    r === 'PREMIUM_USER' || r === 'premium'
+      ? 'Premium'
+      : r === 'PRO_USER' || r === 'pro'
+        ? 'Pro'
+        : 'Free';
+  const subPlan =
+    apiUser.subscription_plan || apiUser.subscription_type || apiUser.role;
   const plan = planByRole(subPlan) || (apiUser.is_premium ? 'Premium' : 'Free');
   return {
     id: apiUser.id.toString(),
@@ -27,12 +37,14 @@ const mapAPIUserToUser = (apiUser: APIUser): User => {
     username: apiUser.username || apiUser.email,
     email: apiUser.email,
     avatar: undefined,
-    joinDate: (apiUser as { created_at?: string }).created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    joinDate:
+      (apiUser as { created_at?: string }).created_at?.split('T')[0] ||
+      new Date().toISOString().split('T')[0],
     role: 'user',
     subscription: {
       plan,
       status: 'active',
-      price: 0
+      price: 0,
     },
     stats: {
       channelsFollowed: 0,
@@ -42,7 +54,7 @@ const mapAPIUserToUser = (apiUser: APIUser): User => {
       totalSignals: 0,
       winRate: 0,
       totalReturn: 0,
-      daysActive: 0
+      daysActive: 0,
     },
     settings: {
       emailNotifications: true,
@@ -51,8 +63,8 @@ const mapAPIUserToUser = (apiUser: APIUser): User => {
       weeklyReports: false,
       darkMode: false,
       language: 'ru',
-      timezone: 'Europe/Moscow'
-    }
+      timezone: 'Europe/Moscow',
+    },
   };
 };
 
@@ -85,10 +97,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await apiClient.login(email, password);
-      
+
       // Получаем данные пользователя после успешного логина
       const apiUser = await apiClient.getCurrentUser();
       const userData = mapAPIUserToUser(apiUser);
@@ -102,13 +114,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (userData: { email: string; password: string; first_name: string; last_name: string }): Promise<boolean> => {
+  const register = async (userData: {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+  }): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await apiClient.register(userData);
-      
+
       // Автоматически входим после регистрации
       await apiClient.login(userData.email, userData.password);
       const apiUser = await apiClient.getCurrentUser();
@@ -137,15 +154,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      login,
-      register,
-      logout,
-      isLoading,
-      isAuthenticated: !!user,
-      error
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        isLoading,
+        isAuthenticated: !!user,
+        error,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

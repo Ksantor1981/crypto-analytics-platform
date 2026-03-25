@@ -1,6 +1,14 @@
 import React from 'react';
-import { Container, Typography, Box, Card, CardContent, Alert } from '@mui/material';
+import {
+  Container,
+  Typography,
+  Box,
+  Card,
+  CardContent,
+  Alert,
+} from '@mui/material';
 import Head from 'next/head';
+
 import FeedbackForm from '@/components/FeedbackForm';
 
 const FeedbackPage: React.FC = () => {
@@ -8,7 +16,10 @@ const FeedbackPage: React.FC = () => {
     <>
       <Head>
         <title>Обратная связь - Crypto Analytics Platform</title>
-        <meta name="description" content="Свяжитесь с нами для вопросов, предложений или сообщения об ошибках" />
+        <meta
+          name="description"
+          content="Свяжитесь с нами для вопросов, предложений или сообщения об ошибках"
+        />
       </Head>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -21,7 +32,13 @@ const FeedbackPage: React.FC = () => {
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 4,
+          }}
+        >
           {/* Форма обратной связи */}
           <Box sx={{ flex: { xs: 1, md: 2 } }}>
             <FeedbackForm />
@@ -38,7 +55,7 @@ const FeedbackPage: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" paragraph>
                     Выберите наиболее удобный для вас способ связи:
                   </Typography>
-                  
+
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" color="primary">
                       📧 Email
@@ -47,16 +64,14 @@ const FeedbackPage: React.FC = () => {
                       support@cryptoanalytics.com
                     </Typography>
                   </Box>
-                  
+
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" color="primary">
                       📱 Telegram
                     </Typography>
-                    <Typography variant="body2">
-                      @CryptoAnalyticsBot
-                    </Typography>
+                    <Typography variant="body2">@CryptoAnalyticsBot</Typography>
                   </Box>
-                  
+
                   <Box>
                     <Typography variant="subtitle2" color="primary">
                       🌐 Веб-форма
@@ -76,40 +91,34 @@ const FeedbackPage: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" paragraph>
                     Мы стремимся отвечать на все сообщения как можно быстрее:
                   </Typography>
-                  
+
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" color="success.main">
                       🚀 Срочные вопросы
                     </Typography>
-                    <Typography variant="body2">
-                      В течение 2-4 часов
-                    </Typography>
+                    <Typography variant="body2">В течение 2-4 часов</Typography>
                   </Box>
-                  
+
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" color="warning.main">
                       📝 Обычные вопросы
                     </Typography>
-                    <Typography variant="body2">
-                      В течение 24 часов
-                    </Typography>
+                    <Typography variant="body2">В течение 24 часов</Typography>
                   </Box>
-                  
+
                   <Box>
                     <Typography variant="subtitle2" color="info.main">
                       💡 Предложения
                     </Typography>
-                    <Typography variant="body2">
-                      В течение 48 часов
-                    </Typography>
+                    <Typography variant="body2">В течение 48 часов</Typography>
                   </Box>
                 </CardContent>
               </Card>
 
               <Alert severity="info" sx={{ mb: 3 }}>
                 <Typography variant="body2">
-                  <strong>💡 Совет:</strong> Чем подробнее вы опишете проблему или вопрос, 
-                  тем быстрее мы сможем вам помочь!
+                  <strong>💡 Совет:</strong> Чем подробнее вы опишете проблему
+                  или вопрос, тем быстрее мы сможем вам помочь!
                 </Typography>
               </Alert>
 
@@ -121,7 +130,7 @@ const FeedbackPage: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" paragraph>
                     Возможно, ответ на ваш вопрос уже есть здесь:
                   </Typography>
-                  
+
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" color="primary">
                       ❓ Как работает система сигналов?
@@ -130,7 +139,7 @@ const FeedbackPage: React.FC = () => {
                       Система анализирует данные из множества источников...
                     </Typography>
                   </Box>
-                  
+
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" color="primary">
                       💰 Платформа бесплатная?
@@ -139,7 +148,7 @@ const FeedbackPage: React.FC = () => {
                       Базовый функционал бесплатный, премиум функции...
                     </Typography>
                   </Box>
-                  
+
                   <Box>
                     <Typography variant="subtitle2" color="primary">
                       🔒 Безопасны ли мои данные?
@@ -160,42 +169,44 @@ const FeedbackPage: React.FC = () => {
             🎯 Наша миссия
           </Typography>
           <Typography variant="body1" align="center" paragraph>
-            Мы стремимся создать лучшую платформу для анализа криптовалютных сигналов. 
-            Ваша обратная связь помогает нам улучшать продукт и делать его более полезным для всех пользователей.
+            Мы стремимся создать лучшую платформу для анализа криптовалютных
+            сигналов. Ваша обратная связь помогает нам улучшать продукт и делать
+            его более полезным для всех пользователей.
           </Typography>
-          
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 2 }}>
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 2,
+              mt: 2,
+            }}
+          >
             <Box sx={{ flex: 1 }} textAlign="center">
               <Typography variant="h4" color="primary">
                 🚀
               </Typography>
-              <Typography variant="h6">
-                Быстро
-              </Typography>
+              <Typography variant="h6">Быстро</Typography>
               <Typography variant="body2" color="text.secondary">
                 Быстрые ответы на все вопросы
               </Typography>
             </Box>
-            
+
             <Box sx={{ flex: 1 }} textAlign="center">
               <Typography variant="h4" color="primary">
                 💎
               </Typography>
-              <Typography variant="h6">
-                Качественно
-              </Typography>
+              <Typography variant="h6">Качественно</Typography>
               <Typography variant="body2" color="text.secondary">
                 Профессиональная поддержка
               </Typography>
             </Box>
-            
+
             <Box sx={{ flex: 1 }} textAlign="center">
               <Typography variant="h4" color="primary">
                 🤝
               </Typography>
-              <Typography variant="h6">
-                Дружелюбно
-              </Typography>
+              <Typography variant="h6">Дружелюбно</Typography>
               <Typography variant="body2" color="text.secondary">
                 Приветливое общение
               </Typography>

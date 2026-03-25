@@ -1,21 +1,22 @@
-import { Badge } from '@/components/ui/badge';
-import { 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
-  AlertTriangle, 
+import {
+  CheckCircle,
+  Clock,
+  XCircle,
+  AlertTriangle,
   Loader2,
-  Pause
+  Pause,
 } from 'lucide-react';
 
-export type ChannelStatus = 
-  | 'pending'    // Ожидает обработки
-  | 'active'     // Активен и работает
-  | 'error'      // Ошибка при обработке
-  | 'inactive'   // Неактивен/приостановлен
+import { Badge } from '@/components/ui/badge';
+
+export type ChannelStatus =
+  | 'pending' // Ожидает обработки
+  | 'active' // Активен и работает
+  | 'error' // Ошибка при обработке
+  | 'inactive' // Неактивен/приостановлен
   | 'processing' // В процессе обработки
-  | 'failed'     // Не удалось подключиться
-  | 'paused';    // Приостановлен пользователем
+  | 'failed' // Не удалось подключиться
+  | 'paused'; // Приостановлен пользователем
 
 interface StatusBadgeProps {
   status: ChannelStatus;
@@ -108,11 +109,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       `}
     >
       {showIcon && (
-        <Icon 
+        <Icon
           className={`
             ${iconSizes[size]} 
             ${status === 'processing' ? 'animate-spin' : ''}
-          `} 
+          `}
         />
       )}
       <span>{config.label}</span>
@@ -159,20 +160,20 @@ export const StatusDetail: React.FC<StatusDetailProps> = ({
   };
 
   return (
-    <div className={`flex items-start space-x-3 p-3 rounded-lg ${config.bgColor} ${className}`}>
-      <Icon 
+    <div
+      className={`flex items-start space-x-3 p-3 rounded-lg ${config.bgColor} ${className}`}
+    >
+      <Icon
         className={`
           h-5 w-5 mt-0.5 ${config.color}
           ${status === 'processing' ? 'animate-spin' : ''}
-        `} 
+        `}
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
           <StatusBadge status={status} size="sm" showIcon={false} />
           {lastUpdated && (
-            <span className="text-xs text-gray-500">
-              {lastUpdated}
-            </span>
+            <span className="text-xs text-gray-500">{lastUpdated}</span>
           )}
         </div>
         <p className="text-sm text-gray-700 mt-1">

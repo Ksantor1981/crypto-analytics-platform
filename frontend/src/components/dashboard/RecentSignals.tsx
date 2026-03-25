@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -67,77 +68,77 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
             {signals.map(signal => {
               const sym = (signal.asset ?? signal.pair ?? '—').toString();
               return (
-              <div
-                key={signal.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-sm">
-                      {sym.slice(0, 2)}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium text-gray-900">
-                        {sym}
+                <div
+                  key={signal.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-semibold text-sm">
+                        {sym.slice(0, 2)}
                       </span>
-                      <Badge
-                        variant={
-                          signal.direction === 'long' ? 'default' : 'destructive'
-                        }
-                        size="sm"
-                      >
-                        {signal.direction.toUpperCase()}
-                      </Badge>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                      <span>
-                        Вход:{' '}
-                        {signal.entry_price != null
-                          ? formatPrice(signal.entry_price)
-                          : '—'}
-                      </span>
-                      {signal.target_price && (
-                        <span>Цель: {formatPrice(signal.target_price)}</span>
-                      )}
-                      <span>{formatDate(signal.created_at)}</span>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-900">{sym}</span>
+                        <Badge
+                          variant={
+                            signal.direction === 'long'
+                              ? 'default'
+                              : 'destructive'
+                          }
+                          size="sm"
+                        >
+                          {signal.direction.toUpperCase()}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                        <span>
+                          Вход:{' '}
+                          {signal.entry_price != null
+                            ? formatPrice(signal.entry_price)
+                            : '—'}
+                        </span>
+                        {signal.target_price && (
+                          <span>Цель: {formatPrice(signal.target_price)}</span>
+                        )}
+                        <span>{formatDate(signal.created_at)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <Badge
-                    variant={
-                      signal.status === 'active'
-                        ? 'outline'
-                        : signal.status === 'completed'
-                          ? 'default'
-                          : signal.status === 'failed'
-                            ? 'destructive'
-                            : 'secondary'
-                    }
-                  >
-                    {signal.status === 'active'
-                      ? 'Активен'
-                      : signal.status === 'completed'
-                        ? 'Выполнен'
-                        : signal.status === 'failed'
-                          ? 'Не выполнен'
-                          : 'Отменен'}
-                  </Badge>
-                  {signal.pnl && (
-                    <div
-                      className={`text-sm font-medium mt-1 ${
-                        signal.pnl > 0 ? 'text-green-600' : 'text-red-600'
-                      }`}
+                  <div className="text-right">
+                    <Badge
+                      variant={
+                        signal.status === 'active'
+                          ? 'outline'
+                          : signal.status === 'completed'
+                            ? 'default'
+                            : signal.status === 'failed'
+                              ? 'destructive'
+                              : 'secondary'
+                      }
                     >
-                      {signal.pnl > 0 ? '+' : ''}
-                      {signal.pnl.toFixed(2)}%
-                    </div>
-                  )}
+                      {signal.status === 'active'
+                        ? 'Активен'
+                        : signal.status === 'completed'
+                          ? 'Выполнен'
+                          : signal.status === 'failed'
+                            ? 'Не выполнен'
+                            : 'Отменен'}
+                    </Badge>
+                    {signal.pnl && (
+                      <div
+                        className={`text-sm font-medium mt-1 ${
+                          signal.pnl > 0 ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {signal.pnl > 0 ? '+' : ''}
+                        {signal.pnl.toFixed(2)}%
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
+              );
             })}
           </div>
         )}
@@ -145,5 +146,3 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
     </Card>
   );
 };
-
-

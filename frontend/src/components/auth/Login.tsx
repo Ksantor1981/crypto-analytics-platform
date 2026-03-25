@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardFooter, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardContent,
+} from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { LoginRequest } from '@/types';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -51,7 +57,7 @@ export function Login() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 required
                 className="w-full"
               />
@@ -64,7 +70,7 @@ export function Login() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 required
                 className="w-full"
               />

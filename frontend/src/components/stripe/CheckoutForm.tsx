@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
+import { Loader2, CreditCard, Shield, Check } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CreditCard, Shield, Check } from 'lucide-react';
 
 interface CheckoutFormProps {
   planName: string;
@@ -172,5 +173,3 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 };
 
 export default CheckoutForm;
-
-

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+
 import { apiClient } from '@/lib/api';
 
 export interface ChannelSignal {
@@ -48,7 +49,7 @@ const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
   let signals: ChannelSignal[] = [];
   try {
     const sigResp = await apiClient.getSignals(channelId);
-    const sigData = Array.isArray(sigResp) ? sigResp : (sigResp?.signals || []);
+    const sigData = Array.isArray(sigResp) ? sigResp : sigResp?.signals || [];
     signals = sigData.map((s: Record<string, unknown>) => ({
       id: s.id as number,
       symbol: (s.asset || s.symbol || '') as string,
@@ -57,12 +58,17 @@ const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
       target_price: (s.tp1_price || undefined) as number | undefined,
       stop_loss: (s.stop_loss || undefined) as number | undefined,
       exit_price: (s.exit_price as number | undefined) ?? undefined,
-      status: ((s.status as string) || 'open').toLowerCase().includes('hit') ? 'closed'
-        : ((s.status as string) || '').includes('SL') ? 'failed' : 'open',
+      status: ((s.status as string) || 'open').toLowerCase().includes('hit')
+        ? 'closed'
+        : ((s.status as string) || '').includes('SL')
+          ? 'failed'
+          : 'open',
       timestamp: (s.created_at || new Date().toISOString()) as string,
       pnl: (s.profit_loss_percentage || undefined) as number | undefined,
     }));
-  } catch {}
+  } catch {
+    /* игнорируем ошибки нормализации сигналов */
+  }
 
   return {
     id: raw.id,
@@ -82,7 +88,12 @@ const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
     avatar: raw.platform === 'reddit' ? '🔴' : '📡',
     status: raw.status || 'active',
     isFollowing: false,
-    riskLevel: (raw.accuracy || 0) > 70 ? 'low' : (raw.accuracy || 0) > 50 ? 'medium' : 'high',
+    riskLevel:
+      (raw.accuracy || 0) > 70
+        ? 'low'
+        : (raw.accuracy || 0) > 50
+          ? 'medium'
+          : 'high',
     totalTrades: raw.signals_count || 0,
     winRate: raw.accuracy || 0,
     avgReturn: raw.average_roi || 0,

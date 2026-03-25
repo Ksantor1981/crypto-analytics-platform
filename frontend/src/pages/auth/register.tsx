@@ -2,6 +2,8 @@ import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { TrendingUp, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
+
 import {
   Card,
   CardContent,
@@ -10,7 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function RegisterPage() {
@@ -82,15 +83,18 @@ export default function RegisterPage() {
       );
 
       if (response.ok) {
-        const data = await response.json();
+        await response.json();
         // Автоматически входим после регистрации
         await login(formData.email, formData.password);
         router.push('/dashboard');
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Ошибка регистрации. Возможно, пользователь с таким email уже существует.');
+        setError(
+          errorData.detail ||
+            'Ошибка регистрации. Возможно, пользователь с таким email уже существует.'
+        );
       }
-    } catch (err) {
+    } catch {
       setError('Ошибка подключения к серверу. Попробуйте позже.');
     } finally {
       setIsLoading(false);
@@ -381,5 +385,3 @@ export default function RegisterPage() {
     </>
   );
 }
-
-

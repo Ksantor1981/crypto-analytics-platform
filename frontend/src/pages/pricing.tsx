@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { Check, Star, Zap, Crown } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Crown } from 'lucide-react';
 import StripeProvider from '@/components/stripe/StripeProvider';
 import CheckoutForm from '@/components/stripe/CheckoutForm';
 import { apiClient } from '@/lib/api';
@@ -92,25 +93,37 @@ export default function PricingPage() {
   const [plans, setPlans] = useState<PricingPlan[]>(defaultPlans);
 
   useEffect(() => {
-    apiClient.getSubscriptionPlans()
-      .then((apiPlans) => {
+    apiClient
+      .getSubscriptionPlans()
+      .then(apiPlans => {
         if (Array.isArray(apiPlans) && apiPlans.length > 0) {
-          const icons = [<Star key="s" className="h-6 w-6" />, <Zap key="z" className="h-6 w-6" />, <Crown key="c" className="h-6 w-6" />];
-          setPlans(apiPlans.map((p: Record<string, unknown>, i: number) => ({
-            id: (p.plan as string)?.toLowerCase() || `plan_${i}`,
-            name: (p.name as string) || 'Plan',
-            price: (p.price_monthly as number) ?? 0,
-            yearlyPrice: (p.price_yearly as number) ?? (p.price_monthly as number) * 10,
-            description: (p.description as string) || '',
-            features: Array.isArray(p.features) ? p.features as string[] : [],
-            popular: (p.is_popular as boolean) ?? i === 1,
-            icon: icons[i % 3],
-            stripePriceId: (p.stripe_price_id_monthly as string) || '',
-            stripeYearlyPriceId: (p.stripe_price_id_yearly as string) || '',
-          })));
+          const icons = [
+            <Star key="s" className="h-6 w-6" />,
+            <Zap key="z" className="h-6 w-6" />,
+            <Crown key="c" className="h-6 w-6" />,
+          ];
+          setPlans(
+            apiPlans.map((p: Record<string, unknown>, i: number) => ({
+              id: (p.plan as string)?.toLowerCase() || `plan_${i}`,
+              name: (p.name as string) || 'Plan',
+              price: (p.price_monthly as number) ?? 0,
+              yearlyPrice:
+                (p.price_yearly as number) ?? (p.price_monthly as number) * 10,
+              description: (p.description as string) || '',
+              features: Array.isArray(p.features)
+                ? (p.features as string[])
+                : [],
+              popular: (p.is_popular as boolean) ?? i === 1,
+              icon: icons[i % 3],
+              stripePriceId: (p.stripe_price_id_monthly as string) || '',
+              stripeYearlyPriceId: (p.stripe_price_id_yearly as string) || '',
+            }))
+          );
         }
       })
-      .catch(() => { /* keep defaults */ });
+      .catch(() => {
+        /* keep defaults */
+      });
   }, []);
 
   const handleSelectPlan = (plan: PricingPlan) => {
@@ -314,5 +327,3 @@ export default function PricingPage() {
     </div>
   );
 }
-
-

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { apiClient } from '@/lib/api';
 
 export interface UserPlan {
@@ -85,10 +86,8 @@ export function useUserLimits() {
   };
 
   useEffect(() => {
-    let cancelled = false;
     setLoading(true);
-    fetchLimits().then(() => {});
-    return () => { cancelled = true; };
+    void fetchLimits();
   }, []);
 
   const checkChannelLimit = (): boolean => {

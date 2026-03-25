@@ -3,9 +3,15 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { RegisterRequest } from '@/types';
 
@@ -53,14 +59,14 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
         setIsLoading(false);
         return;
       }
-      
+
       await register({
         email: formData.email,
         password: formData.password,
         first_name: formData.first_name,
-        last_name: formData.last_name
+        last_name: formData.last_name,
       });
-      
+
       if (onSuccess) {
         onSuccess();
       } else {

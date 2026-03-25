@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -140,7 +141,7 @@ const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
                         'accuracy_range',
                         filters.accuracy_range === range.value
                           ? undefined
-                          : range.value as string
+                          : (range.value as string)
                       )
                     }
                     className={`px-3 py-1 rounded-full text-sm border ${

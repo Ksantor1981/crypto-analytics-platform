@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { Download, FileSpreadsheet, FileJson, Crown } from 'lucide-react';
+import Link from 'next/link';
+
 import {
   Card,
   CardContent,
@@ -9,8 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, FileSpreadsheet, FileJson, Crown } from 'lucide-react';
-import Link from 'next/link';
 import { apiClient } from '@/lib/api';
 
 function planAllowsPremiumExport(plan?: string): boolean {
@@ -163,7 +164,11 @@ export function DataExportCard({
           <div className="border-t pt-4 rounded-md bg-amber-50 border border-amber-100 p-3 text-sm text-amber-900">
             Полный экспорт (Excel, свои каналы и аналитика) доступен на тарифах{' '}
             <strong>Premium</strong> и <strong>Pro</strong>.
-            <Button variant="link" className="p-0 h-auto ml-1 text-amber-800" asChild>
+            <Button
+              variant="link"
+              className="p-0 h-auto ml-1 text-amber-800"
+              asChild
+            >
               <Link href="/subscription">Оформить подписку</Link>
             </Button>
           </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -71,8 +72,8 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ channel, onSubscribe }) => {
         </div>
 
         <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full"
             onClick={() => onSubscribe?.(channel)}
           >

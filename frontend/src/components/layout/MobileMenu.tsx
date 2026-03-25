@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   Zap,
 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/contexts/NotificationContext';
 import useRealTimeNotifications from '@/hooks/useRealTimeNotifications';
@@ -396,4 +397,3 @@ export function MobileMenu({
 }
 
 export default MobileMenu;
-

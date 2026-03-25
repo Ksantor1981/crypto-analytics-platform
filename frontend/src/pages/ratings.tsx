@@ -1,6 +1,23 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import {
+  TrendingUp,
+  Crown,
+  Trophy,
+  Medal,
+  Star,
+  AlertTriangle,
+  Shield,
+  Users,
+  BarChart3,
+  Eye,
+  ThumbsUp,
+  ThumbsDown,
+  Target,
+  DollarSign,
+} from 'lucide-react';
+
 import { apiClient } from '@/lib/api';
 import {
   Card,
@@ -10,26 +27,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  TrendingUp,
-  Crown,
-  Trophy,
-  Medal,
-  Star,
-  TrendingDown,
-  AlertTriangle,
-  Shield,
-  Users,
-  BarChart3,
-  ArrowUpRight,
-  ArrowDownRight,
-  Zap,
-  Eye,
-  ThumbsUp,
-  ThumbsDown,
-  Target,
-  DollarSign,
-} from 'lucide-react';
 
 /** Строка рейтинга (топ / общий список) */
 interface RatingChannelTop {
@@ -76,7 +73,10 @@ export default function RatingsPage() {
   useEffect(() => {
     async function loadChannels() {
       try {
-        const data = await apiClient.getChannels({ sort: 'accuracy_desc', limit: 100 });
+        const data = await apiClient.getChannels({
+          sort: 'accuracy_desc',
+          limit: 100,
+        });
         if (Array.isArray(data) && data.length > 0) {
           const mapped: RatingChannelTop[] = data.map(
             (c: Record<string, unknown>, i: number) => {
@@ -112,12 +112,15 @@ export default function RatingsPage() {
           });
           setApiChannels(sorted);
         }
-      } catch { /* use fallback */ }
+      } catch {
+        /* use fallback */
+      }
     }
     loadChannels();
   }, []);
 
-  const effectiveTopChannels = apiChannels.length > 0 ? apiChannels : topChannels;
+  const effectiveTopChannels =
+    apiChannels.length > 0 ? apiChannels : topChannels;
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -214,10 +217,13 @@ export default function RatingsPage() {
                 <Card className="border-dashed">
                   <CardContent className="py-12 text-center text-gray-600">
                     <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-lg font-medium text-gray-800 mb-2">Нет данных для рейтинга</p>
+                    <p className="text-lg font-medium text-gray-800 mb-2">
+                      Нет данных для рейтинга
+                    </p>
                     <p className="text-sm mb-6 max-w-md mx-auto">
-                      Запустите backend и seed (`python scripts/seed_data.py`) или дождитесь сбора сигналов.
-                      Для просмотра каналов перейдите в раздел ниже.
+                      Запустите backend и seed (`python scripts/seed_data.py`)
+                      или дождитесь сбора сигналов. Для просмотра каналов
+                      перейдите в раздел ниже.
                     </p>
                     <div className="flex flex-wrap justify-center gap-3">
                       <Button asChild>
@@ -230,134 +236,144 @@ export default function RatingsPage() {
                   </CardContent>
                 </Card>
               ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {effectiveTopChannels.map((channel, index) => (
-                  <Card
-                    key={channel.id}
-                    className={`card-hover relative overflow-hidden ${
-                      index === 0 ? 'ring-2 ring-yellow-400 shadow-lg' : ''
-                    }`}
-                  >
-                    {index === 0 && (
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 to-yellow-600"></div>
-                    )}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {effectiveTopChannels.map((channel, index) => (
+                    <Card
+                      key={channel.id}
+                      className={`card-hover relative overflow-hidden ${
+                        index === 0 ? 'ring-2 ring-yellow-400 shadow-lg' : ''
+                      }`}
+                    >
+                      {index === 0 && (
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 to-yellow-600"></div>
+                      )}
 
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-3">
-                          {getRankIcon(channel.rank)}
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-2xl">{channel.avatar}</span>
-                              <CardTitle className="text-lg">
-                                {channel.name}
-                              </CardTitle>
-                            </div>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <div className="flex items-center">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-3 w-3 ${
-                                      i < Math.floor(channel.rating)
-                                        ? 'text-yellow-400 fill-current'
-                                        : 'text-gray-300'
-                                    }`}
-                                  />
-                                ))}
-                                <span className="text-xs text-gray-600 ml-1">
-                                  {channel.rating}
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-3">
+                            {getRankIcon(channel.rank)}
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-2xl">
+                                  {channel.avatar}
+                                </span>
+                                <CardTitle className="text-lg">
+                                  {channel.name}
+                                </CardTitle>
+                              </div>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <div className="flex items-center">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`h-3 w-3 ${
+                                        i < Math.floor(channel.rating)
+                                          ? 'text-yellow-400 fill-current'
+                                          : 'text-gray-300'
+                                      }`}
+                                    />
+                                  ))}
+                                  <span className="text-xs text-gray-600 ml-1">
+                                    {channel.rating}
+                                  </span>
+                                </div>
+                                <span
+                                  className={`text-xs px-2 py-1 rounded border ${getBadgeColor(channel.badge)}`}
+                                >
+                                  {channel.badge}
                                 </span>
                               </div>
-                              <span
-                                className={`text-xs px-2 py-1 rounded border ${getBadgeColor(channel.badge)}`}
-                              >
-                                {channel.badge}
-                              </span>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <CardDescription className="mt-2">
-                        {channel.description}
-                      </CardDescription>
-                    </CardHeader>
+                        <CardDescription className="mt-2">
+                          {channel.description}
+                        </CardDescription>
+                      </CardHeader>
 
-                    <CardContent>
-                      {/* Key Metrics Grid */}
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className="text-center p-3 bg-green-50 rounded-md">
-                          <div className="text-xl font-bold text-green-600">
-                            {channel.accuracy}%
+                      <CardContent>
+                        {/* Key Metrics Grid */}
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="text-center p-3 bg-green-50 rounded-md">
+                            <div className="text-xl font-bold text-green-600">
+                              {channel.accuracy}%
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              Точность
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-600">Точность</div>
+                          <div className="text-center p-3 bg-blue-50 rounded-md">
+                            <div className="text-xl font-bold text-blue-600">
+                              +{channel.roi}%
+                            </div>
+                            <div className="text-xs text-gray-600">ROI</div>
+                          </div>
+                          <div className="text-center p-3 bg-purple-50 rounded-md">
+                            <div className="text-xl font-bold text-purple-600">
+                              {channel.winRate}%
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              Win Rate
+                            </div>
+                          </div>
+                          <div className="text-center p-3 bg-orange-50 rounded-md">
+                            <div className="text-xl font-bold text-orange-600">
+                              +{channel.avgReturn}%
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              Средняя прибыль
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-center p-3 bg-blue-50 rounded-md">
-                          <div className="text-xl font-bold text-blue-600">
-                            +{channel.roi}%
-                          </div>
-                          <div className="text-xs text-gray-600">ROI</div>
-                        </div>
-                        <div className="text-center p-3 bg-purple-50 rounded-md">
-                          <div className="text-xl font-bold text-purple-600">
-                            {channel.winRate}%
-                          </div>
-                          <div className="text-xs text-gray-600">Win Rate</div>
-                        </div>
-                        <div className="text-center p-3 bg-orange-50 rounded-md">
-                          <div className="text-xl font-bold text-orange-600">
-                            +{channel.avgReturn}%
-                          </div>
-                          <div className="text-xs text-gray-600">
-                            Средняя прибыль
-                          </div>
-                        </div>
-                      </div>
 
-                      {/* Stats */}
-                      <div className="space-y-2 text-sm mb-4">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Сигналов:</span>
-                          <span className="font-medium">{channel.signals}</span>
+                        {/* Stats */}
+                        <div className="space-y-2 text-sm mb-4">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Сигналов:</span>
+                            <span className="font-medium">
+                              {channel.signals}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Подписчиков:</span>
+                            <span className="font-medium">
+                              {channel.subscribers.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">
+                              Рост за месяц:
+                            </span>
+                            <span className="font-medium text-green-600">
+                              +{channel.monthlyGrowth}%
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Подписчиков:</span>
-                          <span className="font-medium">
-                            {channel.subscribers.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Рост за месяц:</span>
-                          <span className="font-medium text-green-600">
-                            +{channel.monthlyGrowth}%
-                          </span>
-                        </div>
-                      </div>
 
-                      {/* Actions */}
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/channels/${channel.id}`}
-                          className="flex-1"
-                        >
-                          <Button
-                            variant="outline"
-                            className="w-full"
-                            size="sm"
+                        {/* Actions */}
+                        <div className="flex space-x-2">
+                          <Link
+                            href={`/channels/${channel.id}`}
+                            className="flex-1"
                           >
-                            <Eye className="h-4 w-4 mr-2" />
-                            Подробнее
+                            <Button
+                              variant="outline"
+                              className="w-full"
+                              size="sm"
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Подробнее
+                            </Button>
+                          </Link>
+                          <Button size="sm" className="flex-1">
+                            <ThumbsUp className="h-4 w-4 mr-2" />
+                            Подписаться
                           </Button>
-                        </Link>
-                        <Button size="sm" className="flex-1">
-                          <ThumbsUp className="h-4 w-4 mr-2" />
-                          Подписаться
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -583,5 +599,3 @@ export default function RatingsPage() {
     </>
   );
 }
-
-

@@ -1,5 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+  cleanup,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -36,9 +43,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
@@ -46,8 +51,14 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const MockLoginForm = () => (
   <div data-testid="login-form">
     <input data-testid="email-input" type="email" placeholder="Email" />
-    <input data-testid="password-input" type="password" placeholder="Password" />
-    <button data-testid="login-button" type="submit">Войти</button>
+    <input
+      data-testid="password-input"
+      type="password"
+      placeholder="Password"
+    />
+    <button data-testid="login-button" type="submit">
+      Войти
+    </button>
   </div>
 );
 
@@ -89,19 +100,27 @@ describe('Frontend Components Unit Tests', () => {
     });
 
     test('handles form submission', async () => {
-      const mockSubmit = jest.fn((e) => e.preventDefault());
+      const mockSubmit = jest.fn(e => e.preventDefault());
       const { container } = render(
         <TestWrapper>
           <form data-testid="submit-form" onSubmit={mockSubmit}>
             <input data-testid="submit-email" type="email" />
             <input data-testid="submit-password" type="password" />
-            <button data-testid="submit-btn" type="submit">Войти</button>
+            <button data-testid="submit-btn" type="submit">
+              Войти
+            </button>
           </form>
         </TestWrapper>
       );
-      const emailInput = container.querySelector('[data-testid="submit-email"]');
-      const passwordInput = container.querySelector('[data-testid="submit-password"]');
-      const submitButton = container.querySelector('[data-testid="submit-btn"]');
+      const emailInput = container.querySelector(
+        '[data-testid="submit-email"]'
+      );
+      const passwordInput = container.querySelector(
+        '[data-testid="submit-password"]'
+      );
+      const submitButton = container.querySelector(
+        '[data-testid="submit-btn"]'
+      );
       if (emailInput && passwordInput && submitButton) {
         fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
         fireEvent.change(passwordInput, { target: { value: 'password123' } });
@@ -135,7 +154,7 @@ describe('Frontend Components Unit Tests', () => {
       url: 'https://t.me/testchannel',
       accuracy: 85.5,
       signals_count: 150,
-      category: 'crypto'
+      category: 'crypto',
     };
 
     test('renders channel information correctly', () => {
@@ -147,8 +166,12 @@ describe('Frontend Components Unit Tests', () => {
 
       const scope = within(container);
       expect(scope.getByTestId('channel-card')).toBeInTheDocument();
-      expect(scope.getByTestId('channel-name')).toHaveTextContent('Test Channel');
-      expect(scope.getByTestId('channel-url')).toHaveTextContent('https://t.me/testchannel');
+      expect(scope.getByTestId('channel-name')).toHaveTextContent(
+        'Test Channel'
+      );
+      expect(scope.getByTestId('channel-url')).toHaveTextContent(
+        'https://t.me/testchannel'
+      );
       expect(scope.getByTestId('channel-accuracy')).toHaveTextContent('85.5%');
     });
 
@@ -173,7 +196,7 @@ describe('Frontend Components Unit Tests', () => {
         price: 45000,
         target: 46000,
         stop_loss: 44000,
-        timestamp: '2025-08-16T10:00:00Z'
+        timestamp: '2025-08-16T10:00:00Z',
       },
       {
         id: 2,
@@ -182,8 +205,8 @@ describe('Frontend Components Unit Tests', () => {
         price: 3200,
         target: 3100,
         stop_loss: 3300,
-        timestamp: '2025-08-16T11:00:00Z'
-      }
+        timestamp: '2025-08-16T11:00:00Z',
+      },
     ];
 
     test('renders signal table with data', () => {
@@ -231,10 +254,18 @@ describe('Frontend Components Unit Tests', () => {
       render(
         <TestWrapper>
           <nav data-testid="main-navigation">
-            <a href="/dashboard" data-testid="nav-dashboard">Dashboard</a>
-            <a href="/channels" data-testid="nav-channels">Channels</a>
-            <a href="/signals" data-testid="nav-signals">Signals</a>
-            <a href="/profile" data-testid="nav-profile">Profile</a>
+            <a href="/dashboard" data-testid="nav-dashboard">
+              Dashboard
+            </a>
+            <a href="/channels" data-testid="nav-channels">
+              Channels
+            </a>
+            <a href="/signals" data-testid="nav-signals">
+              Signals
+            </a>
+            <a href="/profile" data-testid="nav-profile">
+              Profile
+            </a>
           </nav>
         </TestWrapper>
       );
@@ -262,7 +293,9 @@ describe('Frontend Components Unit Tests', () => {
       );
 
       expect(screen.getByTestId('error-message')).toBeInTheDocument();
-      expect(screen.getByTestId('error-message')).toHaveTextContent('Произошла ошибка при загрузке данных');
+      expect(screen.getByTestId('error-message')).toHaveTextContent(
+        'Произошла ошибка при загрузке данных'
+      );
     });
 
     test('shows loading state', () => {
@@ -279,7 +312,9 @@ describe('Frontend Components Unit Tests', () => {
       );
 
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
-      expect(screen.getByTestId('loading-spinner')).toHaveTextContent('Загрузка...');
+      expect(screen.getByTestId('loading-spinner')).toHaveTextContent(
+        'Загрузка...'
+      );
     });
   });
 });

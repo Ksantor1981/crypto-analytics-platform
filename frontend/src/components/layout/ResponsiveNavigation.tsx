@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Home, BarChart3, Users, Award, User, Bell, Plus } from 'lucide-react';
+
 import { useNotifications } from '@/contexts/NotificationContext';
 
 interface ResponsiveNavigationProps {

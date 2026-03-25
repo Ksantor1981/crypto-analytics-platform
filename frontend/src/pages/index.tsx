@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
@@ -29,16 +30,22 @@ function HomeContent() {
                   CryptoAnalytics
                 </div>
               </div>
-              
+
               <nav className="hidden md:flex items-center space-x-8">
-                <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+                <a
+                  href="#features"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
                   {t('nav.features')}
                 </a>
-                <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
+                <a
+                  href="#pricing"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
                   {t('nav.pricing')}
                 </a>
                 <LanguageSwitcher />
-                <Button 
+                <Button
                   onClick={() => router.push('/auth/login')}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
@@ -56,20 +63,20 @@ function HomeContent() {
               <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
                 {t('hero.title')}
               </h1>
-              
+
               <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
                 {t('hero.subtitle')}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-                <Button 
+                <Button
                   onClick={() => router.push('/auth/register')}
                   size="lg"
                   className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-3"
                 >
                   {t('hero.startTrial')}
                 </Button>
-                <Button 
+                <Button
                   onClick={() => router.push('/demo')}
                   variant="outline"
                   size="lg"
@@ -82,15 +89,21 @@ function HomeContent() {
               {/* Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">87.2%</div>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                    87.2%
+                  </div>
                   <div className="text-gray-600">{t('stats.accuracy')}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">110+</div>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                    110+
+                  </div>
                   <div className="text-gray-600">{t('stats.features')}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">&lt;0.3s</div>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                    &lt;0.3s
+                  </div>
                   <div className="text-gray-600">{t('stats.responseTime')}</div>
                 </div>
               </div>
@@ -117,7 +130,9 @@ function HomeContent() {
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                     <span className="text-2xl">🤖</span>
                   </div>
-                  <CardTitle className="text-gray-900">{t('features.ai.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">
+                    {t('features.ai.title')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
@@ -132,7 +147,9 @@ function HomeContent() {
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                     <span className="text-2xl">📊</span>
                   </div>
-                  <CardTitle className="text-gray-900">{t('features.realtime.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">
+                    {t('features.realtime.title')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
@@ -147,7 +164,9 @@ function HomeContent() {
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                     <span className="text-2xl">🎯</span>
                   </div>
-                  <CardTitle className="text-gray-900">{t('features.rating.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">
+                    {t('features.rating.title')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
@@ -162,7 +181,9 @@ function HomeContent() {
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                     <span className="text-2xl">⚡</span>
                   </div>
-                  <CardTitle className="text-gray-900">{t('features.performance.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">
+                    {t('features.performance.title')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
@@ -177,7 +198,9 @@ function HomeContent() {
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                     <span className="text-2xl">🔒</span>
                   </div>
-                  <CardTitle className="text-gray-900">{t('features.security.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">
+                    {t('features.security.title')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
@@ -192,7 +215,9 @@ function HomeContent() {
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                     <span className="text-2xl">🚀</span>
                   </div>
-                  <CardTitle className="text-gray-900">{t('features.autotrading.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">
+                    {t('features.autotrading.title')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
@@ -211,16 +236,16 @@ function HomeContent() {
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 {t('pricing.title')}
               </h2>
-              <p className="text-lg text-gray-600">
-                {t('pricing.subtitle')}
-              </p>
+              <p className="text-lg text-gray-600">{t('pricing.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {/* Free Plan */}
               <Card className="border border-gray-200 bg-white">
                 <CardHeader>
-                  <CardTitle className="text-gray-900">{t('pricing.free.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">
+                    {t('pricing.free.title')}
+                  </CardTitle>
                   <div className="text-4xl font-bold text-gray-900">
                     $0<span className="text-lg text-gray-500">/mo</span>
                   </div>
@@ -228,8 +253,8 @@ function HomeContent() {
                 <CardContent>
                   <ul className="space-y-3 mb-8">
                     <li className="flex items-center text-gray-600">
-                      <span className="text-green-500 mr-3">✓</span>
-                      3 {t('pricing.channels')}
+                      <span className="text-green-500 mr-3">✓</span>3{' '}
+                      {t('pricing.channels')}
                     </li>
                     <li className="flex items-center text-gray-600">
                       <span className="text-green-500 mr-3">✓</span>
@@ -255,7 +280,9 @@ function HomeContent() {
                   {t('pricing.popular')}
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-gray-900">{t('pricing.premium.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">
+                    {t('pricing.premium.title')}
+                  </CardTitle>
                   <div className="text-4xl font-bold text-gray-900">
                     $19<span className="text-lg text-gray-500">/mo</span>
                   </div>
@@ -291,7 +318,9 @@ function HomeContent() {
               {/* Pro Plan */}
               <Card className="border border-gray-200 bg-white">
                 <CardHeader>
-                  <CardTitle className="text-gray-900">{t('pricing.pro.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">
+                    {t('pricing.pro.title')}
+                  </CardTitle>
                   <div className="text-4xl font-bold text-gray-900">
                     $49<span className="text-lg text-gray-500">/mo</span>
                   </div>
@@ -331,15 +360,9 @@ function HomeContent() {
         <footer className="bg-gray-900 text-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <div className="text-2xl font-bold mb-4">
-                CryptoAnalytics
-              </div>
-              <p className="text-gray-300 mb-6">
-                {t('footer.description')}
-              </p>
-              <div className="text-gray-400 text-sm">
-                {t('footer.rights')}
-              </div>
+              <div className="text-2xl font-bold mb-4">CryptoAnalytics</div>
+              <p className="text-gray-300 mb-6">{t('footer.description')}</p>
+              <div className="text-gray-400 text-sm">{t('footer.rights')}</div>
             </div>
           </div>
         </footer>

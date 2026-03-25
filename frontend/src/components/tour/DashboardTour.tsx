@@ -10,17 +10,20 @@ const DashboardTour: React.FC<DashboardTourProps> = ({ run, setRun }) => {
   const steps: Step[] = [
     {
       target: '.dashboard-header',
-      content: 'Добро пожаловать на вашу панель управления! Здесь собрана вся ключевая информация.',
+      content:
+        'Добро пожаловать на вашу панель управления! Здесь собрана вся ключевая информация.',
       placement: 'bottom',
     },
     {
       target: '.key-metrics',
-      content: 'Это ваши ключевые метрики. Следите за своей производительностью здесь.',
+      content:
+        'Это ваши ключевые метрики. Следите за своей производительностью здесь.',
       placement: 'bottom',
     },
     {
       target: '.add-channel-button',
-      content: 'Нажмите здесь, чтобы добавить свой первый Telegram-канал для анализа.',
+      content:
+        'Нажмите здесь, чтобы добавить свой первый Telegram-канал для анализа.',
       placement: 'right',
     },
     {
@@ -30,7 +33,8 @@ const DashboardTour: React.FC<DashboardTourProps> = ({ run, setRun }) => {
     },
     {
       target: '.recent-activity-feed',
-      content: 'Лента последних действий покажет вам актуальные события и сигналы.',
+      content:
+        'Лента последних действий покажет вам актуальные события и сигналы.',
       placement: 'top',
     },
   ];
