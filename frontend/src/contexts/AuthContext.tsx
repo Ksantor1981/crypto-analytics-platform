@@ -153,6 +153,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setError(null);
       setIsLoading(false);
+      // Полная перезагрузка: надёжнее, чем router.push, если чанки/CSS или роутер в странном состоянии
+      if (typeof window !== 'undefined') {
+        window.location.assign('/');
+      }
     }
   };
 

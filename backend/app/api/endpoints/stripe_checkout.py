@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.auth import get_current_user
+from app.core.config import get_settings
 from app.models.user import User
 
 logger = logging.getLogger(__name__)
@@ -70,23 +71,34 @@ async def create_checkout_session(
 @router.post("/webhook")
 async def stripe_webhook(request: Request):
     """Handle Stripe webhook events (subscription created/updated/cancelled)."""
-    import json
+    settings = get_settings()
+    webhook_secret = (settings.STRIPE_WEBHOOK_SECRET or "").strip()
+    if not webhook_secret:
+        raise HTTPException(
+            status_code=501,
+            detail="Stripe webhook is not configured (set STRIPE_WEBHOOK_SECRET)",
+        )
 
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature", "")
-    webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
     try:
-        if webhook_secret:
-            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
-        else:
-            event = json.loads(payload)
-    except Exception as e:
-        logger.error(f"Webhook error: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret
+        )
+    except ValueError as e:
+        logger.error(f"Webhook invalid payload: {e}")
+        raise HTTPException(status_code=400, detail="Invalid payload") from e
+    except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Webhook bad signature: {e}")
+        raise HTTPException(status_code=400, detail="Invalid signature") from e
 
-    event_type = event.get("type", "")
-    data = event.get("data", {}).get("object", {})
+    try:
+        event_type = event["type"]
+        data = event["data"]["object"]
+    except (KeyError, TypeError) as e:
+        logger.error("Webhook event shape invalid: %s", e)
+        raise HTTPException(status_code=400, detail="Invalid event shape") from e
 
     if event_type == "checkout.session.completed":
         user_id = data.get("metadata", {}).get("user_id")

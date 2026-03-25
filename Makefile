@@ -1,51 +1,54 @@
 .PHONY: up down build rebuild logs ps backend-shell db-shell frontend-shell test
 
+# Docker Compose v2 (Plugin). Старая команда docker-compose (v1) снята с поддержки.
+DOCKER_COMPOSE ?= docker compose
+
 # Запуск всех сервисов
 up:
-	docker-compose up -d
+	$(DOCKER_COMPOSE) up -d
 
 # Остановка всех сервисов
 down:
-	docker-compose down
+	$(DOCKER_COMPOSE) down
 
 # Сборка всех сервисов
 build:
-	docker-compose build
+	$(DOCKER_COMPOSE) build
 
 # Пересборка и запуск всех сервисов
 rebuild: down build up
 
 # Просмотр логов
 logs:
-	docker-compose logs -f
+	$(DOCKER_COMPOSE) logs -f
 
 # Просмотр запущенных контейнеров
 ps:
-	docker-compose ps
+	$(DOCKER_COMPOSE) ps
 
 # Запуск shell в контейнере backend
 backend-shell:
-	docker-compose exec backend bash
+	$(DOCKER_COMPOSE) exec backend bash
 
-# Запуск shell в контейнере базы данных
+# Shell в Postgres (пользователь/БД из переменных образа — совпадают с docker-compose.yml по умолчанию)
 db-shell:
-	docker-compose exec postgres psql -U postgres -d crypto_analytics
+	$(DOCKER_COMPOSE) exec postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
 
 # Запуск shell в контейнере frontend
 frontend-shell:
-	docker-compose exec frontend sh
+	$(DOCKER_COMPOSE) exec frontend sh
 
 # Запуск тестов
 test:
-	docker-compose exec backend pytest
+	$(DOCKER_COMPOSE) exec backend pytest
 
 # Миграции базы данных
 db-migrate:
-	docker-compose exec backend alembic upgrade head
+	$(DOCKER_COMPOSE) exec backend alembic upgrade head
 
 # Создание новой миграции
 db-revision:
-	docker-compose exec backend alembic revision --autogenerate -m "$(message)"
+	$(DOCKER_COMPOSE) exec backend alembic revision --autogenerate -m "$(message)"
 
 # Запуск только бэкенда для разработки
 backend-dev:

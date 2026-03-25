@@ -40,15 +40,15 @@ python backend/scripts/run_ml_train.py
 
 Пароль и пользователь должны совпадать с теми, что в docker-compose или в backend `.env`. Не подставляйте буквально фразу «ВАШ_ПАРОЛЬ» — укажите реальный пароль.
 
-Пример для `docker-compose.simple.yml` / `docker-compose.fixed.yml` (user=postgres, password=REDACTED):
+Пример для `docker-compose.simple.yml` или любого compose — возьмите `POSTGRES_USER` / `POSTGRES_PASSWORD` из корневого `.env` и подставьте в URL (на хосте хост = `localhost`):
 ```powershell
 cd ml-service
 pip install -r requirements.txt
-$env:DATABASE_URL = "postgresql://REDACTED:REDACTED@localhost:5432/crypto_analytics"
+$env:DATABASE_URL = "postgresql://ИМЯ:ПАРОЛЬ@localhost:5432/crypto_analytics"
 python train_from_db.py
 ```
 
-Если используете основной `docker-compose.yml`, посмотрите в `.env` переменные `POSTGRES_USER` и `POSTGRES_PASSWORD` и подставьте их:
+Если используете основной `docker-compose.yml`, те же переменные из `.env`:
 ```powershell
 $env:DATABASE_URL = "postgresql://ИМЯ_ПОЛЬЗОВАТЕЛЯ:ПАРОЛЬ@localhost:5432/crypto_analytics"
 ```

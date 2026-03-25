@@ -131,7 +131,7 @@ cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # 
 ├── security/
 ├── docs/               # Документация, отчёты
 ├── .github/workflows/   # CI (ci.yml, ci-cd.yml)
-├── alembic.ini
+├── backend/alembic.ini  # миграции БД (каталог backend/alembic/versions/)
 ├── docker-compose*.yml
 ├── env.example
 └── ТЗ.md
@@ -156,9 +156,11 @@ cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # 
 ## Deploy
 
 ```bash
-cp env.example .env  # заполнить секреты
-docker compose -f docker-compose.deploy.yml up -d
+cp env.example .env   # заполнить секреты (POSTGRES_*, REDIS_*, STRIPE_*, GRAFANA_* и т.д.)
+docker compose up -d  # основной стек: docker-compose.yml
 ```
+
+Production-вариант (отдельные сервисы и настройки): `docker-compose.production.yml` — поднимать с заполненным `.env` и по необходимости `--env-file`. Альтернативный сценарий: `docker-compose.deploy.yml`.
 
 ## Лицензия
 

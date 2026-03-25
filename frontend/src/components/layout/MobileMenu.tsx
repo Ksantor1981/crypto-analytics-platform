@@ -143,9 +143,8 @@ export function MobileMenu({
   };
 
   const handleLogout = async () => {
-    await logout();
-    void router.push('/');
     onClose();
+    await logout();
   };
 
   if (!isOpen) return null;

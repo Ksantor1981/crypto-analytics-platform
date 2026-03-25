@@ -127,6 +127,10 @@ yarn-error.log*
 *.sqlite3
 *.db
 
+# ML artifacts (не коммитить обученные модели)
+*.pkl
+*.joblib
+
 # Logs
 logs/
 *.log

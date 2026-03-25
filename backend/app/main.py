@@ -305,18 +305,27 @@ app = FastAPI(
     debug=getattr(settings, 'DEBUG', False)
 )
 
-# Настройка CORS - более либеральная для development
-cors_origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://frontend:3000",
-    "http://localhost:3001",
-    "http://localhost:8080"
-]
-
-# Добавляем настройки из конфига если они есть
-if hasattr(settings, 'BACKEND_CORS_ORIGINS'):
-    cors_origins.extend(settings.BACKEND_CORS_ORIGINS)
+# CORS: production — только BACKEND_CORS_ORIGINS; development — localhost/Docker + конфиг
+if getattr(settings, "ENVIRONMENT", "development") == "production":
+    _cfg = list(getattr(settings, "BACKEND_CORS_ORIGINS", None) or [])
+    cors_origins = list(
+        dict.fromkeys([o.strip() for o in _cfg if o and str(o).strip()])
+    )
+    if not cors_origins:
+        logging.getLogger(__name__).warning(
+            "BACKEND_CORS_ORIGINS пуст в production — укажите домены фронта в env"
+        )
+else:
+    cors_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://frontend:3000",
+        "http://localhost:3001",
+        "http://localhost:8080",
+    ]
+    if hasattr(settings, "BACKEND_CORS_ORIGINS"):
+        cors_origins.extend(settings.BACKEND_CORS_ORIGINS or [])
+    cors_origins = list(dict.fromkeys([o for o in cors_origins if o]))
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler

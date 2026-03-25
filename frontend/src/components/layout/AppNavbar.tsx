@@ -81,10 +81,7 @@ export function AppNavbar() {
                   <button
                     type="button"
                     onClick={() => {
-                      void (async () => {
-                        await logout();
-                        void router.push('/');
-                      })();
+                      void logout();
                     }}
                     className="text-sm text-gray-500 hover:text-red-600"
                   >

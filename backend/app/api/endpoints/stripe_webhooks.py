@@ -37,6 +37,12 @@ async def stripe_webhook(
     """
     Handle Stripe webhook events with email notifications
     """
+    if not (settings.STRIPE_WEBHOOK_SECRET or "").strip():
+        raise HTTPException(
+            status_code=501,
+            detail="Stripe webhook is not configured (set STRIPE_WEBHOOK_SECRET)",
+        )
+
     payload = await request.body()
     sig_header = request.headers.get('stripe-signature')
     

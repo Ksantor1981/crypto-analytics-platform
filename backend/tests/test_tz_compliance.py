@@ -2,9 +2,28 @@
 Тесты для соответствия ТЗ — критичные компоненты.
 ТЗ: JWT auth, Stripe webhook, coverage, безопасность.
 """
+import hashlib
+import hmac
+import json
+import os
+import time
+
 import pytest
 import uuid
 from unittest.mock import patch, MagicMock
+
+
+def _stripe_signature_header(body: bytes, secret: str) -> str:
+    """Заголовок Stripe-Signature (как stripe.WebhookSignature: HMAC от \"{ts}.{payload_utf8}\")."""
+    ts = int(time.time())
+    payload_str = body.decode("utf-8")
+    signed_payload = f"{ts}.{payload_str}"
+    sig = hmac.new(
+        secret.encode("utf-8"),
+        signed_payload.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return f"t={ts},v1={sig}"
 
 
 class TestSecurityCore:
@@ -58,15 +77,18 @@ class TestCollectStatusEndpoints:
         assert r.status_code == 200
 
 
+_STRIPE_WEBHOOK_TEST_SECRET = "test_stripe_webhook_secret_for_unit_tests"
+
+
 class TestStripeWebhook:
     """Stripe webhook (по ТЗ — обработка платежей)."""
 
     @pytest.fixture
     def client(self):
-        import os
         os.environ["USE_SQLITE"] = "true"
         os.environ["SECRET_KEY"] = "test-secret-key-32-chars-minimum"
         os.environ["DEBUG"] = "true"
+        os.environ["STRIPE_WEBHOOK_SECRET"] = _STRIPE_WEBHOOK_TEST_SECRET
         from app.main import app
         from app.core.database import Base, engine
         Base.metadata.create_all(bind=engine)
@@ -74,7 +96,7 @@ class TestStripeWebhook:
         return TestClient(app)
 
     def test_stripe_webhook_checkout_completed(self, client):
-        """Без STRIPE_WEBHOOK_SECRET используется json.loads."""
+        """Вебхук только с валидной подписью при заданном STRIPE_WEBHOOK_SECRET."""
         payload = {
             "type": "checkout.session.completed",
             "data": {
@@ -85,25 +107,59 @@ class TestStripeWebhook:
                 }
             }
         }
-        import json
+        body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+        sig = _stripe_signature_header(body, _STRIPE_WEBHOOK_TEST_SECRET)
         r = client.post(
             "/api/v1/stripe/webhook",
-            content=json.dumps(payload),
-            headers={"Content-Type": "application/json"},
+            content=body,
+            headers={"Content-Type": "application/json", "Stripe-Signature": sig},
         )
         assert r.status_code == 200
         assert r.json().get("received") is True
+
+    def test_stripe_webhook_rejects_bad_signature(self, client):
+        payload = {"type": "checkout.session.completed", "data": {"object": {}}}
+        body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+        r = client.post(
+            "/api/v1/stripe/webhook",
+            content=body,
+            headers={
+                "Content-Type": "application/json",
+                "Stripe-Signature": "t=1,v1=deadbeef",
+            },
+        )
+        assert r.status_code == 400
+
+    def test_stripe_webhook_501_without_secret(self, client):
+        prev = os.environ.pop("STRIPE_WEBHOOK_SECRET", None)
+        try:
+            body = json.dumps(
+                {"type": "checkout.session.completed", "data": {"object": {}}},
+                separators=(",", ":"),
+            ).encode("utf-8")
+            r = client.post(
+                "/api/v1/stripe/webhook",
+                content=body,
+                headers={"Content-Type": "application/json"},
+            )
+            assert r.status_code == 501
+        finally:
+            if prev is not None:
+                os.environ["STRIPE_WEBHOOK_SECRET"] = prev
+            else:
+                os.environ["STRIPE_WEBHOOK_SECRET"] = _STRIPE_WEBHOOK_TEST_SECRET
 
     def test_stripe_webhook_subscription_event(self, client):
         payload = {
             "type": "customer.subscription.deleted",
             "data": {"object": {}}
         }
-        import json
+        body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+        sig = _stripe_signature_header(body, _STRIPE_WEBHOOK_TEST_SECRET)
         r = client.post(
             "/api/v1/stripe/webhook",
-            content=json.dumps(payload),
-            headers={"Content-Type": "application/json"},
+            content=body,
+            headers={"Content-Type": "application/json", "Stripe-Signature": sig},
         )
         assert r.status_code == 200
 

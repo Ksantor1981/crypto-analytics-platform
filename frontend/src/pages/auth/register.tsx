@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { env } from '@/config/env';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -67,7 +68,7 @@ export default function RegisterPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/users/register`,
+        `${env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/users/register`,
         {
           method: 'POST',
           headers: {

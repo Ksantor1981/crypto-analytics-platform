@@ -9,11 +9,14 @@ const SERVER_BASE =
 const getToken = (): string | null =>
   typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
+/** Таймаут fetch, чтобы форма входа не «висела» бесконечно при мёртвом API */
+const REQUEST_TIMEOUT_MS = 25_000;
+
 async function request<T>(
   url: string,
-  options: RequestInit & { base?: string } = {}
+  options: RequestInit & { base?: string; skipAuth?: boolean } = {}
 ): Promise<T> {
-  const { base = API_BASE, ...init } = options;
+  const { base = API_BASE, skipAuth = false, ...init } = options;
   const fullUrl = url.startsWith('http')
     ? url
     : `${base}${url.startsWith('/') ? '' : '/'}${url}`;
@@ -22,9 +25,24 @@ async function request<T>(
     'Content-Type': 'application/json',
     ...(init.headers as Record<string, string>),
   };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token && !skipAuth) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(fullUrl, { ...init, headers });
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(fullUrl, { ...init, headers, signal: ctrl.signal });
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      throw new Error(
+        'Сервер не ответил вовремя. Проверьте, что API запущен (порт 8000) и NEXT_PUBLIC_API_URL.'
+      );
+    }
+    throw e;
+  } finally {
+    clearTimeout(t);
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(
@@ -48,6 +66,7 @@ export const apiClient = {
       {
         method: 'POST',
         body: JSON.stringify({ email, password }),
+        skipAuth: true,
       }
     );
     if (res.access_token && typeof window !== 'undefined') {
@@ -64,6 +83,7 @@ export const apiClient = {
     await request('/users/register', {
       method: 'POST',
       body: JSON.stringify(data),
+      skipAuth: true,
     });
   },
 

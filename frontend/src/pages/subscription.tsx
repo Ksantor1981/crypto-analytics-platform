@@ -6,6 +6,7 @@ import { CheckCircle, Zap, Crown, Star, Loader2 } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { env } from '@/config/env';
 
 const plans = [
   {
@@ -85,7 +86,7 @@ export default function SubscriptionPage() {
     try {
       const token = localStorage.getItem('access_token');
       const resp = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/stripe/create-checkout`,
+        `${env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/stripe/create-checkout`,
         {
           method: 'POST',
           headers: {
