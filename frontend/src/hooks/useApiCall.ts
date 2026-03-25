@@ -1,4 +1,4 @@
-import { useState, useEffect, type DependencyList } from 'react';
+import { useState, useEffect, useCallback, type DependencyList } from 'react';
 
 export function useApiCall<T>(
   apiCall: () => Promise<T>,
@@ -8,7 +8,7 @@ export function useApiCall<T>(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const execute = async () => {
+  const execute = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -20,11 +20,13 @@ export function useApiCall<T>(
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiCall]);
 
   useEffect(() => {
     void execute();
-  }, dependencies);
+    // dependencies передаёт вызывающий код (аналог deps второго аргумента useEffect)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...dependencies, execute]);
 
   return {
     data,

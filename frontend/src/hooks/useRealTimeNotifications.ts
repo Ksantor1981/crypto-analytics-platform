@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import {
   useNotifications,
@@ -44,7 +44,101 @@ export function useRealTimeNotifications() {
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
 
-  const connectWebSocket = () => {
+  const handleNotificationEvent = useCallback(
+    (event: NotificationEvent) => {
+      switch (event.type) {
+        case 'new_signal':
+          addNotification({
+            type: 'signal',
+            title: `Новый сигнал: ${event.symbol}`,
+            message: `${event.signal_type.toUpperCase()} сигнал от ${event.channel || 'канала'}`,
+            urgent: (event.confidence || 0) > 0.85,
+            read: false,
+            channel: event.channel,
+            pair: event.symbol,
+            action: event.signal_type === 'long' ? 'buy' : 'sell',
+            price: event.entry_price,
+          });
+          break;
+
+        case 'target_reached':
+          addNotification({
+            type: 'target_reached',
+            title: `🎯 Цель достигнута!`,
+            message: `${event.symbol} достиг TP ${event.change_percent ? `(+${event.change_percent.toFixed(2)}%)` : ''}`,
+            urgent: false,
+            read: false,
+            pair: event.symbol,
+            price: event.current_price,
+          });
+          break;
+
+        case 'stop_loss_hit':
+          addNotification({
+            type: 'stop_loss',
+            title: `⚠️ Стоп-лосс сработал`,
+            message: `${event.symbol} достиг SL ${event.change_percent ? `(${event.change_percent.toFixed(2)}%)` : ''}`,
+            urgent: true,
+            read: false,
+            pair: event.symbol,
+            price: event.current_price,
+          });
+          break;
+
+        case 'signal_update':
+          if (event.change_percent && Math.abs(event.change_percent) > 5) {
+            addNotification({
+              type: event.change_percent > 0 ? 'success' : 'warning',
+              title: `Изменение позиции`,
+              message: `${event.symbol}: ${event.change_percent > 0 ? '+' : ''}${event.change_percent.toFixed(2)}%`,
+              urgent: Math.abs(event.change_percent) > 10,
+              read: false,
+              pair: event.symbol,
+              price: event.current_price,
+              autoHide: true,
+            });
+          }
+          break;
+
+        case 'price_update':
+          // Уведомления только для значительных изменений цены
+          if (Math.abs(event.change_24h) > 10) {
+            addNotification({
+              type: event.change_24h > 0 ? 'success' : 'warning',
+              title: `Большое движение цены`,
+              message: `${event.symbol}: ${event.change_24h > 0 ? '+' : ''}${event.change_24h.toFixed(2)}% за 24ч`,
+              urgent: Math.abs(event.change_24h) > 20,
+              pair: event.symbol,
+              price: event.price,
+              read: false,
+              autoHide: true,
+              duration: 3000,
+            });
+          }
+          break;
+
+        case 'channel_update':
+          if (event.new_accuracy !== undefined) {
+            addNotification({
+              type: 'info',
+              title: `Обновление канала`,
+              message: `${event.channel_name}: точность ${event.new_accuracy.toFixed(1)}%`,
+              channel: event.channel_name,
+              read: false,
+              autoHide: true,
+              duration: 4000,
+            });
+          }
+          break;
+
+        default:
+          console.warn('Unknown notification event:', event);
+      }
+    },
+    [addNotification]
+  );
+
+  const connectWebSocket = useCallback(() => {
     if (!state.settings.enabled) return;
 
     try {
@@ -96,98 +190,7 @@ export function useRealTimeNotifications() {
     } catch (error) {
       console.error('Failed to connect WebSocket:', error);
     }
-  };
-
-  const handleNotificationEvent = (event: NotificationEvent) => {
-    switch (event.type) {
-      case 'new_signal':
-        addNotification({
-          type: 'signal',
-          title: `Новый сигнал: ${event.symbol}`,
-          message: `${event.signal_type.toUpperCase()} сигнал от ${event.channel || 'канала'}`,
-          urgent: (event.confidence || 0) > 0.85,
-          read: false,
-          channel: event.channel,
-          pair: event.symbol,
-          action: event.signal_type === 'long' ? 'buy' : 'sell',
-          price: event.entry_price,
-        });
-        break;
-
-      case 'target_reached':
-        addNotification({
-          type: 'target_reached',
-          title: `🎯 Цель достигнута!`,
-          message: `${event.symbol} достиг TP ${event.change_percent ? `(+${event.change_percent.toFixed(2)}%)` : ''}`,
-          urgent: false,
-          read: false,
-          pair: event.symbol,
-          price: event.current_price,
-        });
-        break;
-
-      case 'stop_loss_hit':
-        addNotification({
-          type: 'stop_loss',
-          title: `⚠️ Стоп-лосс сработал`,
-          message: `${event.symbol} достиг SL ${event.change_percent ? `(${event.change_percent.toFixed(2)}%)` : ''}`,
-          urgent: true,
-          read: false,
-          pair: event.symbol,
-          price: event.current_price,
-        });
-        break;
-
-      case 'signal_update':
-        if (event.change_percent && Math.abs(event.change_percent) > 5) {
-          addNotification({
-            type: event.change_percent > 0 ? 'success' : 'warning',
-            title: `Изменение позиции`,
-            message: `${event.symbol}: ${event.change_percent > 0 ? '+' : ''}${event.change_percent.toFixed(2)}%`,
-            urgent: Math.abs(event.change_percent) > 10,
-            read: false,
-            pair: event.symbol,
-            price: event.current_price,
-            autoHide: true,
-          });
-        }
-        break;
-
-      case 'price_update':
-        // Уведомления только для значительных изменений цены
-        if (Math.abs(event.change_24h) > 10) {
-          addNotification({
-            type: event.change_24h > 0 ? 'success' : 'warning',
-            title: `Большое движение цены`,
-            message: `${event.symbol}: ${event.change_24h > 0 ? '+' : ''}${event.change_24h.toFixed(2)}% за 24ч`,
-            urgent: Math.abs(event.change_24h) > 20,
-            pair: event.symbol,
-            price: event.price,
-            read: false,
-            autoHide: true,
-            duration: 3000,
-          });
-        }
-        break;
-
-      case 'channel_update':
-        if (event.new_accuracy !== undefined) {
-          addNotification({
-            type: 'info',
-            title: `Обновление канала`,
-            message: `${event.channel_name}: точность ${event.new_accuracy.toFixed(1)}%`,
-            channel: event.channel_name,
-            read: false,
-            autoHide: true,
-            duration: 4000,
-          });
-        }
-        break;
-
-      default:
-        console.warn('Unknown notification event:', event);
-    }
-  };
+  }, [handleNotificationEvent, state.settings.enabled]);
 
   // Polling fallback для случаев, когда WebSocket недоступен
   useEffect(() => {
@@ -244,7 +247,7 @@ export function useRealTimeNotifications() {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [state.settings.enabled]);
+  }, [state.settings.enabled, connectWebSocket]);
 
   // API для ручной проверки уведомлений
   const checkForNotifications = async () => {

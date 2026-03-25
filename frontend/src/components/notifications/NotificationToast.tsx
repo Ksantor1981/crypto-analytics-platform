@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   X,
   CheckCircle,
@@ -20,6 +20,11 @@ export function NotificationToast({ notification, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(onClose, 300); // Ждем завершения анимации
+  }, [onClose]);
+
   useEffect(() => {
     // Анимация появления
     const timer = setTimeout(() => setIsVisible(true), 100);
@@ -35,12 +40,7 @@ export function NotificationToast({ notification, onClose }: ToastProps) {
       return () => clearTimeout(timer);
     }
     return; // Возвращаем undefined явно
-  }, [notification]);
-
-  const handleClose = () => {
-    setIsLeaving(true);
-    setTimeout(onClose, 300); // Ждем завершения анимации
-  };
+  }, [notification, handleClose]);
 
   const getToastIcon = (type: Notification['type']) => {
     switch (type) {

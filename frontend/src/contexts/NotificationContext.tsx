@@ -249,6 +249,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         clearTimeout(reconnectTimeout);
       }
     };
+    // addNotification меняется при каждом рендере; переподключать WS из‑за этого нельзя
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- только state.settings.enabled
   }, [state.settings.enabled]);
 
   // Запрос разрешения на browser notifications при первом запуске

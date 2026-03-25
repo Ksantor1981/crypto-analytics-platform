@@ -131,13 +131,11 @@ module.exports = {
         // Крупные страницы Next / формы MUI+RHF — длина и ветвление не блокируем линтером
         'max-lines-per-function': 'off',
         complexity: 'off',
-        // Label привязан к контролу через обёртки (MUI, Radix); правило не понимает композицию
+        // Следующий чанк: jsx-a11y (label/Radix, overlay onClick, forwardRef headings)
         'jsx-a11y/label-has-associated-control': 'off',
         'jsx-a11y/label-has-for': 'off',
-        // Клики по overlay/div без клавиатуры — осознанные паттерны (модалки, моб. меню)
         'jsx-a11y/click-events-have-key-events': 'off',
         'jsx-a11y/no-static-element-interactions': 'off',
-        // forwardRef + children из props
         'jsx-a11y/heading-has-content': 'off',
       },
     },

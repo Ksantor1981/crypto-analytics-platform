@@ -11,8 +11,8 @@ interface SignalsStatsProps {
 }
 
 export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
-  const safeSignals = Array.isArray(signals) ? signals : [];
   const stats = React.useMemo(() => {
+    const safeSignals = Array.isArray(signals) ? signals : [];
     const total = safeSignals.length;
     const active = safeSignals.filter(s => s.status === 'active').length;
     const completed = safeSignals.filter(s => s.status === 'completed').length;
@@ -65,7 +65,7 @@ export const SignalsStats: React.FC<SignalsStatsProps> = ({ signals }) => {
       longSignals,
       shortSignals,
     };
-  }, [safeSignals]);
+  }, [signals]);
 
   const getStatCard = (
     title: string,
