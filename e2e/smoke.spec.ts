@@ -16,7 +16,7 @@ test.describe('Smoke tests', () => {
     const res = await request.get(`${apiUrl}/health`);
     expect(res.ok()).toBeTruthy();
     const body = await res.json();
-    expect(body).toHaveProperty('status', 'ok');
+    expect(body).toHaveProperty('status', 'healthy');
   });
 
   test('api root returns docs info', async ({ request }) => {

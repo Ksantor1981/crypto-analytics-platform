@@ -227,3 +227,7 @@ out/
 *.log
 real_keys*
 real_session*
+
+# Playwright E2E
+e2e/test-results/
+e2e/playwright-report/
