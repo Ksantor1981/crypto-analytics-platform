@@ -139,10 +139,6 @@ module.exports = {
         'jsx-a11y/no-static-element-interactions': 'off',
         // forwardRef + children из props
         'jsx-a11y/heading-has-content': 'off',
-        // Защитные проверки шире, чем выводит TS (данные с API)
-        '@typescript-eslint/no-unnecessary-condition': 'off',
-        'react-hooks/exhaustive-deps': 'off',
-        'react-hooks/incompatible-library': 'off',
       },
     },
     {

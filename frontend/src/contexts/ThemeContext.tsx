@@ -16,10 +16,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     // Проверяем сохраненную тему при загрузке
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    const raw = localStorage.getItem('theme');
+    if (raw === 'light' || raw === 'dark') {
+      setTheme(raw);
+      document.documentElement.classList.toggle('dark', raw === 'dark');
     } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setTheme('dark');
       document.documentElement.classList.add('dark');

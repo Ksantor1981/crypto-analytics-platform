@@ -93,7 +93,7 @@ export default function ProfilePage() {
         name: authUser.name || prev.name,
         email: authUser.email || prev.email,
         username: authUser.username || prev.username,
-        subscription: authUser.subscription || prev.subscription,
+        subscription: authUser.subscription,
       }));
     }
     async function loadStats() {
@@ -103,8 +103,8 @@ export default function ProfilePage() {
           apiClient.getSignalsWithTotal(),
         ]);
         const channelList = Array.isArray(channels) ? channels : [];
-        const signals = signalsResp?.signals ?? [];
-        const signalCount = signalsResp?.total ?? signals.length;
+        const signals = signalsResp.signals;
+        const signalCount = signalsResp.total ?? signals.length;
         const avgAccuracy =
           channelList.length > 0
             ? channelList.reduce(

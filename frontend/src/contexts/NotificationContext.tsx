@@ -186,7 +186,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     if (!state.settings.enabled) return;
 
     let ws: WebSocket | null = null;
-    let reconnectTimeout: NodeJS.Timeout;
+    let reconnectTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const connectWebSocket = () => {
       try {
@@ -265,7 +265,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       ...notification,
       id: Date.now().toString() + Math.random(),
       timestamp: new Date(),
-      read: notification.read ?? false,
+      read: notification.read,
     };
 
     // Фильтрация по настройкам

@@ -170,7 +170,7 @@ export const AddChannelModal: React.FC<AddChannelModalProps> = ({
 
   // Update selected type when form type changes
   useEffect(() => {
-    if (watchedType && watchedType !== selectedType) {
+    if (watchedType !== selectedType) {
       setSelectedType(watchedType);
     }
   }, [watchedType, selectedType]);

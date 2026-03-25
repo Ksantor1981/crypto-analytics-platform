@@ -56,8 +56,9 @@ export default function ChannelDetailPage() {
           Ошибка при загрузке данных
         </h2>
         <p className="text-gray-600">
-          {(error as Error)?.message ||
-            'Не удалось получить информацию о канале.'}
+          {error instanceof Error
+            ? error.message
+            : 'Не удалось получить информацию о канале.'}
         </p>
         <Link href="/channels">
           <Button variant="outline" className="mt-4">
@@ -319,7 +320,7 @@ export default function ChannelDetailPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {(channel.recent_signals || [])
+                        {channel.recent_signals
                           .slice(0, 5)
                           .map((signal, index) => (
                             <div
@@ -378,7 +379,7 @@ export default function ChannelDetailPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {(channel.recent_signals || []).map((signal, index) => (
+                      {channel.recent_signals.map((signal, index) => (
                         <div
                           key={index}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"

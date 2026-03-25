@@ -128,7 +128,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
                   {user?.name || user?.email || 'Профиль'}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {user?.subscription?.plan
+                  {user?.subscription.plan
                     ? `${user.subscription.plan} план`
                     : 'Аккаунт'}
                 </p>

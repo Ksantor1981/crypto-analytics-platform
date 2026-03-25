@@ -22,7 +22,7 @@ interface AuthContextType {
 
 // Функция для маппинга APIUser в User
 const mapAPIUserToUser = (apiUser: APIUser): User => {
-  const planByRole = (r?: string) =>
+  const planByRole = (r?: string): 'Premium' | 'Pro' | 'Free' =>
     r === 'PREMIUM_USER' || r === 'premium'
       ? 'Premium'
       : r === 'PRO_USER' || r === 'pro'
@@ -30,7 +30,10 @@ const mapAPIUserToUser = (apiUser: APIUser): User => {
         : 'Free';
   const subPlan =
     apiUser.subscription_plan || apiUser.subscription_type || apiUser.role;
-  const plan = planByRole(subPlan) || (apiUser.is_premium ? 'Premium' : 'Free');
+  let plan = planByRole(subPlan);
+  if (plan === 'Free' && apiUser.is_premium) {
+    plan = 'Premium';
+  }
   return {
     id: apiUser.id.toString(),
     name: apiUser.full_name || apiUser.name || apiUser.email,

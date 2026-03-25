@@ -63,9 +63,10 @@ export default function SubscriptionPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   /** Только для авторизованных; гость не считается «на Free» — кнопка Free ведёт в регистрацию */
-  const currentPlan = isAuthenticated
-    ? user?.subscription?.plan?.toLowerCase() || 'free'
-    : null;
+  const currentPlan =
+    isAuthenticated && user != null
+      ? user.subscription.plan.toLowerCase()
+      : null;
   const success = router.query.success === 'true';
   const cancelled = router.query.cancelled === 'true';
 

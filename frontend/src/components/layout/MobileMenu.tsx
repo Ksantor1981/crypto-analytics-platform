@@ -194,7 +194,7 @@ export function MobileMenu({
                   {user?.name || user?.email || 'Гость'}
                 </p>
                 <p className="text-sm text-gray-600">
-                  {user?.subscription?.plan
+                  {user?.subscription.plan
                     ? `${user.subscription.plan} план`
                     : 'Войдите для полного доступа'}
                 </p>

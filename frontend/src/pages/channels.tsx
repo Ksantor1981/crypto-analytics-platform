@@ -52,10 +52,9 @@ const ChannelsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [sortOption, setSortOption] = React.useState('rating');
 
-  const channels: ChannelView[] = (apiChannels || []) as ChannelView[];
+  const channels = apiChannels as ChannelView[];
 
   const filteredAndSortedChannels = useMemo(() => {
-    if (!channels) return [];
     const filtered = channels.filter(channel => {
       const matchesCategory =
         activeCategory === 'all' ||
@@ -94,7 +93,7 @@ const ChannelsPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  if (isLoading && !apiChannels?.length) {
+  if (isLoading && apiChannels.length === 0) {
     return <Loading />;
   }
 

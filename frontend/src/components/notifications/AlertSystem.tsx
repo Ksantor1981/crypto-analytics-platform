@@ -57,9 +57,9 @@ export function AlertSystem() {
       const active = priceAlertsRef.current.filter(a => a.enabled);
       for (const alert of active) {
         try {
-          const base = alert.pair.split('/')[0]?.trim() || 'BTC';
+          const base = alert.pair.split('/')[0].trim() || 'BTC';
           const res = await apiClient.getAnalyticsCurrentPrice(base);
-          const cp = Number(res?.data?.current_price);
+          const cp = Number(res.data?.current_price);
           if (!Number.isFinite(cp) || cp <= 0) continue;
 
           setPriceAlerts(prev =>
@@ -139,11 +139,11 @@ export function AlertSystem() {
     }
 
     const targetPrice = parseFloat(newAlert.targetPrice);
-    const base = newAlert.pair.split('/')[0]?.trim() || 'BTC';
+    const base = newAlert.pair.split('/')[0].trim() || 'BTC';
     let currentPrice = 0;
     try {
       const res = await apiClient.getAnalyticsCurrentPrice(base);
-      currentPrice = Number(res?.data?.current_price) || 0;
+      currentPrice = Number(res.data?.current_price) || 0;
     } catch {
       addNotification({
         type: 'error',

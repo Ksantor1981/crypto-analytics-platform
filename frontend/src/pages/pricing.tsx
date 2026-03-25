@@ -104,16 +104,17 @@ export default function PricingPage() {
           ];
           setPlans(
             apiPlans.map((p: Record<string, unknown>, i: number) => ({
-              id: (p.plan as string)?.toLowerCase() || `plan_${i}`,
+              id: String(p.plan ?? '').toLowerCase() || `plan_${i}`,
               name: (p.name as string) || 'Plan',
-              price: (p.price_monthly as number) ?? 0,
+              price: (p.price_monthly as number | undefined) ?? 0,
               yearlyPrice:
-                (p.price_yearly as number) ?? (p.price_monthly as number) * 10,
+                (p.price_yearly as number | undefined) ??
+                ((p.price_monthly as number | undefined) ?? 0) * 10,
               description: (p.description as string) || '',
               features: Array.isArray(p.features)
                 ? (p.features as string[])
                 : [],
-              popular: (p.is_popular as boolean) ?? i === 1,
+              popular: (p.is_popular as boolean | undefined) ?? i === 1,
               icon: icons[i % 3],
               stripePriceId: (p.stripe_price_id_monthly as string) || '',
               stripeYearlyPriceId: (p.stripe_price_id_yearly as string) || '',

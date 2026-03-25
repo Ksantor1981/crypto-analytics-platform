@@ -59,7 +59,8 @@ export function useUserLimits() {
   const fetchLimits = async () => {
     try {
       const data = await apiClient.getLimits();
-      const userPlan = PLANS[data.plan] ?? PLANS.Free;
+      const planKey = data.plan as keyof typeof PLANS;
+      const userPlan = planKey in PLANS ? PLANS[planKey] : PLANS.Free;
       setLimits({
         channelsUsed: data.channels_used,
         channelsLimit: data.channels_limit,

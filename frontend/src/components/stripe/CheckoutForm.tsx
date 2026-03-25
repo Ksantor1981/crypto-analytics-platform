@@ -75,7 +75,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       if (stripeError) {
         setError(stripeError.message || 'Payment failed');
         onError?.(stripeError.message || 'Payment failed');
-      } else if (paymentIntent?.status === 'succeeded') {
+      } else if (paymentIntent.status === 'succeeded') {
         onSuccess?.();
       }
     } catch (err) {

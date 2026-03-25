@@ -53,14 +53,14 @@ export const Responsive: React.FC<ResponsiveProps> = ({
 
 // Хук для определения видимости элемента на экране
 export function useIntersectionObserver(
-  ref: React.RefObject<Element>,
+  ref: React.RefObject<Element | null>,
   options: IntersectionObserverInit = {}
 ) {
   const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (element === null) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => setIsIntersecting(entry.isIntersecting),

@@ -159,10 +159,10 @@ export function FloatingActionButton() {
           {actions.map((action, index) => (
             <div
               key={action.name}
-              className={`
+              className="
                 flex items-center space-x-3 transform transition-all duration-300 ease-out
-                ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}
-              `}
+                translate-y-0 opacity-100
+              "
               style={{ transitionDelay: `${index * 50}ms` }}
             >
               <span className="bg-black/75 text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap">

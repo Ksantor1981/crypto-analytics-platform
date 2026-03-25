@@ -164,7 +164,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold text-blue-900">
-                      Тарифный план: {authUser?.subscription?.plan || 'Free'}
+                      Тарифный план: {authUser?.subscription.plan || 'Free'}
                     </h3>
                     <p className="text-blue-700">
                       Отслеживается каналов: {channels.length}
@@ -183,7 +183,7 @@ export default function DashboardPage() {
 
           <DataExportCard
             isAuthenticated={isAuthenticated}
-            subscriptionPlan={authUser?.subscription?.plan}
+            subscriptionPlan={authUser?.subscription.plan}
           />
 
           {/* Stats Cards */}
