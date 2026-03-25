@@ -7,7 +7,7 @@ from .signal import ChannelSignalStats
 
 class ChannelBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="Название канала")
-    url: str = Field(..., max_length=255, description="URL канала")
+    url: Optional[str] = Field(None, max_length=255, description="URL канала")
     description: Optional[str] = Field(None, description="Описание канала")
     category: Optional[str] = Field(None, max_length=100, description="Категория")
     platform: str = Field("telegram", max_length=50, description="Платформа")

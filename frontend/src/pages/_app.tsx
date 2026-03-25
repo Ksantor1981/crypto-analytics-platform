@@ -12,6 +12,7 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import MobileMenu from '@/components/layout/MobileMenu';
 import { Button } from '@/components/ui/button';
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 
 const PUBLIC_PAGES = ['/', '/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/pricing', '/demo', '/feedback'];
 
@@ -108,6 +109,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <GoogleAnalytics />
       <ThemeProvider>
         <AuthProvider>
           <ToastProvider>

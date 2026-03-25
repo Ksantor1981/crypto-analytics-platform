@@ -4,11 +4,20 @@ No API keys required.
 """
 import re
 import logging
+import random
 import httpx
 from bs4 import BeautifulSoup
 from datetime import datetime
-from typing import List, Optional
-from dataclasses import dataclass
+from typing import List, Optional, Tuple
+from dataclasses import dataclass, field
+
+# Ротация User-Agent снижает риск блокировок при массовом сборе
+HTTP_USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +95,9 @@ class ParsedSignal:
     confidence: float = 0.5
     original_text: str = ""
     timestamp: Optional[datetime] = None
+    telegram_message_id: Optional[str] = None
+    entry_zone_low: Optional[float] = None
+    entry_zone_high: Optional[float] = None
 
 
 @dataclass
@@ -93,6 +105,25 @@ class ChannelPost:
     text: str
     date: Optional[datetime] = None
     views: Optional[int] = None
+    message_id: Optional[str] = None
+
+
+@dataclass
+class ChannelScrapeResult:
+    """Результат сбора: сколько постов с HTML и сколько прошло текстовый парсер."""
+
+    posts_fetched: int
+    signals: List[ParsedSignal] = field(default_factory=list)
+
+
+def _extract_telegram_message_id(msg_block) -> Optional[str]:
+    """ID поста из ссылки вида https://t.me/channel/12345."""
+    link = msg_block.select_one("a.tgme_widget_message_date")
+    if not link:
+        link = msg_block.select_one(".tgme_widget_message_date")
+    href = (link.get("href") if link else None) or ""
+    m = re.search(r"/(\d+)(?:\?|$)", href)
+    return m.group(1) if m else None
 
 
 async def fetch_channel_posts(username: str, limit: int = 20) -> List[ChannelPost]:
@@ -101,9 +132,10 @@ async def fetch_channel_posts(username: str, limit: int = 20) -> List[ChannelPos
     posts = []
     try:
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            })
+            resp = await client.get(
+                url,
+                headers={"User-Agent": random.choice(HTTP_USER_AGENTS)},
+            )
             if resp.status_code != 200:
                 return []
             soup = BeautifulSoup(resp.text, "html.parser")
@@ -127,7 +159,10 @@ async def fetch_channel_posts(username: str, limit: int = 20) -> List[ChannelPos
                         views = int(float(vt))
                     except ValueError:
                         pass
-                posts.append(ChannelPost(text=text, date=date, views=views))
+                mid = _extract_telegram_message_id(msg)
+                posts.append(
+                    ChannelPost(text=text, date=date, views=views, message_id=mid)
+                )
     except Exception as e:
         logger.error(f"Error fetching @{username}: {e}")
     return posts
@@ -155,21 +190,72 @@ def _detect_asset(text: str) -> Optional[str]:
     return None
 
 
+def _normalize_price_token(raw: str) -> Optional[float]:
+    """Число из токена цены: 65,500 (тысячи), 0,42 (евро-десятичные), 12k."""
+    if not raw:
+        return None
+    s = raw.strip().replace(" ", "")
+    mult = 1000 if s.lower().endswith("k") else 1
+    if mult == 1000:
+        s = s[:-1]
+    if "," in s and "." not in s:
+        parts = s.split(",")
+        if len(parts) == 2:
+            a, b = parts[0], parts[1]
+            # US-стиль тысяч: 65,500 или 1,234
+            if len(b) == 3 and a.isdigit() and b.isdigit() and len(a) <= 3:
+                s = a + b
+            else:
+                s = a + "." + b
+        else:
+            s = "".join(parts)
+    else:
+        s = s.replace(",", "")
+    try:
+        return float(s) * mult
+    except ValueError:
+        return None
+
+
 def _parse_price(text: str, pattern: str) -> Optional[float]:
-    """Extract price from text using pattern."""
+    """Extract price from text using pattern (первая группа — токен цены)."""
     m = re.search(pattern, text, re.I | re.M)
     if m:
-        raw = m.group(1).replace(",", "").replace(" ", "")
-        if raw.endswith("k"):
-            raw = raw[:-1]
-            try:
-                return float(raw) * 1000
-            except ValueError:
-                return None
-        try:
-            return float(raw)
-        except ValueError:
-            pass
+        return _normalize_price_token(m.group(1))
+    return None
+
+
+def _parse_price_two_groups(text: str, pattern: str) -> Optional[Tuple[float, float]]:
+    """Две цены из паттерна (зона входа)."""
+    m = re.search(pattern, text, re.I | re.M)
+    if not m:
+        return None
+    a = _normalize_price_token(m.group(1))
+    b = _normalize_price_token(m.group(2))
+    if a is None or b is None:
+        return None
+    return (a, b)
+
+
+def _parse_entry_zone(text: str, asset: str) -> Optional[Tuple[float, float]]:
+    """Диапазон входа: 0.42-0.44, entry zone: 1,2 - 1,25, between X and Y."""
+    zone_patterns = [
+        r"(?:entry\s*zone|зона\s*входа|entry\s*range|диапазон\s*входа)[:\s]*"
+        r"\$?([\d\s]+[,.]?\d*k?)\s*[-–—]\s*\$?([\d\s]+[,.]?\d*k?)",
+        r"(?:entry|вход|zone|зона)\s*(?:range|диапазон)?[:\s]*"
+        r"\$?([\d\s]+[,.]?\d*k?)\s*[-–—]\s*\$?([\d\s]+[,.]?\d*k?)",
+        r"\$?([\d\s]+[,.]?\d*k?)\s*[-–—]\s*\$?([\d\s]+[,.]?\d*k?)\s*(?:entry|вход|zone|зона)?",
+        r"between\s+\$?([\d\s]+[,.]?\d*k?)\s+and\s+\$?([\d\s]+[,.]?\d*k?)",
+    ]
+    for pat in zone_patterns:
+        pair = _parse_price_two_groups(text, pat)
+        if not pair:
+            continue
+        lo, hi = min(pair[0], pair[1]), max(pair[0], pair[1])
+        mid = (lo + hi) / 2
+        if _validate_price(mid, asset) and _validate_price(lo, asset) and _validate_price(hi, asset):
+            if not _price_in_million_context(text, mid):
+                return (lo, hi)
     return None
 
 
@@ -233,28 +319,42 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
     if not direction:
         return None
 
+    entry_zone_low: Optional[float] = None
+    entry_zone_high: Optional[float] = None
+    entry_price = None
+
+    # Сначала зона входа (иначе «entry zone: 0.42-0.44» ловится как одно число 0.42)
+    z = _parse_entry_zone(text, asset)
+    if z:
+        entry_zone_low, entry_zone_high = z[0], z[1]
+        mid = (entry_zone_low + entry_zone_high) / 2
+        if _validate_price(mid, asset) and not _price_in_million_context(text, mid):
+            entry_price = mid
+
     entry_patterns = [
-        r'(?:entry|вход|enter|price|цена)\s*(?:price|zone|зона)?[:\s]*\$?([\d]+[,.]?\d*k?)',
-        r'(?:buy|купить|long|лонг)\s*(?:at|по|@|zone|from)?[:\s]*\$?([\d]+[,.]?\d*k?)',
-        r'(?:sell|продать|short|шорт)\s*(?:at|по|@|from)?[:\s]*\$?([\d]+[,.]?\d*k?)',
-        r'\bCP\b[:\s)]*\$?([\d]+[,.]?\d*k?)',
-        r'(?:entry|вход)\s*[:]\s*\$?([\d]+[,.]?\d*k?)\s*[-–]',
-        r'(?:spot|спот|spot\s*price)[:\s]*\$?([\d]+[,.]?\d*k?)',
-        r'(?:current|текущая|current\s*price)[:\s]*\$?([\d]+[,.]?\d*k?)',
-        r'\@\s*\$?([\d]+[,.]?\d*k?)\s*(?:[-–]|$)',
-        r'(?:level|уровень)\s*(?:1)?[:\s]*\$?([\d]+[,.]?\d*k?)',
+        r'(?:entry|вход|enter|price|цена)\s*(?:price|zone|зона)?[:\s]*\$?([\d\s]+[,.]?\d*k?)',
+        r'(?:buy|купить|long|лонг)\s*(?:at|по|@|zone|from)?[:\s]*\$?([\d\s]+[,.]?\d*k?)',
+        r'(?:sell|продать|short|шорт)\s*(?:at|по|@|from)?[:\s]*\$?([\d\s]+[,.]?\d*k?)',
+        r'\bCP\b[:\s)]*\$?([\d\s]+[,.]?\d*k?)',
+        r'(?:entry|вход)\s*[:]\s*\$?([\d\s]+[,.]?\d*k?)\s*[-–]',
+        r'(?:spot|спот|spot\s*price)[:\s]*\$?([\d\s]+[,.]?\d*k?)',
+        r'(?:current|текущая|current\s*price)[:\s]*\$?([\d\s]+[,.]?\d*k?)',
+        r'\@\s*\$?([\d\s]+[,.]?\d*k?)\s*(?:[-–]|$)',
+        r'(?:level|уровень)\s*(?:1)?[:\s]*\$?([\d\s]+[,.]?\d*k?)',
+        r'(?:avg|average|средн)[.a-z]*\s*(?:entry|price|вход)?[:\s]*\$?([\d\s]+[,.]?\d*k?)',
     ]
     tp_patterns = [
-        r'(?:tp|take.profit|тейк|цель)\s*(?:\d\s*)?[:\s]+\$?([\d]+[,.]?\d*k?)',
-        r'(?:targets?|цели)\s*[:\s]+\$?([\d]+[,.]?\d*k?)',
-        r'(?:target)\s+([\d]+[,.]?\d*k?)',
+        r'(?:tp|take.profit|тейк|цель)\s*(?:\d\s*)?[:\s]+\$?([\d\s]+[,.]?\d*k?)',
+        r'(?:targets?|цели)\s*[:\s]+\$?([\d\s]+[,.]?\d*k?)',
+        r'(?:target)\s+([\d\s]+[,.]?\d*k?)',
     ]
     sl_patterns = [
-        r'(?:sl|stop.loss|стоп|стоп.лосс|stoploss)[:\s]*\$?([\d]+[,.]?\d*k?)',
+        r'(?:sl|stop.loss|стоп|стоп.лосс|stoploss)[:\s]*\$?([\d\s]+[,.]?\d*k?)',
     ]
 
-    entry_price = None
     for pat in entry_patterns:
+        if entry_price:
+            break
         p = _parse_price(text, pat)
         if p and _validate_price(p, asset) and not _price_in_million_context(text, p):
             entry_price = p
@@ -274,15 +374,12 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
             stop_loss = p
             break
 
-    dollar_prices = re.findall(r'\$([\d]+[,.]?\d*k?)', text)
+    dollar_prices = re.findall(r'\$([\d\s]+[,.]?\d*k?)', text)
     valid_prices = []
     for raw in dollar_prices:
-        try:
-            val = float(raw.replace(",", "").replace("k", "")) * (1000 if raw.endswith("k") else 1)
-            if _validate_price(val, asset):
-                valid_prices.append(val)
-        except ValueError:
-            pass
+        val = _normalize_price_token(raw)
+        if val is not None and _validate_price(val, asset):
+            valid_prices.append(val)
 
     if not entry_price and valid_prices:
         entry_price = valid_prices[0]
@@ -312,17 +409,23 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
         stop_loss=stop_loss,
         confidence=confidence,
         original_text=sanitize_signal_text(text[:500]),
+        entry_zone_low=entry_zone_low,
+        entry_zone_high=entry_zone_high,
     )
 
 
-async def collect_signals_from_channel(username: str) -> List[ParsedSignal]:
+async def collect_signals_from_channel(
+    username: str, limit: Optional[int] = None
+) -> ChannelScrapeResult:
     """Fetch and extract signals from a public Telegram channel."""
-    posts = await fetch_channel_posts(username)
+    lim = limit if limit is not None else 20
+    posts = await fetch_channel_posts(username, limit=lim)
     signals = []
     for post in posts:
         sig = parse_signal_from_text(post.text)
         if sig:
             sig.timestamp = post.date
+            sig.telegram_message_id = post.message_id
             signals.append(sig)
     logger.info(f"@{username}: {len(posts)} posts, {len(signals)} signals")
-    return signals
+    return ChannelScrapeResult(posts_fetched=len(posts), signals=signals)

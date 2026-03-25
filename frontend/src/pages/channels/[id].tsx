@@ -318,7 +318,7 @@ export default function ChannelDetailPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {channel.recent_signals?.slice(0, 5).map((signal, index) => (
+                        {(channel.recent_signals || []).slice(0, 5).map((signal, index) => (
                           <div
                             key={index}
                             className="flex items-center justify-between p-4 border rounded-lg"
@@ -370,7 +370,7 @@ export default function ChannelDetailPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {channel.recent_signals?.map((signal, index) => (
+                      {(channel.recent_signals || []).map((signal, index) => (
                         <div
                           key={index}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"

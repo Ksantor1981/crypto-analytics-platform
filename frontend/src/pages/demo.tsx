@@ -29,6 +29,19 @@ interface Signal {
   mlScore: number;
 }
 
+/** Маскирует название: первые 4 символа видны, остальное размыто (чтобы нельзя было скопировать канал) */
+function MaskedName({ text, visible = 4 }: { text: string; visible?: number }) {
+  if (!text || text.length <= visible) return <>{text}</>;
+  return (
+    <span className="inline-flex items-baseline">
+      <span>{text.slice(0, visible)}</span>
+      <span className="blur-sm select-none pointer-events-none">
+        {text.slice(visible)}
+      </span>
+    </span>
+  );
+}
+
 export default function Demo() {
   const [activeTab, setActiveTab] = useState('channels');
   const [loading, setLoading] = useState(true);
@@ -291,10 +304,14 @@ export default function Demo() {
                     <tbody>
                       {channels.map((channel) => (
                         <tr key={channel.id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
-                          <td className="py-4 px-4">
+                          <td className="py-4 px-4 select-none">
                             <div>
-                              <div className="font-semibold">{channel.name}</div>
-                              <div className="text-blue-200 text-sm">{channel.username}</div>
+                              <div className="font-semibold">
+                                <MaskedName text={channel.name} visible={4} />
+                              </div>
+                              <div className="text-blue-200 text-sm">
+                                <MaskedName text={channel.username} visible={4} />
+                              </div>
                               <span className={`inline-block px-2 py-1 rounded text-xs ${
                                 channel.category === 'Premium' 
                                   ? 'bg-yellow-500/20 text-yellow-200 border border-yellow-500/30'
@@ -363,7 +380,9 @@ export default function Demo() {
                     <tbody>
                       {signals.map((signal) => (
                         <tr key={signal.id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
-                          <td className="py-4 px-4 font-semibold">{signal.channel}</td>
+                          <td className="py-4 px-4 font-semibold select-none">
+                            <MaskedName text={signal.channel} visible={4} />
+                          </td>
                           <td className="text-center py-4 px-4 font-mono">{signal.pair}</td>
                           <td className="text-center py-4 px-4">
                             <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
@@ -439,13 +458,17 @@ export default function Demo() {
                     <div className="space-y-3">
                       {channels.slice(0, 3).map((channel, index) => (
                         <div key={channel.id} className="flex items-center justify-between">
-                          <div className="flex items-center">
+                          <div className="flex items-center select-none">
                             <span className="text-2xl mr-3">
                               {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
                             </span>
                             <div>
-                              <div className="font-semibold text-white">{channel.name}</div>
-                              <div className="text-blue-200 text-sm">{channel.username}</div>
+                              <div className="font-semibold text-white">
+                                <MaskedName text={channel.name} visible={4} />
+                              </div>
+                              <div className="text-blue-200 text-sm">
+                                <MaskedName text={channel.username} visible={4} />
+                              </div>
                             </div>
                           </div>
                           <div className="text-right">

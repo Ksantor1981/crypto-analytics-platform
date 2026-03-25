@@ -27,10 +27,22 @@ def test_logging():
     print("✅ Logging OK")
 
 def test_message_queue():
-    """Test Redis connectivity"""
+    """Test Redis connectivity (sync client; корректно обрабатывает async mock)."""
+    import asyncio
+    import inspect
     import redis
     try:
         r = redis.Redis(host='localhost', port=6379, db=0, socket_connect_timeout=1)
-        assert r.ping()
+        result = r.ping()
+        if inspect.isawaitable(result):
+            try:
+                loop = asyncio.new_event_loop()
+                try:
+                    result = loop.run_until_complete(result)
+                finally:
+                    loop.close()
+            except Exception:
+                pytest.skip("Redis async/mock ping failed")
+        assert result is True
     except Exception:
         pytest.skip("Redis not available")

@@ -54,7 +54,7 @@ def log_authentication_attempt(
     logger = get_logger("auth")
     
     log_data = {
-        "event": "authentication_attempt",
+        "audit_event": "authentication_attempt",
         "user_email": user_email,
         "success": success,
         "ip_address": ip_address,
@@ -82,7 +82,7 @@ def log_security_event(
     logger = get_logger("security")
     
     log_data = {
-        "event": "security_event",
+        "audit_event": "security_event",
         "event_type": event_type,
         "timestamp": datetime.utcnow().isoformat(),
     }
@@ -110,7 +110,7 @@ def log_api_request(
     logger = get_logger("api")
     
     log_data = {
-        "event": "api_request",
+        "audit_event": "api_request",
         "method": method,
         "endpoint": endpoint,
         "timestamp": datetime.utcnow().isoformat(),
@@ -140,7 +140,7 @@ def log_signal_processing(
     logger = get_logger("signals")
     
     log_data = {
-        "event": "signal_processing",
+        "audit_event": "signal_processing",
         "signal_id": signal_id,
         "action": action,
         "success": success,

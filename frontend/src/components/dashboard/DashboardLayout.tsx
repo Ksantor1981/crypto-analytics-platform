@@ -23,6 +23,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import useRealTimeNotifications from '@/hooks/useRealTimeNotifications';
 import ResponsiveNavigation from '@/components/layout/ResponsiveNavigation';
 import useResponsive from '@/hooks/useResponsive';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -66,10 +67,10 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   const { state } = useNotifications();
   const { isConnected } = useRealTimeNotifications();
   const { isMobile } = useResponsive();
+  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    // Здесь будет логика выхода
-    console.log('Logout');
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
   };
 
@@ -122,8 +123,12 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
                 </div>
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">Demo User</p>
-                <p className="text-xs text-gray-500">Premium план</p>
+                <p className="text-sm font-medium text-gray-700">
+                  {user?.name || user?.email || 'Профиль'}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {user?.subscription?.plan ? `${user.subscription.plan} план` : 'Аккаунт'}
+                </p>
               </div>
             </div>
             <Button

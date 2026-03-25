@@ -124,6 +124,17 @@ class UserStats(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserLimitsResponse(BaseModel):
+    """User plan limits and current usage for frontend."""
+    plan: str  # "Free" | "Premium" | "Pro"
+    channels_limit: int
+    channels_used: int
+    can_add_channel: bool
+    ratings_limit: int
+    ratings_viewed: int
+    can_view_more_ratings: bool
+
+
 class UserListResponse(BaseModel):
     """Response for user list with pagination."""
     users: List[UserResponse]

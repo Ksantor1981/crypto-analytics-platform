@@ -1,5 +1,7 @@
 # Расхождение ML accuracy: ТЗ vs реальность
 
+**См. также:** [TZ_GAPS_REMEDIATION.md](./TZ_GAPS_REMEDIATION.md) — что делать по всем разрывам с ТЗ.
+
 **ТЗ:** ML предсказания ≥87.2%  
 **Факт:** CV (cross-validation) ~96%, реальная accuracy на OOS данных ~41–67%
 

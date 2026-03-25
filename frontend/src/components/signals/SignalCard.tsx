@@ -48,20 +48,20 @@ export const SignalCard: React.FC<SignalCardProps> = ({
   };
 
   const calculatePotentialProfit = () => {
-    if (!signal.target_price) return null;
+    if (!signal.target_price || signal.entry_price == null) return null;
 
     const entryPrice = signal.entry_price;
     const targetPrice = signal.target_price;
 
     if (signal.direction === 'long') {
       return ((targetPrice - entryPrice) / entryPrice) * 100;
-    } else {
-      return ((entryPrice - targetPrice) / entryPrice) * 100;
     }
+    return ((entryPrice - targetPrice) / entryPrice) * 100;
   };
 
   const calculateRiskReward = () => {
-    if (!signal.target_price || !signal.stop_loss) return null;
+    if (!signal.target_price || !signal.stop_loss || signal.entry_price == null)
+      return null;
 
     const entryPrice = signal.entry_price;
     const targetPrice = signal.target_price;
@@ -82,6 +82,8 @@ export const SignalCard: React.FC<SignalCardProps> = ({
 
   const potentialProfit = calculatePotentialProfit();
   const riskReward = calculateRiskReward();
+  const displaySymbol = (signal.asset ?? signal.pair ?? '—').toString();
+  const label3 = displaySymbol.slice(0, 3).toUpperCase();
 
   return (
     <Card className="h-full">
@@ -90,11 +92,11 @@ export const SignalCard: React.FC<SignalCardProps> = ({
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
               <span className="text-blue-600 font-semibold">
-                {signal.asset.slice(0, 3)}
+                {label3}
               </span>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{signal.asset}</h3>
+              <h3 className="font-semibold text-gray-900">{displaySymbol}</h3>
               <div className="flex items-center space-x-2 mt-1">
                 {getDirectionBadge(signal.direction)}
                 {getStatusBadge(signal.status)}
@@ -117,7 +119,9 @@ export const SignalCard: React.FC<SignalCardProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Цена входа:</span>
             <span className="font-medium text-gray-900">
-              {formatPrice(signal.entry_price)}
+              {signal.entry_price != null
+                ? formatPrice(signal.entry_price)
+                : '—'}
             </span>
           </div>
 

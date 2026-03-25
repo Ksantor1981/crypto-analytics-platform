@@ -10,8 +10,19 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-COLLECTION_INTERVAL = 300  # 5 minutes (ROADMAP: было 15 мин)
-REDDIT_INTERVAL = 300  # 5 minutes (ROADMAP: было 30 мин)
+def _env_int(name: str, default: int) -> int:
+    try:
+        return max(30, int(os.environ.get(name, str(default))))
+    except ValueError:
+        return default
+
+
+# Интервалы сбора (сек). Docker: COLLECTION_INTERVAL_SECONDS=120 для плотного опроса
+COLLECTION_INTERVAL = _env_int("COLLECTION_INTERVAL_SECONDS", 300)
+REDDIT_INTERVAL = _env_int(
+    "REDDIT_COLLECTION_INTERVAL_SECONDS",
+    COLLECTION_INTERVAL,
+)
 WEEKLY_DIGEST_INTERVAL = 604800  # 7 days
 DAILY_REVALIDATION_INTERVAL = 86400  # 24 hours
 ML_TRAIN_INTERVAL = 86400  # 24 hours — переобучение ML раз в сутки
@@ -23,9 +34,7 @@ async def periodic_collection():
     """Run signal collection every 15 minutes. C1: if COLLECT_TELEGRAM=false, skip Telegram (Reddit runs separately)."""
     from app.core.database import SessionLocal
     from app.core.config import get_settings
-    from app.models.channel import Channel
-    from app.models.signal import Signal
-    from app.services.telegram_scraper import collect_signals_from_channel
+    from app.services.collection_pipeline import run_telegram_collection_cycle
     from app.services.metrics_calculator import recalculate_all_channels
     from app.services.signal_checker import check_pending_signals
     from app.services.dedup import cleanup_duplicates
@@ -39,44 +48,8 @@ async def periodic_collection():
         db = SessionLocal()
         try:
             settings = get_settings()
-            channels = (
-                db.query(Channel).filter(
-                    Channel.is_active == True, Channel.platform == "telegram"
-                ).all()
-                if settings.COLLECT_TELEGRAM
-                else []
-            )
-
-            total = 0
-            for ch in channels:
-                uname = ch.username or (ch.url or "").rstrip("/").split("/")[-1]
-                if not uname:
-                    continue
-                try:
-                    from sqlalchemy import func
-                    sigs = await collect_signals_from_channel(uname)
-                    text_500_col = func.left(Signal.original_text, 500)
-                    for s in sigs:
-                        if not s.entry_price:
-                            continue
-                        text_500 = (s.original_text or "")[:500]
-                        if db.query(Signal).filter(
-                            Signal.channel_id == ch.id,
-                            text_500_col == text_500,
-                        ).first():
-                            continue
-                        db.add(Signal(
-                            channel_id=ch.id, asset=s.asset,
-                            symbol=s.asset.replace("/", ""),
-                            direction=s.direction, entry_price=s.entry_price,
-                            tp1_price=s.take_profit, stop_loss=s.stop_loss,
-                            confidence_score=s.confidence,
-                            original_text=s.original_text, status="PENDING",
-                        ))
-                        total += 1
-                        ch.signals_count = (ch.signals_count or 0) + 1
-                except Exception as e:
-                    logger.warning(f"[Scheduler] @{uname}: {e}")
+            stats = await run_telegram_collection_cycle(db, settings)
+            total = stats.get("saved", 0)
 
             db.commit()
 
@@ -107,9 +80,9 @@ async def periodic_collection():
 async def periodic_reddit_collection():
     """Collect signals from Reddit every 30 minutes."""
     from app.core.database import SessionLocal
-    from app.models.channel import Channel
-    from app.models.signal import Signal
-    from app.services.reddit_scraper import collect_reddit_signals, CRYPTO_SUBREDDITS
+    from app.core.config import get_settings
+    from app.services.reddit_scraper import CRYPTO_SUBREDDITS
+    from app.services.collection_pipeline import run_reddit_collection_cycle
 
     while True:
         await asyncio.sleep(REDDIT_INTERVAL)
@@ -117,39 +90,9 @@ async def periodic_reddit_collection():
 
         db = SessionLocal()
         try:
-            from sqlalchemy import func
-            text_500_col = func.left(Signal.original_text, 500)
-            total = 0
-            for sub in CRYPTO_SUBREDDITS:
-                try:
-                    sigs = await collect_reddit_signals(sub, limit=25)
-                    for sig in sigs:
-                        if not sig.entry_price:
-                            continue
-                        channel = db.query(Channel).filter(Channel.username == f"r_{sub}").first()
-                        if not channel:
-                            channel = Channel(
-                                username=f"r_{sub}", name=f"r/{sub}",
-                                url=f"https://reddit.com/r/{sub}", platform="reddit",
-                                description=f"Reddit r/{sub}", category="community",
-                                is_active=True, status="active", signals_count=0,
-                            )
-                            db.add(channel)
-                            db.flush()
-                        text_500 = (sig.original_text or "")[:500]
-                        if db.query(Signal).filter(Signal.channel_id == channel.id, text_500_col == text_500).first():
-                            continue
-                        db.add(Signal(
-                            channel_id=channel.id, asset=sig.asset, symbol=sig.asset.replace("/", ""),
-                            direction=sig.direction, entry_price=sig.entry_price,
-                            tp1_price=sig.take_profit, stop_loss=sig.stop_loss,
-                            confidence_score=sig.confidence, original_text=sig.original_text,
-                            status="PENDING", message_timestamp=sig.timestamp,
-                        ))
-                        total += 1
-                        channel.signals_count = (channel.signals_count or 0) + 1
-                except Exception as e:
-                    logger.warning(f"[Scheduler] Reddit r/{sub}: {e}")
+            settings = get_settings()
+            stats = await run_reddit_collection_cycle(db, settings)
+            total = stats.get("saved", 0)
             db.commit()
             logger.info(f"[Scheduler] Reddit: {total} new signals from {len(CRYPTO_SUBREDDITS)} subs")
         except Exception as e:

@@ -13,7 +13,14 @@ logger = logging.getLogger(__name__)
 
 async def check_pending_signals(db: Session) -> dict:
     """Check all PENDING signals against current market prices."""
-    pending = db.query(Signal).filter(Signal.status == "PENDING").all()
+    pending = (
+        db.query(Signal)
+        .filter(
+            Signal.status == "PENDING",
+            Signal.entry_price.isnot(None),
+        )
+        .all()
+    )
     updated = 0
     results = []
 

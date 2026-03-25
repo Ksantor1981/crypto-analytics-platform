@@ -31,9 +31,11 @@ const customJestConfig = {
   coverageThreshold: undefined,
   coveragePathIgnorePatterns: ['node_modules', '.next', 'jest.setup'],
 
+  modulePathIgnorePatterns: ['<rootDir>/.next/'],
+
   // Настройки тестирования
   testPathIgnorePatterns: [
-    '<rootDir>/.next/', 
+    '<rootDir>/.next/',
     '<rootDir>/node_modules/',
     '<rootDir>/cypress/',
     '<rootDir>/tests/e2e/'  // Playwright, не Jest

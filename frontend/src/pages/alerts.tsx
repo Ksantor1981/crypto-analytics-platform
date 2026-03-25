@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { apiClient } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bell, AlertTriangle, TrendingUp, Settings, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Bell, AlertTriangle, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 const AlertsPage: NextPage = () => {
   const [signals, setSignals] = useState<Record<string, unknown>[]>([]);
@@ -29,6 +30,17 @@ const AlertsPage: NextPage = () => {
     <>
       <Head><title>Алерты - CryptoAnalytics</title></Head>
       <div className="max-w-7xl mx-auto px-4 py-8">
+        <Alert variant="default" className="mb-6" role="status">
+          <AlertDescription>
+            <strong>Статус раздела.</strong> Ниже — живые сигналы из API (
+            <code className="text-xs bg-white/60 px-1 rounded">GET /api/v1/signals</code>
+            ), если backend доступен. Отдельный продуктовый{' '}
+            <strong>AlertSystem</strong> (push по правилам, email/Telegram по подписке) в ТЗ
+            запланирован как Pro-функция — пока не реализован; эта страница не является
+            полноценным push-центром.
+          </AlertDescription>
+        </Alert>
+
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Bell className="h-6 w-6 text-blue-600" />
@@ -96,8 +108,16 @@ const AlertsPage: NextPage = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">${Number(s.entry_price || 0).toLocaleString()}</p>
-                    {s.tp1_price && <p className="text-xs text-green-600">TP: ${Number(s.tp1_price).toLocaleString()}</p>}
-                    {s.stop_loss && <p className="text-xs text-red-600">SL: ${Number(s.stop_loss).toLocaleString()}</p>}
+                    {s.tp1_price != null && Number(s.tp1_price) > 0 ? (
+                      <p className="text-xs text-green-600">
+                        TP: ${Number(s.tp1_price).toLocaleString()}
+                      </p>
+                    ) : null}
+                    {s.stop_loss != null && Number(s.stop_loss) > 0 ? (
+                      <p className="text-xs text-red-600">
+                        SL: ${Number(s.stop_loss).toLocaleString()}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               ))}

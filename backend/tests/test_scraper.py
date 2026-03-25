@@ -93,6 +93,15 @@ class TestSignalParsing:
         sig = parse_signal_from_text(text)
         assert sig.confidence == 0.4
 
+    def test_entry_zone_mid_price(self):
+        text = "#ADA LONG entry zone: 0.42-0.44 TP 0.50 SL 0.40"
+        sig = parse_signal_from_text(text)
+        assert sig is not None
+        assert sig.entry_zone_low is not None and sig.entry_zone_high is not None
+        assert abs(sig.entry_price - 0.43) < 1e-9
+        assert abs(sig.entry_zone_low - 0.42) < 1e-9
+        assert abs(sig.entry_zone_high - 0.44) < 1e-9
+
 
 class TestSignalParsingCorpus:
     """Small corpus-based tests using real-world-like examples."""

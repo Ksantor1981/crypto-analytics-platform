@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AlertTriangle,
   TrendingUp,
@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNotifications } from '@/contexts/NotificationContext';
+import apiClient from '@/lib/api';
 
 interface PriceAlert {
   id: string;
@@ -34,40 +35,9 @@ interface Alert {
   metadata?: any;
 }
 
-const mockAlerts: Alert[] = [
-  {
-    id: '1',
-    type: 'price',
-    title: 'BTC Price Alert',
-    description: 'Bitcoin выше $100,000',
-    condition: 'BTC/USDT > 100000',
-    enabled: true,
-    triggered: false,
-  },
-  {
-    id: '2',
-    type: 'signal',
-    title: 'High Confidence Signals',
-    description: 'Сигналы с уверенностью > 90%',
-    condition: 'confidence > 0.9',
-    enabled: true,
-    triggered: false,
-  },
-  {
-    id: '3',
-    type: 'profit',
-    title: 'Target Reached',
-    description: 'Достижение TP1',
-    condition: 'target_1_reached',
-    enabled: true,
-    triggered: true,
-    lastTriggered: new Date(Date.now() - 30 * 60 * 1000),
-  },
-];
-
 export function AlertSystem() {
   const { addNotification } = useNotifications();
-  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>([]);
   const [newAlert, setNewAlert] = useState({
     pair: 'BTC/USDT',
@@ -75,84 +45,54 @@ export function AlertSystem() {
     condition: 'above' as 'above' | 'below',
   });
 
-  // Мониторинг цен для алертов
+  const priceAlertsRef = useRef(priceAlerts);
+  priceAlertsRef.current = priceAlerts;
+
+  // Мониторинг цен: реальные котировки с API (нужна авторизация)
   useEffect(() => {
-    const checkPriceAlerts = () => {
-      priceAlerts.forEach(alert => {
-        if (!alert.enabled) return;
+    if (!apiClient.isAuthenticated()) return;
 
-        // Здесь будет реальная проверка цен через API
-        const shouldTrigger =
-          alert.condition === 'above'
-            ? alert.currentPrice > alert.targetPrice
-            : alert.currentPrice < alert.targetPrice;
+    const tick = async () => {
+      const active = priceAlertsRef.current.filter(a => a.enabled);
+      for (const alert of active) {
+        try {
+          const base = alert.pair.split('/')[0]?.trim() || 'BTC';
+          const res = await apiClient.getAnalyticsCurrentPrice(base);
+          const cp = Number(res?.data?.current_price);
+          if (!Number.isFinite(cp) || cp <= 0) continue;
 
-        if (shouldTrigger) {
-          addNotification({
-            type: 'price_alert',
-            title: `Price Alert: ${alert.pair}`,
-            message: `${alert.pair} достиг цели ${alert.targetPrice}`,
-            urgent: true,
-            read: false,
-            pair: alert.pair,
-            price: alert.currentPrice,
-          });
-
-          // Отключаем алерт после срабатывания
           setPriceAlerts(prev =>
-            prev.map(a => (a.id === alert.id ? { ...a, enabled: false } : a))
+            prev.map(a => (a.id === alert.id ? { ...a, currentPrice: cp } : a))
           );
+
+          const shouldTrigger =
+            alert.condition === 'above'
+              ? cp > alert.targetPrice
+              : cp < alert.targetPrice;
+
+          if (shouldTrigger) {
+            addNotification({
+              type: 'price_alert',
+              title: `Price Alert: ${alert.pair}`,
+              message: `${alert.pair} — условие выполнено (текущая ~$${cp.toFixed(2)})`,
+              urgent: true,
+              read: false,
+              pair: alert.pair,
+              price: cp,
+            });
+            setPriceAlerts(prev =>
+              prev.map(a => (a.id === alert.id ? { ...a, enabled: false } : a))
+            );
+          }
+        } catch {
+          /* сеть / лимиты — пропуск цикла */
         }
-      });
-    };
-
-    const interval = setInterval(checkPriceAlerts, 10000); // Проверка каждые 10 секунд
-    return () => clearInterval(interval);
-  }, [priceAlerts, addNotification]);
-
-  // Симуляция различных типов алертов
-  useEffect(() => {
-    const triggerRandomAlerts = () => {
-      const alertTypes = [
-        {
-          type: 'signal' as const,
-          title: 'Новый высокоточный сигнал',
-          message: 'ETH/USDT LONG с confidence 94%',
-          urgent: true,
-          read: false,
-        },
-        {
-          type: 'target_reached' as const,
-          title: 'Цель достигнута',
-          message: 'BTC/USDT достиг TP1 (+3.5%)',
-          urgent: false,
-          read: false,
-        },
-        {
-          type: 'warning' as const,
-          title: 'Приближение к стоп-лоссу',
-          message: 'ADA/USDT близко к SL (-1.8%)',
-          urgent: true,
-          read: false,
-        },
-        {
-          type: 'info' as const,
-          title: 'Высокая волатильность',
-          message: 'DOGE показывает необычную активность',
-          urgent: false,
-          read: false,
-        },
-      ];
-
-      // Случайный алерт каждые 15-30 секунд
-      if (Math.random() < 0.3) {
-        const randomAlert =
-          alertTypes[Math.floor(Math.random() * alertTypes.length)];
-        addNotification(randomAlert);
       }
     };
 
-    const interval = setInterval(triggerRandomAlerts, 15000);
+    const interval = setInterval(() => {
+      void tick();
+    }, 25000);
     return () => clearInterval(interval);
   }, [addNotification]);
 
@@ -185,14 +125,49 @@ export function AlertSystem() {
     setAlerts(prev => prev.filter(alert => alert.id !== id));
   };
 
-  const createPriceAlert = () => {
+  const createPriceAlert = async () => {
     if (!newAlert.targetPrice) return;
+    if (!apiClient.isAuthenticated()) {
+      addNotification({
+        type: 'warning',
+        title: 'Нужен вход',
+        message: 'Войдите в аккаунт, чтобы подтягивать цены с API',
+        read: false,
+      });
+      return;
+    }
+
+    const targetPrice = parseFloat(newAlert.targetPrice);
+    const base = newAlert.pair.split('/')[0]?.trim() || 'BTC';
+    let currentPrice = 0;
+    try {
+      const res = await apiClient.getAnalyticsCurrentPrice(base);
+      currentPrice = Number(res?.data?.current_price) || 0;
+    } catch {
+      addNotification({
+        type: 'error',
+        title: 'Цена недоступна',
+        message: 'Не удалось получить текущую цену. Проверьте API и лимиты.',
+        read: false,
+      });
+      return;
+    }
+
+    if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
+      addNotification({
+        type: 'error',
+        title: 'Нет котировки',
+        message: `Символ ${base}: пустой ответ price API`,
+        read: false,
+      });
+      return;
+    }
 
     const alert: PriceAlert = {
       id: Date.now().toString(),
       pair: newAlert.pair,
-      targetPrice: parseFloat(newAlert.targetPrice),
-      currentPrice: Math.random() * 100000, // Mock current price
+      targetPrice,
+      currentPrice,
       condition: newAlert.condition,
       enabled: true,
       created: new Date(),
@@ -204,7 +179,7 @@ export function AlertSystem() {
     addNotification({
       type: 'success',
       title: 'Алерт создан',
-      message: `Price alert для ${alert.pair} настроен`,
+      message: `${alert.pair}: текущая ~$${currentPrice.toFixed(2)}`,
       autoHide: true,
       read: false,
     });
@@ -259,7 +234,7 @@ export function AlertSystem() {
               }
             />
 
-            <Button onClick={createPriceAlert} className="w-full">
+            <Button onClick={() => void createPriceAlert()} className="w-full">
               Создать Alert
             </Button>
           </div>
@@ -340,6 +315,12 @@ export function AlertSystem() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
+            {alerts.length === 0 && (
+              <p className="text-sm text-gray-500 py-4 text-center">
+                Нет предустановленных системных алертов. Создайте price alert выше
+                или дождитесь интеграции с пользовательскими правилами (Pro).
+              </p>
+            )}
             {alerts.map(alert => (
               <div
                 key={alert.id}

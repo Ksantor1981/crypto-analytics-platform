@@ -25,6 +25,10 @@ ML_PREDICTIONS = Counter("ml_predictions_total", "Total ML predictions made")
 API_ERRORS = Counter("api_errors_total", "Total API errors", ["endpoint"])
 
 # Pipeline metrics (incoming -> parsed -> saved -> skipped)
+SIGNALS_POSTS_FETCHED = Counter(
+    "signals_posts_fetched_total",
+    "HTML/RSS posts fetched before text-level parse",
+)
 SIGNALS_COLLECTED_RAW = Counter(
     "signals_collected_raw_total",
     "Raw posts from scraper that passed basic parsing (ParsedSignal)",

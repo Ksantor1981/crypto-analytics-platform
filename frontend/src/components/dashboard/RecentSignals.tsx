@@ -64,7 +64,9 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
           </div>
         ) : (
           <div className="space-y-4">
-            {signals.map(signal => (
+            {signals.map(signal => {
+              const sym = (signal.asset ?? signal.pair ?? '—').toString();
+              return (
               <div
                 key={signal.id}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -72,13 +74,13 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-600 font-semibold text-sm">
-                      {signal.asset.slice(0, 2)}
+                      {sym.slice(0, 2)}
                     </span>
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
                       <span className="font-medium text-gray-900">
-                        {signal.asset}
+                        {sym}
                       </span>
                       <Badge
                         variant={
@@ -90,7 +92,12 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
                       </Badge>
                     </div>
                     <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                      <span>Вход: {formatPrice(signal.entry_price)}</span>
+                      <span>
+                        Вход:{' '}
+                        {signal.entry_price != null
+                          ? formatPrice(signal.entry_price)
+                          : '—'}
+                      </span>
                       {signal.target_price && (
                         <span>Цель: {formatPrice(signal.target_price)}</span>
                       )}
@@ -130,7 +137,8 @@ export const RecentSignals: React.FC<RecentSignalsProps> = ({
                   )}
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </CardContent>

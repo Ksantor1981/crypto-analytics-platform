@@ -25,6 +25,7 @@ const SignalItem = React.memo<{
   onSignalSelect?: (signal: Signal) => void;
   showChannel: boolean;
 }>(({ signal, onSignalSelect, showChannel }) => {
+  const sym = (signal.asset ?? signal.pair ?? '—').toString();
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -78,13 +79,13 @@ const SignalItem = React.memo<{
       <div className="flex items-center space-x-4 flex-1">
         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
           <span className="text-blue-600 font-semibold text-xs">
-            {signal.asset.slice(0, 3)}
+            {sym.slice(0, 3)}
           </span>
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-1">
-            <span className="font-medium text-gray-900">{signal.asset}</span>
+            <span className="font-medium text-gray-900">{sym}</span>
             {getDirectionBadge(signal.direction)}
             {getStatusBadge(signal.status)}
           </div>
@@ -156,8 +157,10 @@ export const OptimizedSignalsList: React.FC<OptimizedSignalsListProps> = ({
   const debouncedSearchTerm = useDebounced(searchTerm, 300);
   const searchedSignals = React.useMemo(() => {
     if (!debouncedSearchTerm) return signals;
-    return signals.filter(signal => 
-      signal.asset.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    return signals.filter(signal =>
+      (signal.asset ?? signal.pair ?? '')
+        .toLowerCase()
+        .includes(debouncedSearchTerm.toLowerCase()) ||
       signal.status.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       signal.direction.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );

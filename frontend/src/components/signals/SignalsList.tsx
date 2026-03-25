@@ -180,7 +180,9 @@ export const SignalsList: React.FC<SignalsListProps> = ({
               </tr>
             </thead>
             <tbody>
-              {sortedSignals.map(signal => (
+              {sortedSignals.map(signal => {
+                const sym = (signal.asset ?? signal.pair ?? '—').toString();
+                return (
                 <tr
                   key={signal.id}
                   className="border-b border-gray-100 hover:bg-gray-50"
@@ -189,12 +191,12 @@ export const SignalsList: React.FC<SignalsListProps> = ({
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-blue-600 font-semibold text-xs">
-                          {signal.asset.slice(0, 3)}
+                          {sym.slice(0, 3)}
                         </span>
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {signal.asset}
+                          {sym}
                         </div>
                         {signal.confidence && (
                           <div className="text-xs text-gray-500">
@@ -209,7 +211,9 @@ export const SignalsList: React.FC<SignalsListProps> = ({
                   </td>
                   <td className="py-3 px-4">
                     <span className="font-medium text-gray-900">
-                      {formatPrice(signal.entry_price)}
+                      {signal.entry_price != null
+                        ? formatPrice(signal.entry_price)
+                        : '—'}
                     </span>
                   </td>
                   <td className="py-3 px-4">
@@ -276,7 +280,8 @@ export const SignalsList: React.FC<SignalsListProps> = ({
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>

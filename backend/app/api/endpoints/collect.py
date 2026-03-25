@@ -13,6 +13,11 @@ from app.models.channel import Channel
 from app.models.signal import Signal
 from app.models.user import User
 from app.services.telegram_scraper import collect_signals_from_channel
+from app.services.collection_pipeline import (
+    persist_parsed_signals_for_channel,
+    telegram_fetch_limit,
+)
+from app.core.config import get_settings
 from app.services.reddit_scraper import collect_reddit_signals, CRYPTO_SUBREDDITS
 from app.services.ocr_signal_parser import parse_signal_from_image_url
 from app.services.deep_collector import deep_collect_and_validate
@@ -44,44 +49,26 @@ async def collect_channel_signals(
         else:
             raise HTTPException(status_code=400, detail="Channel has no username or URL")
 
-    signals = await collect_signals_from_channel(username)
-
-    new_count = 0
-    for sig in signals:
-        if not sig.entry_price:
-            continue
-
-        existing = db.query(Signal).filter(
-            Signal.channel_id == channel.id,
-            Signal.original_text == sig.original_text[:500],
-        ).first()
-        if existing:
-            continue
-
-        db_signal = Signal(
-            channel_id=channel.id,
-            asset=sig.asset,
-            symbol=sig.asset.replace("/", ""),
-            direction=sig.direction,
-            entry_price=sig.entry_price,
-            tp1_price=sig.take_profit,
-            stop_loss=sig.stop_loss,
-            confidence_score=sig.confidence,
-            original_text=sig.original_text,
-            status="PENDING",
-            message_timestamp=sig.timestamp,
-        )
-        db.add(db_signal)
-        new_count += 1
+    settings = get_settings()
+    lim = telegram_fetch_limit(channel, settings)
+    scrape = await collect_signals_from_channel(username, limit=lim)
+    st = persist_parsed_signals_for_channel(
+        db,
+        channel,
+        scrape.signals,
+        posts_fetched=scrape.posts_fetched,
+        record_metrics=True,
+    )
+    new_count = st["saved"]
 
     if new_count > 0:
-        channel.signals_count = (channel.signals_count or 0) + new_count
         db.commit()
 
     return {
         "channel": channel.name,
         "username": username,
-        "posts_parsed": len(signals),
+        "posts_fetched": scrape.posts_fetched,
+        "posts_parsed": len(scrape.signals),
         "new_signals_saved": new_count,
         "total_signals": channel.signals_count,
     }
@@ -93,6 +80,7 @@ async def collect_all_channels(
     current_user: User = Depends(get_current_user),
 ):
     """Collect signals from all active channels."""
+    settings = get_settings()
     channels = db.query(Channel).filter(
         Channel.is_active == True,
         Channel.platform == "telegram",
@@ -107,42 +95,22 @@ async def collect_all_channels(
             continue
 
         try:
-            signals = await collect_signals_from_channel(username)
-            new_count = 0
-            for sig in signals:
-                if not sig.entry_price:
-                    continue
-
-                existing = db.query(Signal).filter(
-                    Signal.channel_id == channel.id,
-                    Signal.original_text == sig.original_text[:500],
-                ).first()
-                if existing:
-                    continue
-
-                db_signal = Signal(
-                    channel_id=channel.id,
-                    asset=sig.asset,
-                    symbol=sig.asset.replace("/", ""),
-                    direction=sig.direction,
-                    entry_price=sig.entry_price,
-                    tp1_price=sig.take_profit,
-                    stop_loss=sig.stop_loss,
-                    confidence_score=sig.confidence,
-                    original_text=sig.original_text,
-                    status="PENDING",
-                    message_timestamp=sig.timestamp,
-                )
-                db.add(db_signal)
-                new_count += 1
-
-            if new_count > 0:
-                channel.signals_count = (channel.signals_count or 0) + new_count
+            lim = telegram_fetch_limit(channel, settings)
+            scrape = await collect_signals_from_channel(username, limit=lim)
+            st = persist_parsed_signals_for_channel(
+                db,
+                channel,
+                scrape.signals,
+                posts_fetched=scrape.posts_fetched,
+                record_metrics=True,
+            )
+            new_count = st["saved"]
 
             results.append({
                 "channel": channel.name,
                 "username": username,
-                "signals_found": len(signals),
+                "posts_fetched": scrape.posts_fetched,
+                "signals_found": len(scrape.signals),
                 "new_saved": new_count,
             })
         except Exception as e:
@@ -224,42 +192,26 @@ async def collect_reddit(
 
     for sub in CRYPTO_SUBREDDITS:
         try:
-            signals = await collect_reddit_signals(sub, limit=25)
-            saved = 0
-            for sig in signals:
-                if not sig.entry_price:
-                    continue
-                # Find or create Reddit channel
-                channel = db.query(Channel).filter(Channel.username == f"r_{sub}").first()
-                if not channel:
-                    channel = Channel(
-                        username=f"r_{sub}", name=f"r/{sub}",
-                        url=f"https://reddit.com/r/{sub}", platform="reddit",
-                        description=f"Reddit r/{sub}", category="community",
-                        is_active=True, status="active", signals_count=0,
-                    )
-                    db.add(channel)
-                    db.flush()
+            scrape = await collect_reddit_signals(sub, limit=25)
+            channel = db.query(Channel).filter(Channel.username == f"r_{sub}").first()
+            if not channel:
+                channel = Channel(
+                    username=f"r_{sub}", name=f"r/{sub}",
+                    url=f"https://reddit.com/r/{sub}", platform="reddit",
+                    description=f"Reddit r/{sub}", category="community",
+                    is_active=True, status="active", signals_count=0,
+                )
+                db.add(channel)
+                db.flush()
 
-                existing = db.query(Signal).filter(
-                    Signal.channel_id == channel.id,
-                    Signal.original_text == sig.original_text[:500],
-                ).first()
-                if existing:
-                    continue
-
-                db.add(Signal(
-                    channel_id=channel.id, asset=sig.asset,
-                    symbol=sig.asset.replace("/", ""),
-                    direction=sig.direction, entry_price=sig.entry_price,
-                    tp1_price=sig.take_profit, stop_loss=sig.stop_loss,
-                    confidence_score=sig.confidence,
-                    original_text=sig.original_text,
-                    status="PENDING", message_timestamp=sig.timestamp,
-                ))
-                saved += 1
-                channel.signals_count = (channel.signals_count or 0) + 1
-
+            st = persist_parsed_signals_for_channel(
+                db,
+                channel,
+                scrape.signals,
+                posts_fetched=scrape.posts_fetched,
+                record_metrics=True,
+            )
+            saved = st["saved"]
             total_saved += saved
             if saved > 0:
                 results.append({"subreddit": sub, "saved": saved})

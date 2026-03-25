@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/contexts/NotificationContext';
 import useRealTimeNotifications from '@/hooks/useRealTimeNotifications';
+import { useAuth } from '@/contexts/AuthContext';
 
 const navigationItems = [
   {
@@ -77,6 +78,7 @@ export function MobileMenu({
   );
   const { state } = useNotifications();
   const { isConnected } = useRealTimeNotifications();
+  const { user, logout } = useAuth();
 
   const quickActions = [
     {
@@ -139,9 +141,8 @@ export function MobileMenu({
     }
   };
 
-  const handleLogout = () => {
-    // Здесь будет логика выхода
-    console.log('Logout');
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
     onClose();
   };
@@ -188,8 +189,14 @@ export function MobileMenu({
                 <span className="text-xl">👨‍💼</span>
               </div>
               <div className="flex-1">
-                <p className="font-medium text-gray-900">Demo User</p>
-                <p className="text-sm text-gray-600">Premium план</p>
+                <p className="font-medium text-gray-900">
+                  {user?.name || user?.email || 'Гость'}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {user?.subscription?.plan
+                    ? `${user.subscription.plan} план`
+                    : 'Войдите для полного доступа'}
+                </p>
               </div>
 
               {/* Быстрая кнопка уведомлений */}

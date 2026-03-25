@@ -30,12 +30,19 @@ export default function SubscriptionPage() {
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const currentPlan = user?.subscription?.plan?.toLowerCase() || 'free';
+  /** Только для авторизованных; гость не считается «на Free» — кнопка Free ведёт в регистрацию */
+  const currentPlan = isAuthenticated
+    ? (user?.subscription?.plan?.toLowerCase() || 'free')
+    : null;
   const success = router.query.success === 'true';
   const cancelled = router.query.cancelled === 'true';
 
   const handleSelectPlan = async (planId: string) => {
-    if (planId === currentPlan || planId === 'free') return;
+    if (planId === 'free') {
+      if (!isAuthenticated) router.push('/auth/register');
+      return;
+    }
+    if (currentPlan != null && planId === currentPlan) return;
     if (!isAuthenticated) {
       router.push('/auth/login');
       return;
@@ -85,14 +92,17 @@ export default function SubscriptionPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Тарифные планы</h1>
           <p className="text-gray-600">Выберите план, который подходит для ваших задач</p>
           <p className="text-sm text-blue-600 mt-2">
-            Текущий план: <span className="font-semibold capitalize">{currentPlan}</span>
+            Текущий план:{' '}
+            <span className="font-semibold capitalize">
+              {!isAuthenticated ? '— войдите, чтобы увидеть' : currentPlan || 'free'}
+            </span>
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map(plan => {
             const Icon = plan.icon;
-            const isCurrent = currentPlan === plan.id;
+            const isCurrent = currentPlan != null && currentPlan === plan.id;
             return (
               <Card key={plan.id} className={`relative flex flex-col ${plan.popular ? 'border-2 border-blue-500 shadow-lg' : 'border'}`}>
                 {plan.popular && (

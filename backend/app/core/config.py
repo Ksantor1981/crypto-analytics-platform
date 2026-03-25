@@ -111,8 +111,21 @@ class Settings(BaseSettings):
     TELEGRAM_API_ID: Optional[str] = None
     TELEGRAM_API_HASH: Optional[str] = None
     TELEGRAM_SESSION_NAME: Optional[str] = None
+    # Имена хостов через запятую для TrustedHostMiddleware в production (не URL)
+    TRUSTED_HOSTS: Optional[str] = None
+    # При False — не вызывать _seed_demo_data при старте (Docker / только реальные каналы из БД)
+    AUTO_SEED_DEMO_CHANNELS: bool = True
+
     # C1: сбор без Telegram — при False периодический сбор только Reddit/seed
     COLLECT_TELEGRAM: bool = True
+    # Один прогон run_collection / CLI: после Telegram подтянуть Reddit (дубли с periodic_reddit отсекаются дедупом)
+    COLLECT_REDDIT_IN_RUN_COLLECTION: bool = True
+    # Лимит постов t.me/s: base + (priority-1)*step, capped
+    TELEGRAM_POSTS_BASE_LIMIT: int = 20
+    TELEGRAM_POSTS_PRIORITY_STEP: int = 5
+    TELEGRAM_POSTS_MAX_LIMIT: int = 80
+    # Подробный лог воронки парсинга (posts → parsed → saved / skip)
+    COLLECT_LOG_PARSE_FUNNEL: bool = True
     
     # ML Service (A6: опциональная версия модели для A/B — передаётся в заголовке в ML service)
     ML_SERVICE_URL: str = "http://localhost:8001"

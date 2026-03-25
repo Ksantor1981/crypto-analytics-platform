@@ -8,7 +8,7 @@ from fastapi import Request, Response, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from ..database import get_db
+from ..core.database import get_db
 from ..models.user import User, SubscriptionPlan, SubscriptionStatus
 from ..core.auth import get_current_user
 

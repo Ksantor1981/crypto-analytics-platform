@@ -39,7 +39,7 @@ export function useSignals(
     isLoading,
     error,
     refetch 
-  } = useQuery({
+  } = useQuery<Signal[]>({
     queryKey: ['signals', filters],
     queryFn: async () => {
       const response = await apiClient.getSignals();
@@ -52,7 +52,7 @@ export function useSignals(
   const analyzeSignalMutation = useMutation<Signal, Error, string>({
     mutationFn: async (id: string) => {
       // Временно возвращаем сигнал как есть, так как analyzeSignal не реализован в API
-      const signal = signals.find(s => s.id === id);
+      const signal = signals.find((s: Signal) => s.id === id);
       if (!signal) throw new Error('Signal not found');
       return signal;
     },
@@ -66,7 +66,7 @@ export function useSignals(
   };
 
   const filteredSignals = useMemo(() => {
-    return signals.filter(signal => {
+    return signals.filter((signal: Signal) => {
       if (filters.status && signal.status !== filters.status) return false;
       if (filters.direction && signal.direction !== filters.direction) return false;
       if (filters.pair && signal.pair !== filters.pair) return false;
@@ -89,26 +89,28 @@ export function useSignals(
 
   const stats = useMemo(() => {
     const total = signals.length;
-    const active = signals.filter(s => s.status === 'active').length;
-    const completed = signals.filter(s => s.status === 'completed').length;
-    const cancelled = signals.filter(s => s.status === 'cancelled').length;
-    const failed = signals.filter(s => s.status === 'failed').length;
+    const active = signals.filter((s: Signal) => s.status === 'active').length;
+    const completed = signals.filter((s: Signal) => s.status === 'completed').length;
+    const cancelled = signals.filter((s: Signal) => s.status === 'cancelled').length;
+    const failed = signals.filter((s: Signal) => s.status === 'failed').length;
 
-    const signalsWithPnl = signals.filter(s => s.pnl !== undefined);
-    const profitable = signalsWithPnl.filter(s => (s.pnl ?? 0) > 0).length;
-    const unprofitable = signalsWithPnl.filter(s => (s.pnl ?? 0) < 0).length;
-    const totalPnl = signalsWithPnl.reduce((sum, s) => sum + (s.pnl ?? 0), 0);
+    const signalsWithPnl = signals.filter((s: Signal) => s.pnl !== undefined);
+    const profitable = signalsWithPnl.filter((s: Signal) => (s.pnl ?? 0) > 0).length;
+    const unprofitable = signalsWithPnl.filter((s: Signal) => (s.pnl ?? 0) < 0).length;
+    const totalPnl = signalsWithPnl.reduce((sum: number, s: Signal) => sum + (s.pnl ?? 0), 0);
 
-    const longSignals = signals.filter(s => s.direction === 'long').length;
-    const shortSignals = signals.filter(s => s.direction === 'short').length;
+    const longSignals = signals.filter((s: Signal) => s.direction === 'long').length;
+    const shortSignals = signals.filter((s: Signal) => s.direction === 'short').length;
 
-    const bestSignal = signalsWithPnl.reduce((best, current) => 
-      (current.pnl ?? 0) > (best?.pnl ?? -Infinity) ? current : best, 
+    const bestSignal = signalsWithPnl.reduce(
+      (best: Signal | undefined, current: Signal) =>
+        (current.pnl ?? 0) > (best?.pnl ?? -Infinity) ? current : best,
       undefined as Signal | undefined
     );
 
-    const worstSignal = signalsWithPnl.reduce((worst, current) => 
-      (current.pnl ?? 0) < (worst?.pnl ?? Infinity) ? current : worst, 
+    const worstSignal = signalsWithPnl.reduce(
+      (worst: Signal | undefined, current: Signal) =>
+        (current.pnl ?? 0) < (worst?.pnl ?? Infinity) ? current : worst,
       undefined as Signal | undefined
     );
 

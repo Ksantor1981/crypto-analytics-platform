@@ -50,6 +50,13 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - DEBUG=false
+      # Непрерывный сбор (сек). Вместе с дедупом fingerprint безопасно чаще опроса
+      - COLLECTION_INTERVAL_SECONDS=${COLLECTION_INTERVAL_SECONDS:-180}
+      - REDDIT_COLLECTION_INTERVAL_SECONDS=${REDDIT_COLLECTION_INTERVAL_SECONDS:-180}
+      - COLLECT_TELEGRAM=${COLLECT_TELEGRAM:-true}
+      - COLLECT_REDDIT_IN_RUN_COLLECTION=${COLLECT_REDDIT_IN_RUN_COLLECTION:-true}
+      # Не заливать демо-каналы при пустой БД (только реальные/seed-скрипт)
+      - AUTO_SEED_DEMO_CHANNELS=${AUTO_SEED_DEMO_CHANNELS:-false}
       # Добавляем ML service URL
       - ML_SERVICE_URL=${ML_SERVICE_URL:-http://ml-service:8001}
       # API Keys для бирж (если нужны)
@@ -172,8 +179,11 @@ services:
       - crypto_analytics_network
     restart: unless-stopped
 
-  # Celery worker для сбора сигналов (backend celery_worker)
+  # Celery beat для сбора — опционально: в backend уже asyncio-scheduler (см. README).
+  # Запуск: docker compose --profile celery-beat up -d
   celery-collect:
+    profiles:
+      - celery-beat
     build:
       context: ./backend
       dockerfile: Dockerfile

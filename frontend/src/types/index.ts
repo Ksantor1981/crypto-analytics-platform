@@ -35,13 +35,19 @@ export type SignalSortField =
   | 'created_at' 
   | 'pnl';
 
-// API User тип (для данных с бэкенда)
+// API User тип (для данных с бэкенда /users/me и совместимости полей)
 export interface APIUser {
   id: number;
   email: string;
-  subscription_type: 'free' | 'pro' | 'enterprise';
+  subscription_type?: 'free' | 'pro' | 'enterprise';
   is_active: boolean;
   name?: string;
+  username?: string;
+  full_name?: string;
+  subscription_plan?: string;
+  role?: string;
+  is_premium?: boolean;
+  created_at?: string;
 }
 
 // UI User тип (для фронтенда)
@@ -115,10 +121,10 @@ export interface Channel {
 // Интерфейс сигнала
 export interface Signal {
   id: string;
-  channel_id: string;
-  pair: string;
-  asset: string; // Добавляем asset для отображения
-  entry_price: number;
+  channel_id?: string;
+  pair?: string;
+  asset?: string;
+  entry_price?: number;
   target_price?: number;
   stop_loss?: number;
   
@@ -146,46 +152,6 @@ export interface SubscriptionPlan {
   name: 'Free' | 'Premium' | 'Pro';
   price: number;
   features: string[];
-}
-
-// Существующий тип User - ИСПРАВЛЯЕМ ТОЛЬКО ЭТО
-export interface User {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  avatar?: string;
-  joinDate: string;
-  
-  // ДОБАВЛЯЕМ РОЛЬ - это единственное изменение
-  role: 'user' | 'admin' | 'moderator';
-  
-  subscription: {
-    plan: SubscriptionPlan['name'];
-    status: 'active' | 'cancelled' | 'expired';
-    price: number;
-  };
-  
-  stats?: {
-    channelsFollowed: number;
-    successRate: number;
-    profit: number;
-    totalProfit: number;
-    totalSignals: number;
-    winRate: number;
-    totalReturn: number;
-    daysActive: number;
-  };
-  
-  settings: {
-    emailNotifications: boolean;
-    pushNotifications: boolean;
-    telegramAlerts: boolean;
-    weeklyReports: boolean;
-    darkMode: boolean;
-    language: string;
-    timezone: string;
-  };
 }
 
 // Интерфейс уведомления

@@ -229,7 +229,7 @@ function HomeContent() {
                   <ul className="space-y-3 mb-8">
                     <li className="flex items-center text-gray-600">
                       <span className="text-green-500 mr-3">✓</span>
-                      5 {t('pricing.channels')}
+                      3 {t('pricing.channels')}
                     </li>
                     <li className="flex items-center text-gray-600">
                       <span className="text-green-500 mr-3">✓</span>
@@ -240,28 +240,31 @@ function HomeContent() {
                       {t('pricing.emailSupport')}
                     </li>
                   </ul>
-                  <Button className="w-full bg-gray-600 hover:bg-gray-700 text-white">
+                  <Button
+                    className="w-full bg-gray-600 hover:bg-gray-700 text-white"
+                    onClick={() => router.push('/auth/register')}
+                  >
                     {t('pricing.startFree')}
                   </Button>
                 </CardContent>
               </Card>
 
-              {/* Pro Plan */}
+              {/* Premium Plan */}
               <Card className="border-2 border-blue-500 bg-white relative">
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-semibold">
                   {t('pricing.popular')}
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-gray-900">{t('pricing.pro.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">{t('pricing.premium.title')}</CardTitle>
                   <div className="text-4xl font-bold text-gray-900">
-                    $29<span className="text-lg text-gray-500">/mo</span>
+                    $19<span className="text-lg text-gray-500">/mo</span>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3 mb-8">
                     <li className="flex items-center text-gray-600">
                       <span className="text-green-500 mr-3">✓</span>
-                      50 {t('pricing.channels')}
+                      15 {t('pricing.channels')}
                     </li>
                     <li className="flex items-center text-gray-600">
                       <span className="text-green-500 mr-3">✓</span>
@@ -276,18 +279,21 @@ function HomeContent() {
                       {t('pricing.prioritySupport')}
                     </li>
                   </ul>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    {t('pricing.choosePro')}
+                  <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => router.push('/subscription')}
+                  >
+                    {t('pricing.choosePremium')}
                   </Button>
                 </CardContent>
               </Card>
 
-              {/* Enterprise Plan */}
+              {/* Pro Plan */}
               <Card className="border border-gray-200 bg-white">
                 <CardHeader>
-                  <CardTitle className="text-gray-900">{t('pricing.enterprise.title')}</CardTitle>
+                  <CardTitle className="text-gray-900">{t('pricing.pro.title')}</CardTitle>
                   <div className="text-4xl font-bold text-gray-900">
-                    $99<span className="text-lg text-gray-500">/mo</span>
+                    $49<span className="text-lg text-gray-500">/mo</span>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -309,8 +315,11 @@ function HomeContent() {
                       {t('pricing.sla')}
                     </li>
                   </ul>
-                  <Button className="w-full bg-gray-600 hover:bg-gray-700 text-white">
-                    {t('pricing.contactUs')}
+                  <Button
+                    className="w-full bg-gray-600 hover:bg-gray-700 text-white"
+                    onClick={() => router.push('/subscription')}
+                  >
+                    {t('pricing.choosePro')}
                   </Button>
                 </CardContent>
               </Card>

@@ -20,7 +20,10 @@ const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleFilterChange = (key: keyof ChannelFilters, value: any) => {
+  const handleFilterChange = (
+    key: keyof ChannelFilters,
+    value: ChannelFilters[keyof ChannelFilters]
+  ) => {
     onFiltersChange({
       ...filters,
       [key]: value,

@@ -112,13 +112,14 @@ export default function ProfilePage() {
         setUser(prev => ({
           ...prev,
           stats: {
-            ...prev.stats,
             channelsFollowed: channelList.length,
             totalSignals: signalCount,
             successRate: Math.round(avgAccuracy * 10) / 10,
             winRate: Math.round(avgAccuracy * 10) / 10,
+            profit: prev.stats?.profit ?? 0,
             totalProfit: Math.round(totalRoi * 10) / 10,
-            daysActive: prev.stats?.daysActive || 0,
+            totalReturn: prev.stats?.totalReturn ?? 0,
+            daysActive: prev.stats?.daysActive ?? 0,
           },
         }));
       } catch { /* API unavailable, keep defaults */ }

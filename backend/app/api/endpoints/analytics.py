@@ -325,6 +325,7 @@ async def get_signal_patterns(
                 "BTC", "ETH", "BNB", "ADA", "XRP", "SOL", "DOT", "DOGE",
                 "AVAX", "LUNA", "LINK", "UNI", "LTC", "BCH", "ALGO", "VET"
             ],
+            # Веса для документации парсера/OCR (не метрики из БД)
             "confidence_factors": {
                 "signal_type_identified": 0.2,
                 "symbol_identified": 0.2,

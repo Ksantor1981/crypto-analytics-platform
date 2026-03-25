@@ -451,49 +451,49 @@ def get_quality_recommendation(analysis_result: Dict) -> str:
     else:
         return "🔴 СЛАБЫЙ источник. НЕ рекомендуется для торговли, только для справки."
 
-async def analyze_discord_source(source_url: str, db: Session) -> Dict[str, Any]:
-    """Анализ Discord сервера (заглушка)"""
+def _unimplemented_source_analysis(category: str, note: str) -> Dict[str, Any]:
+    """Честный ответ без выдуманных метрик — канал получит низкий приоритет."""
     return {
-        "quality_score": 0.5,
-        "is_quality": True,
-        "signals_found": 5,
-        "structured_signals": 3,
-        "category": "discord",
-        "note": "Discord анализ в разработке"
+        "implemented": False,
+        "quality_score": 0.0,
+        "is_quality": False,
+        "signals_found": 0,
+        "structured_signals": 0,
+        "category": category,
+        "note": note,
     }
+
+
+async def analyze_discord_source(source_url: str, db: Session) -> Dict[str, Any]:
+    """Discord — автоанализ не реализован."""
+    return _unimplemented_source_analysis(
+        "discord",
+        "Автоанализ Discord не реализован; источник добавлен вручную с низким приоритетом",
+    )
+
 
 async def analyze_reddit_source(source_url: str, db: Session) -> Dict[str, Any]:
-    """Анализ Reddit источника (заглушка)"""
-    return {
-        "quality_score": 0.6,
-        "is_quality": True,
-        "signals_found": 8,
-        "structured_signals": 4,
-        "category": "reddit",
-        "note": "Reddit анализ в разработке"
-    }
+    """Reddit — отдельный поток сбора в scheduler; преданализ URL здесь не делаем."""
+    return _unimplemented_source_analysis(
+        "reddit",
+        "Преданализ Reddit URL не реализован; используйте общий сбор r/* или Telegram",
+    )
+
 
 async def analyze_twitter_source(source_url: str, db: Session) -> Dict[str, Any]:
-    """Анализ Twitter аккаунта (заглушка)"""
-    return {
-        "quality_score": 0.7,
-        "is_quality": True,
-        "signals_found": 12,
-        "structured_signals": 6,
-        "category": "twitter",
-        "note": "Twitter анализ в разработке"
-    }
+    """Twitter — не реализовано."""
+    return _unimplemented_source_analysis(
+        "twitter",
+        "Автоанализ Twitter/X не реализован",
+    )
+
 
 async def analyze_generic_source(source_url: str, db: Session) -> Dict[str, Any]:
-    """Анализ веб-сайта или другого источника (заглушка)"""
-    return {
-        "quality_score": 0.4,
-        "is_quality": False,
-        "signals_found": 2,
-        "structured_signals": 1,
-        "category": "website",
-        "note": "Веб-сайт анализ в разработке"
-    }
+    """Произвольный сайт — не реализовано."""
+    return _unimplemented_source_analysis(
+        "website",
+        "Автоанализ веб-источника не реализован",
+    )
 
 async def save_analysis_results(channel_id: int, analysis_result: Dict, db: Session):
     """Сохраняет результаты анализа в базу данных"""

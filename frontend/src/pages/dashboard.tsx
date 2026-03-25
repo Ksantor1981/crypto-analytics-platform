@@ -23,6 +23,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import DashboardTour from '@/components/tour/DashboardTour';
+import { DataExportCard } from '@/components/dashboard/DataExportCard';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -158,13 +159,21 @@ export default function DashboardPage() {
                       Отслеживается каналов: {channels.length}
                     </p>
                   </div>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => router.push('/subscription')}
+                  >
                     Обновить план
                   </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          <DataExportCard
+            isAuthenticated={isAuthenticated}
+            subscriptionPlan={authUser?.subscription?.plan}
+          />
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 key-metrics">
@@ -227,7 +236,11 @@ export default function DashboardPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Мои каналы</CardTitle>
-                  <Button size="sm" className="flex items-center add-channel-button">
+                  <Button
+                    size="sm"
+                    className="flex items-center add-channel-button"
+                    onClick={() => router.push('/channels')}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Добавить канал
                   </Button>
@@ -257,7 +270,11 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <Button variant="outline" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/channels/${channel.id}`)}
+                        >
                           Детали
                         </Button>
                       </div>

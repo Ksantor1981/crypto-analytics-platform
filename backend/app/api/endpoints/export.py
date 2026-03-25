@@ -11,17 +11,19 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User
 from app.core.auth import get_current_user
+from app.middleware.rbac_middleware import check_subscription_limit
+
 try:
     from app.services.export_service import export_service
 except ImportError:
     export_service = None
-try:
-    from app.middleware.rbac_middleware import require_subscription_plan, SubscriptionPlan
-except ImportError:
-    require_subscription_plan = None
-    SubscriptionPlan = None
 
 router = APIRouter()
+
+
+async def _ensure_export_access(user: User) -> None:
+    """Premium/Pro: фича export_data (см. User.has_feature)."""
+    await check_subscription_limit(user, feature="export_data", api_call=False)
 
 @router.get("/export/signals")
 async def export_signals(
@@ -36,9 +38,13 @@ async def export_signals(
     Export user's crypto signals data
     Premium feature - requires Premium or Pro subscription
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PREMIUM)
-    
+    if export_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Export service unavailable",
+        )
+    await _ensure_export_access(current_user)
+
     try:
         return await export_service.export_user_data(
             user=current_user,
@@ -65,9 +71,13 @@ async def export_channels(
     Export user's channels data
     Premium feature - requires Premium or Pro subscription
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PREMIUM)
-    
+    if export_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Export service unavailable",
+        )
+    await _ensure_export_access(current_user)
+
     try:
         return await export_service.export_user_data(
             user=current_user,
@@ -93,9 +103,13 @@ async def export_analytics(
     Export user's analytics data
     Premium feature - requires Premium or Pro subscription
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PREMIUM)
-    
+    if export_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Export service unavailable",
+        )
+    await _ensure_export_access(current_user)
+
     try:
         return await export_service.export_user_data(
             user=current_user,
@@ -119,9 +133,13 @@ async def get_supported_formats(
     Get list of supported export formats
     Premium feature - requires Premium or Pro subscription
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PREMIUM)
-    
+    if export_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Export service unavailable",
+        )
+    await _ensure_export_access(current_user)
+
     return {
         "supported_formats": export_service.supported_formats,
         "export_types": ["signals", "channels", "analytics"],

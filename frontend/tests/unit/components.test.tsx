@@ -116,10 +116,13 @@ describe('Frontend Components Unit Tests', () => {
           <MockLoginForm />
         </TestWrapper>
       );
-      const emailInput = container.querySelector('[data-testid="email-input"]');
-      
-      fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
-      
+      const emailInput = container.querySelector(
+        '[data-testid="email-input"]'
+      ) as HTMLInputElement | null;
+      expect(emailInput).not.toBeNull();
+
+      fireEvent.change(emailInput!, { target: { value: 'invalid-email' } });
+
       expect(emailInput).toHaveValue('invalid-email');
       // В реальном компоненте здесь была бы валидация
     });

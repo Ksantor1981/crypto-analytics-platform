@@ -6,7 +6,10 @@
 
 **Документация:**
 - [ТЗ (Техническое задание)](./ТЗ.md) — полные требования, этапы, критерии успеха
-- [Соответствие ТЗ](./СООТВЕТСТВИЕ_ТЗ_2026_02_25.md) — актуальный статус реализации (~55%)
+- [Соответствие ТЗ](./СООТВЕТСТВИЕ_ТЗ_2026_02_25.md) — актуальный статус реализации
+- [План ~99% готовности](./docs/PLAN_99_READINESS.md) — фазы A–D, регрессия
+- [Stripe test checkout (smoke)](./docs/STRIPE_TEST_CHECKOUT.md) — проверка оплаты в test mode
+- [Закрытие разрывов с ТЗ](./docs/TZ_GAPS_REMEDIATION.md) — ML, coverage, RPS, GA, алерты Pro
 - [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production  
 - [Оценка статуса](./docs/ARCHITECT_STATUS_EVALUATION.md) — технический архитектор (текущее состояние)
 - [ML Pipeline](./ml-service/README.md) — train-скрипт, feature engineering, воспроизводимость
@@ -74,6 +77,15 @@ cd frontend && npm install --legacy-peer-deps && npm run dev
 - `POST /api/v1/predictions/ml-predict` — ML предсказание
 
 Swagger: http://localhost:8000/docs
+
+### Docker Compose (полный стек)
+
+- Сбор сигналов **непрерывно** в процессе `backend`: asyncio-планировщик (интервалы задаются `COLLECTION_INTERVAL_SECONDS` / `REDDIT_COLLECTION_INTERVAL_SECONDS`, в `docker-compose.yml` по умолчанию **180** с).
+- **`AUTO_SEED_DEMO_CHANNELS=false`** в compose — при пустой БД не создаётся длинный список демо-каналов; добавьте каналы через API или `scripts/seed_data.py`.
+- **Celery beat** для сбора (`celery-collect`) вынесен в профиль **`celery-beat`**, чтобы не дублировать опрос вместе с планировщиком в backend:  
+  `docker compose --profile celery-beat up -d`
+- Проверка с хоста после `up`:  
+  `python backend/scripts/smoke_real_services.py --base-url http://127.0.0.1:8000`
 
 ## Тесты
 

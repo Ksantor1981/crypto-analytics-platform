@@ -8,6 +8,7 @@ export interface ChannelSignal {
   entry_price: number;
   target_price?: number;
   stop_loss?: number;
+  exit_price?: number;
   status: string;
   timestamp: string;
   pnl?: number;
@@ -55,6 +56,7 @@ const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
       entry_price: (s.entry_price || 0) as number,
       target_price: (s.tp1_price || undefined) as number | undefined,
       stop_loss: (s.stop_loss || undefined) as number | undefined,
+      exit_price: (s.exit_price as number | undefined) ?? undefined,
       status: ((s.status as string) || 'open').toLowerCase().includes('hit') ? 'closed'
         : ((s.status as string) || '').includes('SL') ? 'failed' : 'open',
       timestamp: (s.created_at || new Date().toISOString()) as string,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { SignalsList, SignalsFilter, SignalsStats, SignalCard } from '@/components/signals';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ interface SignalsPageProps {
 }
 
 export default function SignalsPage({ initialSignals }: SignalsPageProps) {
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [signals, setSignals] = useState<Signal[]>(initialSignals);
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -129,8 +130,26 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
               ) : signals.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p>Сигналы не найдены</p>
+                <div className="text-center py-12 px-4 text-gray-600">
+                  <p className="text-lg font-medium text-gray-800 mb-2">Пока нет сигналов</p>
+                  <p className="text-sm mb-6 max-w-md mx-auto">
+                    {isAuthenticated
+                      ? 'Данные появятся после сбора из каналов или добавьте каналы в разделе «Каналы».'
+                      : 'Войдите в аккаунт, чтобы видеть сигналы из вашей подписки и отслеживаемых каналов.'}
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {!isAuthenticated ? (
+                      <Button asChild>
+                        <Link href="/auth/login">Войти</Link>
+                      </Button>
+                    ) : null}
+                    <Button variant="outline" asChild>
+                      <Link href="/channels">Каналы</Link>
+                    </Button>
+                    <Button variant="ghost" asChild>
+                      <Link href="/dashboard">Панель</Link>
+                    </Button>
+                  </div>
                 </div>
               ) : viewMode === 'list' ? (
                 <SignalsList

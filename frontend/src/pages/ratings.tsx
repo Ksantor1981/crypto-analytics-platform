@@ -31,11 +31,35 @@ import {
   DollarSign,
 } from 'lucide-react';
 
-// Fallback empty array (data loads from API)
-const topChannels: Array<Record<string, unknown>> = [];
+/** Строка рейтинга (топ / общий список) */
+interface RatingChannelTop {
+  id: number;
+  rank: number;
+  name: string;
+  description: string;
+  accuracy: number;
+  signals: number;
+  roi: number;
+  subscribers: number;
+  rating: number;
+  avatar: string;
+  badge: string;
+  winRate: number;
+  avgReturn: number;
+  monthlyGrowth: number;
+}
 
-// Anti-rating loads from API (channels with low accuracy)
-const worstChannels: Array<Record<string, unknown>> = [];
+/** Антирейтинг — доп. поля предупреждений */
+interface RatingChannelAnti extends RatingChannelTop {
+  monthlyLoss: number;
+  scamReports: number;
+  avgLoss: number;
+}
+
+// Fallback empty array (data loads from API)
+const topChannels: RatingChannelTop[] = [];
+
+const worstChannels: RatingChannelAnti[] = [];
 
 // Categories for filtering
 const categories = [
@@ -47,30 +71,45 @@ const categories = [
 
 export default function RatingsPage() {
   const [activeCategory, setActiveCategory] = useState('top');
-  const [apiChannels, setApiChannels] = useState<typeof topChannels>([]);
+  const [apiChannels, setApiChannels] = useState<RatingChannelTop[]>([]);
 
   useEffect(() => {
     async function loadChannels() {
       try {
         const data = await apiClient.getChannels({ sort: 'accuracy_desc', limit: 100 });
         if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map((c: Record<string, unknown>, i: number) => ({
-            id: c.id as number,
-            rank: i + 1,
-            name: (c.name || 'Unknown') as string,
-            description: (c.description || '') as string,
-            accuracy: (c.accuracy || 0) as number,
-            signals: (c.signals_count || 0) as number,
-            roi: (c.average_roi || 0) as number,
-            subscribers: (c.subscribers_count || 0) as number,
-            rating: Math.min(5, ((c.accuracy as number || 0) / 20)),
-            avatar: (c.platform === 'reddit' ? '🔴' : c.platform === 'twitter' ? '🐦' : '📡') as string,
-            badge: (c.accuracy as number || 0) > 80 ? 'Лидер' : (c.accuracy as number || 0) > 65 ? 'Проверенный' : 'Стабильный',
-            winRate: (c.accuracy || 0) as number,
-            avgReturn: (c.average_roi || 0) as number,
-          }));
-          const sorted = mapped.sort((a: {accuracy: number}, b: {accuracy: number}) => b.accuracy - a.accuracy);
-          sorted.forEach((c: {rank: number}, i: number) => { c.rank = i + 1; });
+          const mapped: RatingChannelTop[] = data.map(
+            (c: Record<string, unknown>, i: number) => {
+              const acc = Number(c.accuracy) || 0;
+              const roi = Number(c.average_roi) || 0;
+              return {
+                id: Number(c.id) || i + 1,
+                rank: i + 1,
+                name: String(c.name || 'Unknown'),
+                description: String(c.description || ''),
+                accuracy: acc,
+                signals: Number(c.signals_count) || 0,
+                roi,
+                subscribers: Number(c.subscribers_count) || 0,
+                rating: Math.min(5, acc / 20),
+                avatar:
+                  c.platform === 'reddit'
+                    ? '🔴'
+                    : c.platform === 'twitter'
+                      ? '🐦'
+                      : '📡',
+                badge:
+                  acc > 80 ? 'Лидер' : acc > 65 ? 'Проверенный' : 'Стабильный',
+                winRate: acc,
+                avgReturn: roi,
+                monthlyGrowth: 12,
+              };
+            }
+          );
+          const sorted = [...mapped].sort((a, b) => b.accuracy - a.accuracy);
+          sorted.forEach((c, i) => {
+            c.rank = i + 1;
+          });
           setApiChannels(sorted);
         }
       } catch { /* use fallback */ }
@@ -171,6 +210,26 @@ export default function RatingsPage() {
                 </h2>
               </div>
 
+              {effectiveTopChannels.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="py-12 text-center text-gray-600">
+                    <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-lg font-medium text-gray-800 mb-2">Нет данных для рейтинга</p>
+                    <p className="text-sm mb-6 max-w-md mx-auto">
+                      Запустите backend и seed (`python scripts/seed_data.py`) или дождитесь сбора сигналов.
+                      Для просмотра каналов перейдите в раздел ниже.
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-3">
+                      <Button asChild>
+                        <Link href="/channels">Каналы</Link>
+                      </Button>
+                      <Button variant="outline" asChild>
+                        <Link href="/signals">Сигналы</Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {effectiveTopChannels.map((channel, index) => (
                   <Card
@@ -299,6 +358,7 @@ export default function RatingsPage() {
                   </Card>
                 ))}
               </div>
+              )}
             </div>
           )}
 
@@ -325,15 +385,28 @@ export default function RatingsPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {(apiChannels.length > 0
-                  ? apiChannels.filter(c => (c.accuracy || 0) < 50).slice().reverse().map((c, i) => ({
-                      ...c, rank: i + 1,
-                      badge: (c.accuracy || 0) < 30 ? 'Опасно' : (c.accuracy || 0) < 40 ? 'Фейк' : 'Памп&Дамп',
-                      monthlyLoss: -(100 - (c.accuracy || 0)) * 0.5,
-                      scamReports: Math.floor((100 - (c.accuracy || 0)) * 0.8),
-                      avgLoss: -(100 - (c.accuracy || 0)) * 0.3,
-                    }))
+                  ? apiChannels
+                      .filter(c => c.accuracy < 50)
+                      .slice()
+                      .reverse()
+                      .map((c, i): RatingChannelAnti => {
+                        const acc = c.accuracy;
+                        return {
+                          ...c,
+                          rank: i + 1,
+                          badge:
+                            acc < 30
+                              ? 'Опасно'
+                              : acc < 40
+                                ? 'Фейк'
+                                : 'Памп&Дамп',
+                          monthlyLoss: -(100 - acc) * 0.5,
+                          scamReports: Math.floor((100 - acc) * 0.8),
+                          avgLoss: -(100 - acc) * 0.3,
+                        };
+                      })
                   : worstChannels
-                ).map(channel => (
+                ).map((channel: RatingChannelAnti) => (
                   <Card
                     key={channel.id}
                     className="card-hover border-red-200 bg-red-50"

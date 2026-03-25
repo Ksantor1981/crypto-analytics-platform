@@ -11,7 +11,7 @@ export const useSubscriptions = () => {
     isLoading,
     error,
     refetch,
-  } = useQuery({
+  } = useQuery<Array<{ id: string }>>({
     queryKey: ['subscriptions'],
     queryFn: async () => {
       const response = await apiClient.getSubscriptions();
@@ -55,7 +55,7 @@ export const useSubscriptions = () => {
 export const useSubscriptionPlan = (id: string) => {
   const { subscriptions, isLoading, error } = useSubscriptions();
   
-  const subscription = subscriptions.find(plan => plan.id === id);
+  const subscription = subscriptions.find((plan: { id: string }) => plan.id === id);
 
   return {
     subscription,

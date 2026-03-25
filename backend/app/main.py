@@ -45,7 +45,8 @@ try:
         channels, users, signals, subscriptions, 
         payments, ml_integration, telegram_integration, 
         trading, ml_predictions, backtesting, dashboard,
-        user_sources, feedback, analytics, collect, export_signals, stripe_checkout
+        user_sources, feedback, analytics, collect, export_signals, export as export_endpoints,
+        stripe_checkout
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -85,7 +86,10 @@ trading_scheduler = None
 
 
 def _seed_demo_data(db_engine):
-    """Seed database with demo data if empty"""
+    """Seed database with demo data if empty (отключается AUTO_SEED_DEMO_CHANNELS=false)."""
+    if not getattr(settings, "AUTO_SEED_DEMO_CHANNELS", True):
+        logger.info("AUTO_SEED_DEMO_CHANNELS=false — пропуск автосида каналов")
+        return
     from sqlalchemy.orm import Session
     try:
         with Session(db_engine) as session:
@@ -203,41 +207,30 @@ async def lifespan(app: FastAPI):
         # Auto-collect signals from Telegram channels on startup
         import asyncio
         async def _auto_collect():
-            await asyncio.sleep(2)
+            await asyncio.sleep(3)
             try:
                 from app.core.database import SessionLocal
-                from app.models.channel import Channel
-                from app.models.signal import Signal
-                from app.services.telegram_scraper import collect_signals_from_channel
+                from app.core.config import get_settings
+                from app.services.collection_pipeline import run_full_collection_async
                 from app.services.metrics_calculator import recalculate_all_channels
                 db = SessionLocal()
-                channels = db.query(Channel).filter(Channel.is_active == True, Channel.platform == "telegram").all()
-                total = 0
-                for ch in channels:
-                    uname = ch.username or (ch.url or "").rstrip("/").split("/")[-1]
-                    if not uname:
-                        continue
-                    try:
-                        sigs = await collect_signals_from_channel(uname)
-                        for s in sigs:
-                            if not s.entry_price:
-                                continue
-                            if db.query(Signal).filter(Signal.channel_id == ch.id, Signal.original_text == s.original_text[:500]).first():
-                                continue
-                            db.add(Signal(channel_id=ch.id, asset=s.asset, symbol=s.asset.replace("/",""),
-                                direction=s.direction, entry_price=s.entry_price, tp1_price=s.take_profit,
-                                stop_loss=s.stop_loss, confidence_score=s.confidence, original_text=s.original_text,
-                                status="PENDING", message_timestamp=s.timestamp))
-                            total += 1
-                            ch.signals_count = (ch.signals_count or 0) + 1
-                    except Exception as e:
-                        logger.warning(f"Collect @{uname}: {e}")
+                st = get_settings()
+                result = await run_full_collection_async(db, st)
+                tg = result.get("telegram") or {}
+                rd = result.get("reddit") or {}
+                total = (tg.get("saved") or 0) + (rd.get("saved") or 0)
                 db.commit()
                 recalculate_all_channels(db)
                 db.close()
-                logger.info(f"Auto-collection: {total} signals from {len(channels)} channels")
+                logger.info(
+                    "Startup collection: saved=%s tg_posts=%s tg_channels=%s reddit_saved=%s",
+                    total,
+                    tg.get("posts_fetched"),
+                    tg.get("channels"),
+                    rd.get("saved"),
+                )
             except Exception as e:
-                logger.warning(f"Auto-collection failed: {e}")
+                logger.warning("Startup collection failed: %s", e)
         t1 = asyncio.create_task(_auto_collect())
         _background_tasks.append(t1)
 
@@ -260,7 +253,12 @@ async def lifespan(app: FastAPI):
             t7 = asyncio.create_task(periodic_source_health())
             t8 = asyncio.create_task(periodic_source_discovery())
             _background_tasks.extend([t2, t3, t4, t5, t6, t7, t8])
-            logger.info("Schedulers started: collect 5min, digest 7d, revalidation 24h, ML train 24h, source health 24h, source discovery 24h")
+            from app.tasks.scheduler import COLLECTION_INTERVAL, REDDIT_INTERVAL
+            logger.info(
+                "Schedulers started: tg_collect=%ss reddit=%ss digest=7d reval=24h ml=24h health=24h discovery=24h",
+                COLLECTION_INTERVAL,
+                REDDIT_INTERVAL,
+            )
         except Exception as sched_err:
             logger.warning("Scheduler not started", error=str(sched_err))
 
@@ -348,12 +346,19 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
-# Добавляем middleware для доверенных хостов (только в продакшене)
-if getattr(settings, 'ENVIRONMENT', 'development') == "production":
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=getattr(settings, 'BACKEND_CORS_ORIGINS', ["*"])
-    )
+# Доверенные хосты в production (имена из CORS URL + TRUSTED_HOSTS)
+if getattr(settings, "ENVIRONMENT", "development") == "production":
+    try:
+        from app.core.trusted_hosts import build_trusted_hosts
+
+        _th = build_trusted_hosts(
+            getattr(settings, "TRUSTED_HOSTS", None),
+            list(getattr(settings, "BACKEND_CORS_ORIGINS", []) or []),
+        )
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=_th)
+        logger.info("TrustedHostMiddleware enabled: %s", _th)
+    except Exception as e:
+        logger.warning("TrustedHostMiddleware skip: %s", e)
 
 # Добавляем middleware для ограничения подписок (если доступен)
 if SubscriptionLimitMiddleware:
@@ -388,7 +393,8 @@ routers_config = [
     ("feedback", "/api/v1/feedback", "feedback"),
     ("analytics", "/api/v1/analytics", "analytics"),
     ("collect", "/api/v1/collect", "collect"),
-    ("export_signals", "/api/v1", "export"),
+    ("export_signals", "/api/v1", "export-csv"),
+    ("export_endpoints", "/api/v1", "export"),
     ("stripe_checkout", "/api/v1/stripe", "stripe"),
 ]
 
@@ -411,21 +417,28 @@ for router_name, prefix, tag in routers_config:
 @app.get("/")
 async def root():
     """Корневой эндпоинт с информацией о системе"""
+    ml_ok = False
+    try:
+        from app.core.service_probes import probe_ml_service
+
+        ml_ok, _ = await probe_ml_service(settings.ML_SERVICE_URL, timeout=2.0)
+    except Exception:
+        pass
     return {
         "message": "🚀 Crypto Analytics Platform API",
         "version": settings.VERSION,
         "status": "running",
         "features": {
             "database": engine is not None,
-            "ml_service": True,
+            "ml_service": ml_ok,
             "trading_scheduler": trading_scheduler is not None,
-            "cors_enabled": True
+            "cors_enabled": True,
         },
         "endpoints": {
             "docs": "/docs",
             "health": "/health",
-            "api": "/api/v1"
-        }
+            "api": "/api/v1",
+        },
     }
 
 @app.get("/ready")
@@ -445,6 +458,8 @@ async def readiness_check():
 @app.get("/health")
 async def health_check():
     """Liveness probe — basic health check."""
+    from datetime import datetime
+
     health_data = {
         "status": "healthy",
         "version": settings.VERSION,
@@ -453,25 +468,34 @@ async def health_check():
             "api": "up",
             "database": "unknown",
             "redis": "unknown",
-            "ml_service": "unknown"
-        }
+            "ml_service": "unknown",
+        },
     }
-    
-    # Проверка подключения к базе данных
+
     if engine:
         try:
             from sqlalchemy import text
+
             with engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
             health_data["services"]["database"] = "up"
         except Exception as e:
             health_data["services"]["database"] = f"down: {str(e)}"
-            logger.error(f"Database health check failed: {e}")
-    
-    # Добавляем timestamp
-    from datetime import datetime
+            logger.error("Database health check failed: %s", e)
+
+    try:
+        from app.core.service_probes import probe_redis_sync, probe_ml_service
+
+        r_ok, r_err = probe_redis_sync(settings.REDIS_URL)
+        health_data["services"]["redis"] = "up" if r_ok else f"down: {r_err}"
+
+        ml_ok, ml_err = await probe_ml_service(settings.ML_SERVICE_URL, timeout=2.5)
+        health_data["services"]["ml_service"] = "up" if ml_ok else f"down: {ml_err}"
+    except Exception as e:
+        health_data["services"]["redis"] = f"check_error: {e}"
+        health_data["services"]["ml_service"] = f"check_error: {e}"
+
     health_data["timestamp"] = datetime.utcnow().isoformat()
-    
     return health_data
 
 
@@ -514,7 +538,13 @@ async def test_endpoint():
 @app.get("/api/v1/test-simple")
 async def test_simple():
     """Очень простой тестовый эндпоинт"""
-    return {"message": "API работает!", "data": "test", "timestamp": "2025-08-23"}
+    from datetime import datetime
+
+    return {
+        "message": "API работает!",
+        "data": "test",
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 # Простой эндпоинт для дашборда
 @app.get("/api/v1/test-signals")
@@ -596,23 +626,41 @@ async def dashboard_channels():
     except Exception as e:
         return {"error": str(e), "message": "Failed to get channels"}
 
-# Заглушка для ML предсказаний если основной сервис недоступен
 @app.post("/api/v1/predictions/test")
 async def test_prediction():
-    """ML prediction via ML Service API"""
+    """Прокси к ML-сервису; без фейковых ответов при недоступности."""
     import httpx
+
+    url = f"{settings.ML_SERVICE_URL.rstrip('/')}/api/v1/predictions/ml-predict"
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=8.0) as client:
             resp = await client.post(
-                f"{settings.ML_SERVICE_URL}/api/v1/predictions/ml-predict",
-                json={"asset": "BTC", "direction": "LONG", "entry_price": 65000,
-                      "target_price": 72000, "stop_loss": 63000},
+                url,
+                json={
+                    "asset": "BTC",
+                    "direction": "LONG",
+                    "entry_price": 65000,
+                    "target_price": 72000,
+                    "stop_loss": 63000,
+                },
             )
             if resp.status_code == 200:
                 return resp.json()
-    except Exception:
-        pass
-    return {"prediction": "LONG", "confidence": 0.75, "message": "ML service unavailable, fallback"}
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": "ml_service_error",
+                    "status_code": resp.status_code,
+                    "body": resp.text[:500],
+                },
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail={"error": "ml_service_unreachable", "message": str(e)},
+        )
 
 if __name__ == "__main__":
     logger.info("Starting server in development mode...")

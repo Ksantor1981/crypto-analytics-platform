@@ -52,6 +52,8 @@ class Signal(BaseModel):
     
     # Original message
     original_text = Column(Text, nullable=True)
+    # SHA-256 hex of normalized text — дедуп надёжнее, чем left(500)
+    content_fingerprint = Column(String(64), nullable=True, index=True)
     message_timestamp = Column(DateTime(timezone=True), default=datetime.utcnow)
     timestamp = Column(DateTime(timezone=True), default=datetime.utcnow)  # Alternative name for compatibility
     telegram_message_id = Column(String(50), nullable=True)  # For tracking

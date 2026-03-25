@@ -3,15 +3,11 @@ import pytest
 import uuid
 from decimal import Decimal
 
-from app.core.config import get_settings
 from app.core.database import engine, SessionLocal
 from app.models.base import Base
 from app.models.channel import Channel
 from app.models.signal import Signal, SignalDirection
-from app.services.dedup import signal_exists, cleanup_duplicates
-
-# signal_exists использует func.left (PostgreSQL); на SQLite тесты пропускаем
-IS_SQLITE = get_settings().USE_SQLITE or "sqlite" in (get_settings().database_url or "")
+from app.services.dedup import signal_exists, cleanup_duplicates, content_fingerprint
 
 
 @pytest.fixture
@@ -32,12 +28,10 @@ def ch(db_dedup):
     return c
 
 
-@pytest.mark.skipif(IS_SQLITE, reason="signal_exists uses func.left (PostgreSQL)")
 def test_signal_exists_empty(db_dedup, ch):
     assert signal_exists(db_dedup, ch.id, "BTC LONG 50k") is False
 
 
-@pytest.mark.skipif(IS_SQLITE, reason="signal_exists uses func.left (PostgreSQL)")
 def test_signal_exists_after_add(db_dedup, ch):
     text = "BTC LONG entry 50000 tp 52000 sl 48000"
     s = Signal(
@@ -47,12 +41,14 @@ def test_signal_exists_after_add(db_dedup, ch):
         direction=SignalDirection.LONG,
         entry_price=Decimal("50000"),
         original_text=text,
+        content_fingerprint=content_fingerprint(text),
         status="PENDING",
     )
     db_dedup.add(s)
     db_dedup.commit()
     assert signal_exists(db_dedup, ch.id, text) is True
-    assert signal_exists(db_dedup, ch.id, text[:500]) is True
+    # пробелы/регистр после нормализации — тот же fingerprint
+    assert signal_exists(db_dedup, ch.id, "  " + text.upper() + "  ") is True
 
 
 def test_cleanup_duplicates_empty(db_dedup):

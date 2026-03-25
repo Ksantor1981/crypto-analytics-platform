@@ -208,6 +208,39 @@ async def get_current_user_profile(
     return schemas.user.UserProfile.model_validate(current_user)
 
 
+@router.get("/me/limits", response_model=schemas.user.UserLimitsResponse)
+async def get_current_user_limits(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user plan limits and usage."""
+    from app.models.channel import Channel
+    channels_used = db.query(Channel).filter(Channel.owner_id == current_user.id).count()
+    channels_limit = current_user.channels_limit or 3
+    can_add = current_user.can_add_channel()
+    # Plan name from role/subscription
+    plan = "Free"
+    if current_user.is_admin or current_user.is_pro:
+        plan = "Pro"
+    elif current_user.is_premium:
+        plan = "Premium"
+    # Ratings: backend doesn't track views yet, use plan limits
+    ratings_limits = {"Free": 10, "Premium": 50, "Pro": -1}
+    ratings_limit = ratings_limits.get(plan, 10)
+    ratings_viewed = 0  # TODO: add tracking when needed
+    can_view_more = ratings_limit == -1 or ratings_viewed < ratings_limit
+    effective_channels_limit = -1 if (current_user.is_admin or current_user.is_pro) else channels_limit
+    return schemas.user.UserLimitsResponse(
+        plan=plan,
+        channels_limit=effective_channels_limit,
+        channels_used=channels_used,
+        can_add_channel=can_add,
+        ratings_limit=ratings_limit,
+        ratings_viewed=ratings_viewed,
+        can_view_more_ratings=can_view_more,
+    )
+
+
 @router.put("/me", response_model=schemas.user.UserResponse)
 async def update_current_user(
     user_data: UserUpdate,

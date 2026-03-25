@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiClient } from '@/lib/api';
 
 export interface UserPlan {
   name: 'Free' | 'Premium' | 'Pro';
@@ -54,32 +55,40 @@ export function useUserLimits() {
   const [limits, setLimits] = useState<UserLimits | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchLimits = async () => {
+    try {
+      const data = await apiClient.getLimits();
+      const userPlan = PLANS[data.plan] ?? PLANS.Free;
+      setLimits({
+        channelsUsed: data.channels_used,
+        channelsLimit: data.channels_limit,
+        canAddChannel: data.can_add_channel,
+        ratingsViewed: data.ratings_viewed,
+        ratingsLimit: data.ratings_limit,
+        canViewMoreRatings: data.can_view_more_ratings,
+        plan: userPlan,
+      });
+    } catch {
+      const userPlan = PLANS.Free;
+      setLimits({
+        channelsUsed: 0,
+        channelsLimit: userPlan.channelsLimit,
+        canAddChannel: true,
+        ratingsViewed: 0,
+        ratingsLimit: userPlan.ratingsLimit,
+        canViewMoreRatings: true,
+        plan: userPlan,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // В реальном приложении это будет API вызов
-    // Пока используем mock данные
-    const mockUser = {
-      plan: 'Free',
-      channelsUsed: 2,
-      ratingsViewed: 5,
-    };
-
-    const userPlan = PLANS[mockUser.plan];
-
-    setLimits({
-      channelsUsed: mockUser.channelsUsed,
-      channelsLimit: userPlan.channelsLimit,
-      canAddChannel:
-        userPlan.channelsLimit === -1 ||
-        mockUser.channelsUsed < userPlan.channelsLimit,
-      ratingsViewed: mockUser.ratingsViewed,
-      ratingsLimit: userPlan.ratingsLimit,
-      canViewMoreRatings:
-        userPlan.ratingsLimit === -1 ||
-        mockUser.ratingsViewed < userPlan.ratingsLimit,
-      plan: userPlan,
-    });
-
-    setLoading(false);
+    let cancelled = false;
+    setLoading(true);
+    fetchLimits().then(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   const checkChannelLimit = (): boolean => {
@@ -117,6 +126,7 @@ export function useUserLimits() {
   return {
     limits,
     loading,
+    refetch: fetchLimits,
     checkChannelLimit,
     checkRatingsLimit,
     incrementChannelsUsed,
