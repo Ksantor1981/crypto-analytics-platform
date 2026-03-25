@@ -93,7 +93,7 @@ export default function PricingPage() {
   const [plans, setPlans] = useState<PricingPlan[]>(defaultPlans);
 
   useEffect(() => {
-    apiClient
+    void apiClient
       .getSubscriptionPlans()
       .then(apiPlans => {
         if (Array.isArray(apiPlans) && apiPlans.length > 0) {
@@ -129,7 +129,7 @@ export default function PricingPage() {
   const handleSelectPlan = (plan: PricingPlan) => {
     if (plan.id === 'free') {
       // Для бесплатного плана просто редиректим на регистрацию
-      router.push('/auth/register');
+      void router.push('/auth/register');
       return;
     }
 
@@ -139,7 +139,7 @@ export default function PricingPage() {
 
   const handleCheckoutSuccess = () => {
     setShowCheckout(false);
-    router.push('/dashboard?success=subscription');
+    void router.push('/dashboard?success=subscription');
   };
 
   const handleCheckoutError = (error: string) => {

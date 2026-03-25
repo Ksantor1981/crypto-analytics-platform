@@ -40,7 +40,7 @@ export const SubscriptionManager: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    fetchSubscriptionData();
+    void fetchSubscriptionData();
   }, []);
 
   const fetchSubscriptionData = async () => {

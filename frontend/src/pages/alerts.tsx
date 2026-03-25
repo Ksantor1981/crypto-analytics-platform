@@ -29,7 +29,7 @@ const AlertsPage: NextPage = () => {
         /* игнорируем ошибки загрузки */
       }
     }
-    load();
+    void load();
   }, []);
 
   const pending = signals.filter(s => s.status === 'PENDING').length;

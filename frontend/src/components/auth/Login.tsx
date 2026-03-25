@@ -27,7 +27,7 @@ export function Login() {
 
     try {
       await login(email, password);
-      router.push('/dashboard');
+      void router.push('/dashboard');
     } catch (err) {
       setError('Неверный email или пароль');
       console.error('Login error:', err);

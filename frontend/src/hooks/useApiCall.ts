@@ -23,7 +23,7 @@ export function useApiCall<T>(
   };
 
   useEffect(() => {
-    execute();
+    void execute();
   }, dependencies);
 
   return {

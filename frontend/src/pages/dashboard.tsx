@@ -119,7 +119,7 @@ export default function DashboardPage() {
         setTimeout(() => setRunTour(true), 1000);
       }
     }
-    loadDashboard();
+    void loadDashboard();
   }, []);
 
   if (loading) {

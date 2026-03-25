@@ -35,7 +35,7 @@ export default function LoginPage() {
     try {
       const success = await login(formData.email, formData.password);
       if (success) {
-        router.push('/dashboard');
+        void router.push('/dashboard');
       } else {
         setError('Неверный email или пароль');
       }

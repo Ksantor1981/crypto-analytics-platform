@@ -71,12 +71,12 @@ export default function SubscriptionPage() {
 
   const handleSelectPlan = async (planId: string) => {
     if (planId === 'free') {
-      if (!isAuthenticated) router.push('/auth/register');
+      if (!isAuthenticated) void router.push('/auth/register');
       return;
     }
     if (currentPlan != null && planId === currentPlan) return;
     if (!isAuthenticated) {
-      router.push('/auth/login');
+      void router.push('/auth/login');
       return;
     }
     setLoading(true);

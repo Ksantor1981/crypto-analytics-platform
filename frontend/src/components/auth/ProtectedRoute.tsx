@@ -23,7 +23,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   useEffect(() => {
     if (!isLoading && !user) {
       // Redirect to login if not authenticated
-      router.push('/auth/login');
+      void router.push('/auth/login');
     }
   }, [user, isLoading, router]);
 

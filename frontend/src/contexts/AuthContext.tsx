@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Проверяем авторизацию при загрузке
-    checkAuth();
+    void checkAuth();
   }, []);
 
   const checkAuth = async () => {

@@ -40,7 +40,7 @@ export default function SignalsPage({ initialSignals }: SignalsPageProps) {
   };
 
   useEffect(() => {
-    fetchSignals();
+    void fetchSignals();
   }, [filters]);
 
   const handleFiltersChange = (newFilters: SignalFilters) => {

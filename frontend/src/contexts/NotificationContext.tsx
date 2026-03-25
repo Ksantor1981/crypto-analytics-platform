@@ -254,7 +254,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   // Запрос разрешения на browser notifications при первом запуске
   useEffect(() => {
     if (state.settings.browserNotifications && 'Notification' in window) {
-      requestNotificationPermission();
+      void requestNotificationPermission();
     }
   }, [state.settings.browserNotifications]);
 
@@ -277,7 +277,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
     // Browser notification
     if (state.settings.browserNotifications && !notification.read) {
-      showBrowserNotification(
+      void showBrowserNotification(
         fullNotification.title,
         fullNotification.message,
         '/favicon.ico'

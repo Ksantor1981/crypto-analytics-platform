@@ -182,7 +182,7 @@ export function NotificationSettings({ onClose }: NotificationSettingsProps) {
               {!hasPermission && (
                 <Button
                   size="sm"
-                  onClick={() => handleBrowserNotificationToggle(true)}
+                  onClick={() => void handleBrowserNotificationToggle(true)}
                 >
                   Разрешить
                 </Button>
@@ -242,7 +242,9 @@ export function NotificationSettings({ onClose }: NotificationSettingsProps) {
                         }
                         onChange={e => {
                           if (setting.key === 'browserNotifications') {
-                            handleBrowserNotificationToggle(e.target.checked);
+                            void handleBrowserNotificationToggle(
+                              e.target.checked
+                            );
                           } else {
                             updateSettings({ [setting.key]: e.target.checked });
                           }

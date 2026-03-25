@@ -117,7 +117,7 @@ export function MobileMenu({
   ];
 
   const handleNavigation = (href: string) => {
-    router.push(href);
+    void router.push(href);
     onClose();
   };
 
@@ -128,15 +128,15 @@ export function MobileMenu({
         onClose();
         break;
       case 'alerts':
-        router.push('/alerts');
+        void router.push('/alerts');
         onClose();
         break;
       case 'settings':
-        router.push('/profile?tab=settings');
+        void router.push('/profile?tab=settings');
         onClose();
         break;
       case 'subscription':
-        router.push('/profile?tab=subscription');
+        void router.push('/profile?tab=subscription');
         onClose();
         break;
     }
@@ -144,7 +144,7 @@ export function MobileMenu({
 
   const handleLogout = async () => {
     await logout();
-    router.push('/');
+    void router.push('/');
     onClose();
   };
 

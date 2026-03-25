@@ -86,7 +86,7 @@ export default function RegisterPage() {
         await response.json();
         // Автоматически входим после регистрации
         await login(formData.email, formData.password);
-        router.push('/dashboard');
+        void router.push('/dashboard');
       } else {
         const errorData = await response.json();
         setError(

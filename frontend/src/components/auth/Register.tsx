@@ -70,7 +70,7 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push('/dashboard');
+        void router.push('/dashboard');
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ошибка регистрации');

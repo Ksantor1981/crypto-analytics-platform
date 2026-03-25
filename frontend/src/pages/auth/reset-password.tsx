@@ -80,7 +80,7 @@ export default function ResetPasswordPage() {
       if (response.ok) {
         setIsSuccess(true);
         setTimeout(() => {
-          router.push('/auth/login');
+          void router.push('/auth/login');
         }, 3000);
       } else {
         const errorData = await response.json();

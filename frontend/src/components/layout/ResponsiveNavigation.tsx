@@ -84,7 +84,7 @@ export function ResponsiveNavigation({
           return (
             <button
               key={item.name}
-              onClick={() => router.push(item.href)}
+              onClick={() => void router.push(item.href)}
               className={`
                 flex flex-col items-center justify-center p-2 rounded-lg
                 min-w-[60px] transition-all duration-200 ease-in-out
@@ -140,13 +140,13 @@ export function FloatingActionButton() {
     {
       name: 'Новый алерт',
       icon: Bell,
-      action: () => router.push('/alerts'),
+      action: () => void router.push('/alerts'),
       color: 'bg-blue-500 hover:bg-blue-600',
     },
     {
       name: 'Добавить канал',
       icon: Plus,
-      action: () => router.push('/channels?action=add'),
+      action: () => void router.push('/channels?action=add'),
       color: 'bg-green-500 hover:bg-green-600',
     },
   ];
@@ -170,7 +170,7 @@ export function FloatingActionButton() {
               </span>
               <button
                 onClick={() => {
-                  action.action();
+                  void action.action();
                   setIsOpen(false);
                 }}
                 className={`

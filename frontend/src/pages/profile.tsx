@@ -136,7 +136,7 @@ export default function ProfilePage() {
         /* API unavailable, keep defaults */
       }
     }
-    loadStats();
+    void loadStats();
   }, [authUser]);
 
   const handleSave = () => {

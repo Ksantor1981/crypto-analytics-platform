@@ -116,7 +116,7 @@ export default function RatingsPage() {
         /* use fallback */
       }
     }
-    loadChannels();
+    void loadChannels();
   }, []);
 
   const effectiveTopChannels =
