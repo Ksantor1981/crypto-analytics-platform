@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
   Filler,
+  type ChartOptions,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
@@ -37,7 +38,7 @@ interface LineChartProps {
       tension?: number;
     }[];
   };
-  options?: any;
+  options?: ChartOptions<'line'>;
   height?: number;
   width?: number;
 }

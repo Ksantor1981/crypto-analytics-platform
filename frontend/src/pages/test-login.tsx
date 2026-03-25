@@ -9,7 +9,7 @@ export default function TestLoginPage() {
   const [email, setEmail] = useState('test@example.com');
   const [password, setPassword] = useState('test123');
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { login, user, isAuthenticated } = useAuth();

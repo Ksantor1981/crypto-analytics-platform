@@ -1,7 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  type ChartOptions,
+} from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -17,7 +23,7 @@ interface DoughnutChartProps {
       borderWidth?: number;
     }[];
   };
-  options?: any;
+  options?: ChartOptions<'doughnut'>;
   height?: number;
   width?: number;
 }

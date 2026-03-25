@@ -147,7 +147,6 @@ module.exports = {
         'no-console': 'off',
         'react-hooks/exhaustive-deps': 'off',
         'react-hooks/incompatible-library': 'off',
-        '@typescript-eslint/no-explicit-any': 'off',
       },
     },
     {

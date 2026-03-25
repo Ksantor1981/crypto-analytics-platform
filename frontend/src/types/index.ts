@@ -108,10 +108,15 @@ export interface Channel {
   accuracy?: number;
   signals_count?: number;
   subscribers_count?: number;
+  /** Альтернативные имена полей с API */
+  signals?: number;
+  subscribers?: number;
 
   // Финансовые метрики
   avg_profit?: number;
   avg_roi?: number;
+  roi?: number;
+  average_roi?: number;
 
   // Дополнительные метаданные
   description?: string;

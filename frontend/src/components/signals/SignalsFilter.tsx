@@ -6,7 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { SignalFilters } from '@/types';
+import {
+  SignalFilters,
+  type SignalDirection,
+  type SignalStatus,
+} from '@/types';
 
 interface SignalsFilterProps {
   filters: SignalFilters;
@@ -21,21 +25,24 @@ export const SignalsFilter: React.FC<SignalsFilterProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleFilterChange = (key: keyof SignalFilters, value: any) => {
+  const handleFilterChange = <K extends keyof SignalFilters>(
+    key: K,
+    value: SignalFilters[K]
+  ) => {
     onFiltersChange({
       ...filters,
       [key]: value,
     });
   };
 
-  const statusOptions = [
+  const statusOptions: Array<{ value: SignalStatus; label: string }> = [
     { value: 'active', label: 'Активные' },
     { value: 'completed', label: 'Выполненные' },
     { value: 'failed', label: 'Не выполненные' },
     { value: 'cancelled', label: 'Отмененные' },
   ];
 
-  const directionOptions = [
+  const directionOptions: Array<{ value: SignalDirection; label: string }> = [
     { value: 'long', label: 'Long' },
     { value: 'short', label: 'Short' },
   ];

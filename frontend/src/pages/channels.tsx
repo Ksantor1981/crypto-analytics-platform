@@ -224,9 +224,11 @@ const ChannelsPage: React.FC = () => {
                       <TrendingUp className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" />{' '}
                       <span>
                         ROI:{' '}
-                        {(channel as any).average_roi?.toFixed(1) ??
-                          channel.roi?.toFixed(1) ??
-                          '—'}
+                        {(
+                          channel.average_roi ??
+                          channel.avg_roi ??
+                          channel.roi
+                        )?.toFixed(1) ?? '—'}
                         %
                       </span>
                     </div>
@@ -234,7 +236,7 @@ const ChannelsPage: React.FC = () => {
                       <Users className="h-4 w-4 mr-2 text-purple-500 flex-shrink-0" />{' '}
                       <span>
                         Подписчики:{' '}
-                        {(channel as any).subscribers_count ??
+                        {channel.subscribers_count ??
                           channel.subscribers ??
                           '—'}
                       </span>
@@ -242,8 +244,7 @@ const ChannelsPage: React.FC = () => {
                     <div className="flex items-center truncate">
                       <BarChart3 className="h-4 w-4 mr-2 text-yellow-500 flex-shrink-0" />{' '}
                       <span>
-                        Сигналы:{' '}
-                        {(channel as any).signals_count ?? channel.signals ?? 0}
+                        Сигналы: {channel.signals_count ?? channel.signals ?? 0}
                       </span>
                     </div>
                   </div>

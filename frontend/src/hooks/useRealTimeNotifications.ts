@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 
-import { useNotifications } from '@/contexts/NotificationContext';
+import {
+  useNotifications,
+  type Notification,
+} from '@/contexts/NotificationContext';
 
 interface SignalEvent {
   type: 'new_signal' | 'signal_update' | 'target_reached' | 'stop_loss_hit';
@@ -199,8 +202,9 @@ export function useRealTimeNotifications() {
         });
 
         if (response.ok) {
-          const notifications = await response.json();
-          notifications.forEach((notif: any) => {
+          const notifications = (await response.json()) as unknown[];
+          notifications.forEach(raw => {
+            const notif = raw as Omit<Notification, 'id' | 'timestamp'>;
             addNotification({
               type: notif.type,
               title: notif.title,
@@ -255,8 +259,8 @@ export function useRealTimeNotifications() {
         const data = await response.json();
 
         if (data.notifications?.length > 0) {
-          data.notifications.forEach((notif: any) => {
-            addNotification(notif);
+          (data.notifications as unknown[]).forEach(raw => {
+            addNotification(raw as Omit<Notification, 'id' | 'timestamp'>);
           });
         }
 

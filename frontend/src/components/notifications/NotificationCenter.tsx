@@ -22,6 +22,8 @@ export interface NotificationCenterProps {
   onClose: () => void;
 }
 
+type NotificationTabFilter = 'all' | 'unread' | 'signals' | 'alerts';
+
 export function NotificationCenter({
   isOpen,
   onClose,
@@ -29,9 +31,7 @@ export function NotificationCenter({
   const { state, markAsRead, markAllAsRead, removeNotification } =
     useNotifications();
   const { checkForNotifications, isConnected } = useRealTimeNotifications();
-  const [filter, setFilter] = useState<'all' | 'unread' | 'signals' | 'alerts'>(
-    'all'
-  );
+  const [filter, setFilter] = useState<NotificationTabFilter>('all');
   const [showSettings, setShowSettings] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -193,7 +193,9 @@ export function NotificationCenter({
             ].map(filterOption => (
               <button
                 key={filterOption.key}
-                onClick={() => setFilter(filterOption.key as any)}
+                onClick={() =>
+                  setFilter(filterOption.key as NotificationTabFilter)
+                }
                 className={`px-3 py-1 text-xs rounded-full transition-colors flex items-center space-x-1 ${
                   filter === filterOption.key
                     ? 'bg-blue-600 text-white'

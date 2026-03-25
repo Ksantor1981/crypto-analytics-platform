@@ -9,6 +9,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  type ChartOptions,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
@@ -32,7 +33,7 @@ interface BarChartProps {
       borderWidth?: number;
     }[];
   };
-  options?: any;
+  options?: ChartOptions<'bar'>;
   height?: number;
   width?: number;
 }

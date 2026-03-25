@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type DependencyList } from 'react';
 
 export function useApiCall<T>(
   apiCall: () => Promise<T>,
-  dependencies: any[] = []
+  dependencies: DependencyList = []
 ) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);

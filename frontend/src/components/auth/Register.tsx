@@ -72,8 +72,8 @@ export const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
       } else {
         router.push('/dashboard');
       }
-    } catch (err: any) {
-      setError(err.message || 'Ошибка регистрации');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Ошибка регистрации');
     } finally {
       setIsLoading(false);
     }

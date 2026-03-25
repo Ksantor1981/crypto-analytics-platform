@@ -33,7 +33,7 @@ interface Alert {
   enabled: boolean;
   triggered: boolean;
   lastTriggered?: Date;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export function AlertSystem() {
