@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,12 @@ export const SignalsFilter: React.FC<SignalsFilterProps> = ({
   onReset,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const fid = useId();
+  const priceFromId = `${fid}-price-from`;
+  const priceToId = `${fid}-price-to`;
+  const dateFromId = `${fid}-date-from`;
+  const dateToId = `${fid}-date-to`;
+  const channelIdField = `${fid}-channel`;
 
   const handleFilterChange = <K extends keyof SignalFilters>(
     key: K,
@@ -150,98 +156,108 @@ export const SignalsFilter: React.FC<SignalsFilterProps> = ({
           <div className="space-y-4">
             {/* Status filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Статус
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {statusOptions.map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() =>
-                      handleFilterChange(
-                        'status',
+              <fieldset className="border-0 p-0 m-0 min-w-0">
+                <legend className="block text-sm font-medium text-gray-700 mb-2">
+                  Статус
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {statusOptions.map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() =>
+                        handleFilterChange(
+                          'status',
+                          filters.status === option.value
+                            ? undefined
+                            : option.value
+                        )
+                      }
+                      className={`px-3 py-1 rounded-full text-sm border ${
                         filters.status === option.value
-                          ? undefined
-                          : option.value
-                      )
-                    }
-                    className={`px-3 py-1 rounded-full text-sm border ${
-                      filters.status === option.value
-                        ? 'bg-blue-100 border-blue-500 text-blue-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+                          ? 'bg-blue-100 border-blue-500 text-blue-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
 
             {/* P&L filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Результат
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {pnlRanges.map(range => (
-                  <button
-                    key={range.value}
-                    onClick={() =>
-                      handleFilterChange(
-                        'pnl_range',
+              <fieldset className="border-0 p-0 m-0 min-w-0">
+                <legend className="block text-sm font-medium text-gray-700 mb-2">
+                  Результат
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {pnlRanges.map(range => (
+                    <button
+                      key={range.value}
+                      onClick={() =>
+                        handleFilterChange(
+                          'pnl_range',
+                          filters.pnl_range === range.value
+                            ? undefined
+                            : range.value
+                        )
+                      }
+                      className={`px-3 py-1 rounded-full text-sm border ${
                         filters.pnl_range === range.value
-                          ? undefined
-                          : range.value
-                      )
-                    }
-                    className={`px-3 py-1 rounded-full text-sm border ${
-                      filters.pnl_range === range.value
-                        ? 'bg-purple-100 border-purple-500 text-purple-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {range.label}
-                  </button>
-                ))}
-              </div>
+                          ? 'bg-purple-100 border-purple-500 text-purple-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
 
             {/* Time range filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Период
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {timeRanges.map(range => (
-                  <button
-                    key={range.value}
-                    onClick={() =>
-                      handleFilterChange(
-                        'time_range',
+              <fieldset className="border-0 p-0 m-0 min-w-0">
+                <legend className="block text-sm font-medium text-gray-700 mb-2">
+                  Период
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {timeRanges.map(range => (
+                    <button
+                      key={range.value}
+                      onClick={() =>
+                        handleFilterChange(
+                          'time_range',
+                          filters.time_range === range.value
+                            ? undefined
+                            : range.value
+                        )
+                      }
+                      className={`px-3 py-1 rounded-full text-sm border ${
                         filters.time_range === range.value
-                          ? undefined
-                          : range.value
-                      )
-                    }
-                    className={`px-3 py-1 rounded-full text-sm border ${
-                      filters.time_range === range.value
-                        ? 'bg-yellow-100 border-yellow-500 text-yellow-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {range.label}
-                  </button>
-                ))}
-              </div>
+                          ? 'bg-yellow-100 border-yellow-500 text-yellow-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
 
             {/* Price range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor={priceFromId}
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Цена от
                 </label>
                 <Input
+                  id={priceFromId}
                   type="number"
                   placeholder="0.00"
                   value={filters.price_from || ''}
@@ -251,10 +267,14 @@ export const SignalsFilter: React.FC<SignalsFilterProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor={priceToId}
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Цена до
                 </label>
                 <Input
+                  id={priceToId}
                   type="number"
                   placeholder="0.00"
                   value={filters.price_to || ''}
@@ -266,10 +286,14 @@ export const SignalsFilter: React.FC<SignalsFilterProps> = ({
             {/* Date range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor={dateFromId}
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Дата с
                 </label>
                 <Input
+                  id={dateFromId}
                   type="date"
                   value={filters.date_from || ''}
                   onChange={e =>
@@ -278,10 +302,14 @@ export const SignalsFilter: React.FC<SignalsFilterProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor={dateToId}
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Дата до
                 </label>
                 <Input
+                  id={dateToId}
                   type="date"
                   value={filters.date_to || ''}
                   onChange={e => handleFilterChange('date_to', e.target.value)}
@@ -291,10 +319,14 @@ export const SignalsFilter: React.FC<SignalsFilterProps> = ({
 
             {/* Channel filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor={channelIdField}
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Канал
               </label>
               <Input
+                id={channelIdField}
                 placeholder="Введите ID канала или название"
                 value={filters.channel_id || ''}
                 onChange={e => handleFilterChange('channel_id', e.target.value)}

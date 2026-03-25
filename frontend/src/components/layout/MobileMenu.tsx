@@ -154,8 +154,17 @@ export function MobileMenu({
     <>
       {/* Overlay */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Закрыть меню"
         className="fixed inset-0 bg-black/50 z-40 lg:hidden"
         onClick={onClose}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClose();
+          }
+        }}
       />
 
       {/* Mobile Menu */}

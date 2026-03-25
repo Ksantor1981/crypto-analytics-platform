@@ -133,10 +133,17 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
         {/* Форма оплаты */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="p-4 border rounded-lg">
-            <label className="block text-sm font-medium mb-2">
+          <div
+            className="p-4 border rounded-lg"
+            role="group"
+            aria-labelledby="checkout-card-heading"
+          >
+            <p
+              id="checkout-card-heading"
+              className="block text-sm font-medium mb-2"
+            >
               Данные карты
-            </label>
+            </p>
             <CardElement options={cardElementOptions} />
           </div>
 

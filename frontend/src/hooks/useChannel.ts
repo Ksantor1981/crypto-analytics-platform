@@ -43,6 +43,37 @@ export interface ChannelDetails {
   recent_signals: ChannelSignal[];
 }
 
+function signalUiStatus(raw: string): ChannelSignal['status'] {
+  const s = raw.toLowerCase();
+  if (s.includes('hit')) return 'closed';
+  if (s.includes('sl')) return 'failed';
+  return 'open';
+}
+
+function mapApiSignalToChannelSignal(
+  s: Record<string, unknown>
+): ChannelSignal {
+  const statusStr = String((s.status as string) || 'open');
+  return {
+    id: s.id as number,
+    symbol: (s.asset || s.symbol || '') as string,
+    type: (s.direction || 'LONG') as 'LONG' | 'SHORT',
+    entry_price: (s.entry_price || 0) as number,
+    target_price: (s.tp1_price || undefined) as number | undefined,
+    stop_loss: (s.stop_loss || undefined) as number | undefined,
+    exit_price: (s.exit_price as number | undefined) ?? undefined,
+    status: signalUiStatus(statusStr),
+    timestamp: (s.created_at || new Date().toISOString()) as string,
+    pnl: (s.profit_loss_percentage || undefined) as number | undefined,
+  };
+}
+
+function riskLevelFromAccuracy(accuracy: number): ChannelDetails['riskLevel'] {
+  if (accuracy > 70) return 'low';
+  if (accuracy > 50) return 'medium';
+  return 'high';
+}
+
 const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
   const raw = await apiClient.getChannel(channelId);
 
@@ -50,25 +81,12 @@ const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
   try {
     const sigResp = await apiClient.getSignals(channelId);
     const sigData = Array.isArray(sigResp) ? sigResp : sigResp?.signals || [];
-    signals = sigData.map((s: Record<string, unknown>) => ({
-      id: s.id as number,
-      symbol: (s.asset || s.symbol || '') as string,
-      type: (s.direction || 'LONG') as 'LONG' | 'SHORT',
-      entry_price: (s.entry_price || 0) as number,
-      target_price: (s.tp1_price || undefined) as number | undefined,
-      stop_loss: (s.stop_loss || undefined) as number | undefined,
-      exit_price: (s.exit_price as number | undefined) ?? undefined,
-      status: ((s.status as string) || 'open').toLowerCase().includes('hit')
-        ? 'closed'
-        : ((s.status as string) || '').includes('SL')
-          ? 'failed'
-          : 'open',
-      timestamp: (s.created_at || new Date().toISOString()) as string,
-      pnl: (s.profit_loss_percentage || undefined) as number | undefined,
-    }));
+    signals = sigData.map(mapApiSignalToChannelSignal);
   } catch {
     /* игнорируем ошибки нормализации сигналов */
   }
+
+  const acc = raw.accuracy || 0;
 
   return {
     id: raw.id,
@@ -78,24 +96,19 @@ const fetchChannelById = async (channelId: string): Promise<ChannelDetails> => {
     platform: raw.platform || 'telegram',
     category: raw.category || 'general',
     url: raw.url,
-    accuracy: raw.accuracy || 0,
+    accuracy: acc,
     roi: raw.average_roi || 0,
     subscribers: raw.subscribers_count || 0,
     signals_count: raw.signals_count || 0,
     successful_signals: raw.successful_signals || 0,
     average_roi: raw.average_roi || 0,
-    rating: Math.min(5, (raw.accuracy || 0) / 20),
+    rating: Math.min(5, acc / 20),
     avatar: raw.platform === 'reddit' ? '🔴' : '📡',
     status: raw.status || 'active',
     isFollowing: false,
-    riskLevel:
-      (raw.accuracy || 0) > 70
-        ? 'low'
-        : (raw.accuracy || 0) > 50
-          ? 'medium'
-          : 'high',
+    riskLevel: riskLevelFromAccuracy(acc),
     totalTrades: raw.signals_count || 0,
-    winRate: raw.accuracy || 0,
+    winRate: acc,
     avgReturn: raw.average_roi || 0,
     maxDrawdown: 0,
     sharpeRatio: 0,

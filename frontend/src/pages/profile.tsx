@@ -288,27 +288,36 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Полное имя
-                    </label>
                     {isEditing ? (
-                      <input
-                        type="text"
-                        value={user.name}
-                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={e =>
-                          setUser({ ...user, name: e.target.value })
-                        }
-                      />
+                      <>
+                        <label
+                          htmlFor="profile-fullname"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Полное имя
+                        </label>
+                        <input
+                          id="profile-fullname"
+                          type="text"
+                          value={user.name}
+                          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={e =>
+                            setUser({ ...user, name: e.target.value })
+                          }
+                        />
+                      </>
                     ) : (
-                      <p className="mt-1 text-gray-900">{user.name}</p>
+                      <>
+                        <p className="text-sm font-medium text-gray-700">
+                          Полное имя
+                        </p>
+                        <p className="mt-1 text-gray-900">{user.name}</p>
+                      </>
                     )}
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Email
-                    </label>
+                    <p className="text-sm font-medium text-gray-700">Email</p>
                     <div className="flex items-center mt-1">
                       {showEmail || user.email ? (
                         <p className="text-gray-900">
@@ -335,20 +344,31 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Telegram
-                    </label>
                     {isEditing ? (
-                      <input
-                        type="text"
-                        value={user.username}
-                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={e =>
-                          setUser({ ...user, username: e.target.value })
-                        }
-                      />
+                      <>
+                        <label
+                          htmlFor="profile-telegram"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Telegram
+                        </label>
+                        <input
+                          id="profile-telegram"
+                          type="text"
+                          value={user.username}
+                          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={e =>
+                            setUser({ ...user, username: e.target.value })
+                          }
+                        />
+                      </>
                     ) : (
-                      <p className="mt-1 text-gray-900">{user.username}</p>
+                      <>
+                        <p className="text-sm font-medium text-gray-700">
+                          Telegram
+                        </p>
+                        <p className="mt-1 text-gray-900">{user.username}</p>
+                      </>
                     )}
                   </div>
 
@@ -416,14 +436,19 @@ export default function ProfilePage() {
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-medium text-gray-900">
+                    <span
+                      id="profile-dark-theme-label"
+                      className="font-medium text-gray-900 block"
+                    >
                       Темная тема
-                    </label>
+                    </span>
                     <p className="text-sm text-gray-600">
                       Включить темное оформление интерфейса
                     </p>
                   </div>
                   <button
+                    type="button"
+                    aria-labelledby="profile-dark-theme-label"
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       user.settings.darkMode ? 'bg-blue-600' : 'bg-gray-200'
                     }`}
@@ -448,10 +473,14 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-gray-900 mb-2">
+                  <label
+                    htmlFor="profile-ui-language"
+                    className="block font-medium text-gray-900 mb-2"
+                  >
                     Язык интерфейса
                   </label>
                   <select
+                    id="profile-ui-language"
                     value={user.settings.language}
                     onChange={e =>
                       setUser({
@@ -470,10 +499,14 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-gray-900 mb-2">
+                  <label
+                    htmlFor="profile-timezone"
+                    className="block font-medium text-gray-900 mb-2"
+                  >
                     Часовой пояс
                   </label>
                   <select
+                    id="profile-timezone"
                     value={user.settings.timezone}
                     onChange={e =>
                       setUser({
@@ -531,12 +564,17 @@ export default function ProfilePage() {
                     className="flex items-center justify-between"
                   >
                     <div>
-                      <label className="font-medium text-gray-900">
+                      <span
+                        id={`profile-notif-${setting.key}-label`}
+                        className="font-medium text-gray-900 block"
+                      >
                         {setting.label}
-                      </label>
+                      </span>
                       <p className="text-sm text-gray-600">{setting.desc}</p>
                     </div>
                     <button
+                      type="button"
+                      aria-labelledby={`profile-notif-${setting.key}-label`}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                         user.settings[setting.key as keyof typeof user.settings]
                           ? 'bg-blue-600'

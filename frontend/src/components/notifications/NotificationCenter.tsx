@@ -249,12 +249,20 @@ export function NotificationCenter({
               filteredNotifications.map(notification => (
                 <div
                   key={notification.id}
+                  role="button"
+                  tabIndex={0}
                   className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
                     !notification.read
                       ? 'bg-blue-50 border-l-4 border-l-blue-500'
                       : ''
                   } ${notification.urgent ? 'border-l-red-500 bg-red-50' : ''}`}
                   onClick={() => markAsRead(notification.id)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      markAsRead(notification.id);
+                    }
+                  }}
                 >
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0 mt-1">

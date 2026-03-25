@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { Bell, Volume2, Monitor, AlertTriangle, Settings } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ interface NotificationSettingsProps {
 }
 
 export function NotificationSettings({ onClose }: NotificationSettingsProps) {
+  const a11yId = useId();
   const {
     state,
     updateSettings,
@@ -227,8 +228,13 @@ export function NotificationSettings({ onClose }: NotificationSettingsProps) {
                     </p>
                   </div>
 
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label
+                    htmlFor={`${a11yId}-main-${setting.key}`}
+                    className="relative inline-flex items-center cursor-pointer"
+                  >
+                    <span className="sr-only">{setting.label}</span>
                     <input
+                      id={`${a11yId}-main-${setting.key}`}
                       type="checkbox"
                       className="sr-only peer"
                       checked={
@@ -278,8 +284,13 @@ export function NotificationSettings({ onClose }: NotificationSettingsProps) {
                   <p className="text-sm text-gray-600">{type.description}</p>
                 </div>
 
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label
+                  htmlFor={`${a11yId}-type-${type.type}`}
+                  className="relative inline-flex items-center cursor-pointer"
+                >
+                  <span className="sr-only">{type.label}</span>
                   <input
+                    id={`${a11yId}-type-${type.type}`}
                     type="checkbox"
                     className="sr-only peer"
                     defaultChecked={type.enabled}
@@ -332,8 +343,13 @@ export function NotificationSettings({ onClose }: NotificationSettingsProps) {
                   Объединять похожие уведомления
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label
+                htmlFor={`${a11yId}-group-toggle`}
+                className="relative inline-flex items-center cursor-pointer"
+              >
+                <span className="sr-only">Группировка уведомлений</span>
                 <input
+                  id={`${a11yId}-group-toggle`}
                   type="checkbox"
                   className="sr-only peer"
                   defaultChecked={true}

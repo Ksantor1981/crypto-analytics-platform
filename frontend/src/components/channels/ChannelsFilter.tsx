@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,9 @@ const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
   onReset,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const idPrefix = useId();
+  const createdFromId = `${idPrefix}-created-from`;
+  const createdToId = `${idPrefix}-created-to`;
 
   const handleFilterChange = (
     key: keyof ChannelFilters,
@@ -100,98 +103,108 @@ const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
           <div className="space-y-4">
             {/* Status filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Статус
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {statusOptions.map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() =>
-                      handleFilterChange(
-                        'status',
+              <fieldset className="border-0 p-0 m-0 min-w-0">
+                <legend className="block text-sm font-medium text-gray-700 mb-2">
+                  Статус
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {statusOptions.map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() =>
+                        handleFilterChange(
+                          'status',
+                          filters.status === option.value
+                            ? undefined
+                            : option.value
+                        )
+                      }
+                      className={`px-3 py-1 rounded-full text-sm border ${
                         filters.status === option.value
-                          ? undefined
-                          : option.value
-                      )
-                    }
-                    className={`px-3 py-1 rounded-full text-sm border ${
-                      filters.status === option.value
-                        ? 'bg-blue-100 border-blue-500 text-blue-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+                          ? 'bg-blue-100 border-blue-500 text-blue-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
 
             {/* Accuracy filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Точность
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {accuracyRanges.map(range => (
-                  <button
-                    key={range.value}
-                    onClick={() =>
-                      handleFilterChange(
-                        'accuracy_range',
+              <fieldset className="border-0 p-0 m-0 min-w-0">
+                <legend className="block text-sm font-medium text-gray-700 mb-2">
+                  Точность
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {accuracyRanges.map(range => (
+                    <button
+                      key={range.value}
+                      onClick={() =>
+                        handleFilterChange(
+                          'accuracy_range',
+                          filters.accuracy_range === range.value
+                            ? undefined
+                            : (range.value as string)
+                        )
+                      }
+                      className={`px-3 py-1 rounded-full text-sm border ${
                         filters.accuracy_range === range.value
-                          ? undefined
-                          : (range.value as string)
-                      )
-                    }
-                    className={`px-3 py-1 rounded-full text-sm border ${
-                      filters.accuracy_range === range.value
-                        ? 'bg-green-100 border-green-500 text-green-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {range.label}
-                  </button>
-                ))}
-              </div>
+                          ? 'bg-green-100 border-green-500 text-green-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
 
             {/* Signals count filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Количество сигналов
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {signalRanges.map(range => (
-                  <button
-                    key={range.value}
-                    onClick={() =>
-                      handleFilterChange(
-                        'signals_range',
+              <fieldset className="border-0 p-0 m-0 min-w-0">
+                <legend className="block text-sm font-medium text-gray-700 mb-2">
+                  Количество сигналов
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {signalRanges.map(range => (
+                    <button
+                      key={range.value}
+                      onClick={() =>
+                        handleFilterChange(
+                          'signals_range',
+                          filters.signals_range === range.value
+                            ? undefined
+                            : range.value
+                        )
+                      }
+                      className={`px-3 py-1 rounded-full text-sm border ${
                         filters.signals_range === range.value
-                          ? undefined
-                          : range.value
-                      )
-                    }
-                    className={`px-3 py-1 rounded-full text-sm border ${
-                      filters.signals_range === range.value
-                        ? 'bg-purple-100 border-purple-500 text-purple-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {range.label}
-                  </button>
-                ))}
-              </div>
+                          ? 'bg-purple-100 border-purple-500 text-purple-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
 
             {/* Date range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor={createdFromId}
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Добавлен с
                 </label>
                 <Input
+                  id={createdFromId}
                   type="date"
                   value={filters.created_from || ''}
                   onChange={e =>
@@ -200,10 +213,14 @@ const ChannelsFilter: React.FC<ChannelsFilterProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor={createdToId}
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Добавлен до
                 </label>
                 <Input
+                  id={createdToId}
                   type="date"
                   value={filters.created_to || ''}
                   onChange={e =>

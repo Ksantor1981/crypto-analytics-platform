@@ -135,7 +135,19 @@ export function ResponsiveList({
       {items.map(item => (
         <div
           key={item.id}
+          role={item.onClick ? 'button' : undefined}
+          tabIndex={item.onClick ? 0 : undefined}
           onClick={item.onClick}
+          onKeyDown={
+            item.onClick
+              ? e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    item.onClick?.();
+                  }
+                }
+              : undefined
+          }
           className={`
             flex items-center justify-between p-4 rounded-lg border
             ${item.onClick ? 'cursor-pointer hover:bg-gray-50 active:bg-gray-100' : ''}

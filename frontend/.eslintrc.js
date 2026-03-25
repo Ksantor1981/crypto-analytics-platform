@@ -89,8 +89,16 @@ module.exports = {
     // Accessibility (строгие подтипы — предупреждения; критичное остаётся)
     'jsx-a11y/alt-text': 'error',
     'jsx-a11y/aria-role': 'error',
-    'jsx-a11y/label-has-associated-control': 'warn',
-    'jsx-a11y/label-has-for': 'warn',
+    // label-has-for дублирует label-has-associated-control (deprecated в jsx-a11y)
+    'jsx-a11y/label-has-for': 'off',
+    'jsx-a11y/label-has-associated-control': [
+      'warn',
+      {
+        depth: 25,
+        labelComponents: ['label', 'Label'],
+        controlComponents: ['Input', 'input', 'select', 'textarea'],
+      },
+    ],
     'jsx-a11y/click-events-have-key-events': 'warn',
     'jsx-a11y/no-static-element-interactions': 'warn',
     'jsx-a11y/heading-has-content': 'warn',
@@ -110,34 +118,42 @@ module.exports = {
     'prettier/prettier': 'error'
   },
   overrides: [
+    // Остальной UI src — мягче базовых 50/10
     {
-      files: ['**/*.test.ts', '**/*.test.tsx'],
-      env: {
-        jest: true
-      },
+      files: ['src/**/*.ts', 'src/**/*.tsx'],
       rules: {
-        '@typescript-eslint/no-explicit-any': 'off'
-      }
+        'max-lines-per-function': ['warn', 95],
+        complexity: ['warn', 14],
+      },
+    },
+    // Страницы Next — крупные layout-функции без разбиения на этапе MVP
+    {
+      files: ['src/pages/**/*.ts', 'src/pages/**/*.tsx'],
+      rules: {
+        'max-lines-per-function': ['warn', 650],
+        complexity: ['warn', 28],
+      },
+    },
+    // Компоненты, хуки, контексты — длинные формы и списки
+    {
+      files: [
+        'src/components/**/*.ts',
+        'src/components/**/*.tsx',
+        'src/hooks/**/*.ts',
+        'src/hooks/**/*.tsx',
+        'src/contexts/**/*.ts',
+        'src/contexts/**/*.tsx',
+      ],
+      rules: {
+        'max-lines-per-function': ['warn', 420],
+        complexity: ['warn', 22],
+      },
     },
     {
       files: ['src/components/FeedbackForm.tsx'],
       rules: {
         'max-lines-per-function': 'off'
       }
-    },
-    {
-      files: ['src/**/*.ts', 'src/**/*.tsx'],
-      rules: {
-        // Крупные страницы Next / формы MUI+RHF — длина и ветвление не блокируем линтером
-        'max-lines-per-function': 'off',
-        complexity: 'off',
-        // Следующий чанк: jsx-a11y (label/Radix, overlay onClick, forwardRef headings)
-        'jsx-a11y/label-has-associated-control': 'off',
-        'jsx-a11y/label-has-for': 'off',
-        'jsx-a11y/click-events-have-key-events': 'off',
-        'jsx-a11y/no-static-element-interactions': 'off',
-        'jsx-a11y/heading-has-content': 'off',
-      },
     },
     {
       files: ['src/lib/**/*.ts', 'src/lib/**/*.tsx'],
@@ -151,6 +167,17 @@ module.exports = {
         '@typescript-eslint/no-unsafe-return': 'off',
         '@typescript-eslint/strict-boolean-expressions': 'off',
         '@typescript-eslint/no-unnecessary-condition': 'off'
+      }
+    },
+    {
+      files: ['**/*.test.ts', '**/*.test.tsx'],
+      env: {
+        jest: true
+      },
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+        'max-lines-per-function': 'off',
+        complexity: 'off',
       }
     }
   ]

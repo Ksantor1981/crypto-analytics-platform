@@ -111,8 +111,9 @@ export const SelectItem: React.FC<SelectItemProps> = ({
   const isSelected = value === itemValue;
 
   return (
-    <div
-      className={`px-3 py-2 cursor-pointer text-sm transition-colors ${
+    <button
+      type="button"
+      className={`w-full text-left px-3 py-2 cursor-pointer text-sm transition-colors ${
         isSelected
           ? 'bg-blue-50 text-blue-700 font-medium'
           : 'hover:bg-gray-100 text-gray-900'
@@ -123,7 +124,7 @@ export const SelectItem: React.FC<SelectItemProps> = ({
       }}
     >
       {children}
-    </div>
+    </button>
   );
 };
 
