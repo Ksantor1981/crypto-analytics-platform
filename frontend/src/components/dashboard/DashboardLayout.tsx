@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import MobileMenu from '@/components/layout/MobileMenu';
+import { MobileMenu } from '@/components/layout/MobileMenu';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { ToastContainer } from '@/components/notifications/NotificationToast';
 import { useNotifications } from '@/contexts/NotificationContext';

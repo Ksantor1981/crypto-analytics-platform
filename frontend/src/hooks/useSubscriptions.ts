@@ -27,7 +27,7 @@ export const useSubscriptions = () => {
       return apiClient.updateSubscription(planType);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+      void queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
     },
   });
 
@@ -37,7 +37,7 @@ export const useSubscriptions = () => {
       return { success: true };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+      void queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
     },
   });
 

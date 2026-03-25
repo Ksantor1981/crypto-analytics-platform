@@ -49,7 +49,7 @@ export const useChannels = (
   >({
     mutationFn: data => apiClient.createChannel(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['channels'] });
+      void queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
   });
 
@@ -60,14 +60,14 @@ export const useChannels = (
   >({
     mutationFn: ({ id, data }) => apiClient.updateChannel(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['channels'] });
+      void queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
   });
 
   const deleteChannelMutation = useMutation<void, Error, string>({
     mutationFn: id => apiClient.deleteChannel(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['channels'] });
+      void queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
   });
 
@@ -109,8 +109,8 @@ export const useChannel = (id: string) => {
   >({
     mutationFn: data => apiClient.updateChannel(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['channel', id] });
-      queryClient.invalidateQueries({ queryKey: ['channels'] });
+      void queryClient.invalidateQueries({ queryKey: ['channel', id] });
+      void queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
   });
 

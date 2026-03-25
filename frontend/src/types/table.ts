@@ -7,7 +7,7 @@ export interface TableCellContext<TData> {
   column: {
     id: string;
   };
-  getValue: () => any;
+  getValue: () => unknown;
 }
 
 export interface TableHeaderContext {

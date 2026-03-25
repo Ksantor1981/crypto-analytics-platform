@@ -58,7 +58,7 @@ export function useSignals(
       return signal;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['signals'] });
+      void queryClient.invalidateQueries({ queryKey: ['signals'] });
     },
   });
 
@@ -185,7 +185,7 @@ export const useSignal = (id: string) => {
       return signal;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['signal', id] });
+      void queryClient.invalidateQueries({ queryKey: ['signal', id] });
     },
   });
 

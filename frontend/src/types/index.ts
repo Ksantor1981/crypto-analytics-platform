@@ -273,7 +273,7 @@ export interface TableColumn<T> {
   title: string;
   width?: string;
   sortable?: boolean;
-  render?: (value: any, record: T) => React.ReactNode;
+  render?: (value: unknown, record: T) => React.ReactNode;
 }
 
 export interface ChartData {
@@ -310,7 +310,7 @@ export interface SignalFilters {
 export interface ApiError {
   message: string;
   code?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export interface FormError {
