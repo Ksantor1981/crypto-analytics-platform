@@ -26,7 +26,10 @@ logger = logging.getLogger(__name__)
 # Database: same as backend. Example: postgresql://user:pass@localhost:5432/crypto_analytics
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    os.getenv("BACKEND_DATABASE_URL", "postgresql://REDACTED:REDACTED@localhost:5432/crypto_analytics"),
+    os.getenv(
+        "BACKEND_DATABASE_URL",
+        "postgresql://crypto_analytics_user@localhost:5432/crypto_analytics",
+    ),
 )
 # Fallback for SQLite (e.g. tests)
 if os.getenv("USE_SQLITE", "").lower() in ("1", "true", "yes"):

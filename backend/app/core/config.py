@@ -67,8 +67,8 @@ class Settings(BaseSettings):
     
     # Database - PostgreSQL (primary) or SQLite (fallback)
     DATABASE_URL: str = Field(
-        default="postgresql://REDACTED:REDACTED@localhost:5432/crypto_analytics",
-        description="Database connection URL"
+        default="postgresql://crypto_analytics_user@localhost:5432/crypto_analytics",
+        description="Database URL; пароль только через .env (не храните креды в коде)",
     )
     USE_SQLITE: bool = False
     
