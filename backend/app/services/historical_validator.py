@@ -201,6 +201,18 @@ async def validate_signal_historically(
             tp_price = None  # TP above entry doesn't make sense for SHORT
         if sl_price and sl_price < entry_price:
             sl_price = None  # SL below entry doesn't make sense for SHORT
+    # Requirement: must have at least TP or SL to validate outcome
+    if tp_price is None and sl_price is None:
+        return ValidationResult(
+            signal_id=signal_id,
+            asset=asset,
+            direction=direction,
+            entry_price=entry_price,
+            tp_price=None,
+            sl_price=None,
+            signal_date=signal_date.isoformat(),
+            outcome="NO_TP_SL",
+        )
 
     outcome = "PENDING"
     exit_price = None
@@ -280,7 +292,7 @@ async def validate_all_signals(db) -> dict:
             db=db,
         )
 
-        if r.outcome != "NO_DATA":
+        if r.outcome not in ("NO_DATA", "NO_TP_SL"):
             total_validated += 1
             if r.outcome == "TP_HIT":
                 tp_count += 1

@@ -64,7 +64,13 @@ async def fetch_all_posts(username: str, max_pages: int = 10) -> List[ChannelPos
                         except ValueError:
                             pass
 
-                    all_posts.append(ChannelPost(text=text, date=date))
+                    # message id is embedded in data-post like "channel/12345"
+                    mid = None
+                    if msg_el:
+                        data_post = msg_el.get("data-post", "")
+                        if "/" in data_post:
+                            mid = data_post.split("/")[-1]
+                    all_posts.append(ChannelPost(text=text, date=date, message_id=mid))
                     new_posts += 1
 
                 if new_posts == 0 or earliest_id is None:
