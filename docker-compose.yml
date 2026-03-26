@@ -7,7 +7,7 @@ services:
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-crypto_analytics}
       - POSTGRES_USER=${POSTGRES_USER:-crypto_analytics_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
     ports:
       - "${POSTGRES_PORT:-5432}:5432"  # Настраиваемый порт
@@ -27,11 +27,11 @@ services:
     image: redis:7-alpine
     container_name: crypto-analytics-redis
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-cryptoanalytics_redis_local_dev}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
     command:
       - redis-server
       - --requirepass
-      - ${REDIS_PASSWORD:-cryptoanalytics_redis_local_dev}
+      - ${REDIS_PASSWORD}
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
@@ -53,8 +53,8 @@ services:
     environment:
       - USE_ALEMBIC=${USE_ALEMBIC:-true}
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL:-redis://:cryptoanalytics_redis_local_dev@redis:6379/0}
-      - SECRET_KEY=${SECRET_KEY}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - DEBUG=false
       # Непрерывный сбор (сек). Вместе с дедупом fingerprint безопасно чаще опроса
@@ -120,7 +120,7 @@ services:
       dockerfile: Dockerfile
     container_name: crypto-analytics-ml-service
     environment:
-      - REDIS_URL=${REDIS_URL:-redis://:cryptoanalytics_redis_local_dev@redis:6379/0}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
       - MODEL_CACHE_ENABLED=${MODEL_CACHE_ENABLED:-true}
       - BACKEND_URL=http://backend:8000
     ports:
@@ -173,9 +173,9 @@ services:
     command: celery -A app.celery_app worker --loglevel=info
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL:-redis://:cryptoanalytics_redis_local_dev@redis:6379/0}
-      - SECRET_KEY=${SECRET_KEY}
-      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
+      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY:?Set TRADING_ENCRYPTION_KEY in .env}
     depends_on:
       postgres:
         condition: service_healthy
@@ -200,8 +200,8 @@ services:
     command: celery -A app.celery_worker beat --loglevel=info
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL:-redis://:cryptoanalytics_redis_local_dev@redis:6379/0}
-      - SECRET_KEY=${SECRET_KEY}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
       - TELEGRAM_API_ID=${TELEGRAM_API_ID}
       - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
     depends_on:
@@ -226,8 +226,8 @@ services:
     command: celery -A app.celery_worker worker --loglevel=info
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL:-redis://:cryptoanalytics_redis_local_dev@redis:6379/0}
-      - SECRET_KEY=${SECRET_KEY}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
       - TELEGRAM_API_ID=${TELEGRAM_API_ID}
       - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
     depends_on:
@@ -251,8 +251,8 @@ services:
     command: celery -A tasks worker --loglevel=info
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL:-redis://:cryptoanalytics_redis_local_dev@redis:6379/0}
-      - SECRET_KEY=${SECRET_KEY}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
       - ML_SERVICE_URL=http://ml-service:8001
     depends_on:
       postgres:
@@ -289,8 +289,7 @@ services:
     container_name: crypto-analytics-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-grafana_admin}
-      # Не используем пароль "admin"; задайте GRAFANA_ADMIN_PASSWORD в .env для любого окружения
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-ChangeMe_Grafana_NotDefault_please}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3001}
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning

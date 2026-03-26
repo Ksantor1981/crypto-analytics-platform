@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: crypto_analytics
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Must be set in .env.production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
@@ -25,9 +25,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env.production}
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}  # Must be set in .env.production
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env.production}
     volumes:
       - redis_data:/data
     ports:
@@ -49,14 +49,14 @@ services:
       - ENVIRONMENT=production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/crypto_analytics
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-      - SECRET_KEY=${SECRET_KEY}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env.production}
       - TELEGRAM_API_ID=${TELEGRAM_API_ID}
       - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST}
       - EMAIL_SMTP_USERNAME=${EMAIL_SMTP_USERNAME}
       - EMAIL_SMTP_PASSWORD=${EMAIL_SMTP_PASSWORD}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:?Set BACKEND_CORS_ORIGINS (JSON array) in .env.production}
     volumes:
       - backend_data:/app/data
       - ./logs:/app/logs
@@ -181,8 +181,8 @@ services:
       - ENVIRONMENT=production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/crypto_analytics
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-      - SECRET_KEY=${SECRET_KEY}
-      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env.production}
+      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY:?Set TRADING_ENCRYPTION_KEY in .env.production}
     volumes:
       - trading_data:/app/data
       - ./logs:/app/logs
