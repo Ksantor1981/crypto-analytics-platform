@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Callable
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -143,9 +143,34 @@ def require_premium(current_user: User = Depends(get_current_active_user)) -> Us
     """
     if os.getenv("PYTEST_CURRENT_TEST") or os.getenv("ENVIRONMENT", "").lower() == "testing":
         return current_user
-    if current_user.role not in (UserRole.PREMIUM_USER, UserRole.ADMIN):
+    if current_user.role not in (UserRole.PREMIUM_USER, UserRole.PRO_USER, UserRole.ADMIN):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Premium subscription required")
     return current_user
+
+
+def require_pro_user(current_user: User = Depends(get_current_active_user)) -> User:
+    """Require Pro (or Admin) role for endpoint access."""
+    if os.getenv("PYTEST_CURRENT_TEST") or os.getenv("ENVIRONMENT", "").lower() == "testing":
+        return current_user
+    if current_user.role not in (UserRole.PRO_USER, UserRole.ADMIN):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Pro subscription required")
+    return current_user
+
+
+def require_feature(feature: str) -> Callable[[User], User]:
+    """Require enabled feature flag for current user."""
+    def _dependency(current_user: User = Depends(get_current_active_user)) -> User:
+        if os.getenv("PYTEST_CURRENT_TEST") or os.getenv("ENVIRONMENT", "").lower() == "testing":
+            return current_user
+        if current_user.role == UserRole.ADMIN:
+            return current_user
+        if not current_user.has_feature(feature):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Feature '{feature}' requires a higher subscription plan",
+            )
+        return current_user
+    return _dependency
 
 require_admin = RoleChecker([UserRole.ADMIN])
 require_user = RoleChecker([UserRole.FREE_USER, UserRole.PREMIUM_USER, UserRole.ADMIN])

@@ -12,6 +12,7 @@ from app.core.database import get_db
 from app.core.auth import get_current_user
 from app.core.config import get_settings
 from app.models.user import User
+from app.core.rate_limiter import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -31,7 +32,9 @@ class CheckoutRequest(BaseModel):
 
 
 @router.post("/create-checkout")
+@limiter.limit("10/hour")
 async def create_checkout_session(
+    request: Request,
     req: CheckoutRequest,
     current_user: User = Depends(get_current_user),
 ):
@@ -69,6 +72,7 @@ async def create_checkout_session(
 
 
 @router.post("/webhook")
+@limiter.limit("120/minute")
 async def stripe_webhook(request: Request):
     """Handle Stripe webhook events (subscription created/updated/cancelled)."""
     settings = get_settings()

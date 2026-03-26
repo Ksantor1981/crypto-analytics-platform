@@ -9,16 +9,11 @@ from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.models.user import User
-from app.core.auth import get_current_user
+from app.core.auth import require_feature
 try:
     from app.services.api_key_service import api_key_service
 except ImportError:
     api_key_service = None
-try:
-    from app.middleware.rbac_middleware import require_subscription_plan, SubscriptionPlan
-except ImportError:
-    require_subscription_plan = None
-    SubscriptionPlan = None
 
 router = APIRouter()
 
@@ -36,16 +31,13 @@ class UpdateAPIKeyRequest(BaseModel):
 @router.post("/api-keys")
 async def create_api_key(
     request: CreateAPIKeyRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_feature("api_access")),
     db: Session = Depends(get_db)
 ):
     """
     Create a new API key
     Pro feature - requires Pro subscription
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PRO)
-    
     try:
         api_key_data = await api_key_service.create_api_key(
             user=current_user,
@@ -70,16 +62,13 @@ async def create_api_key(
 
 @router.get("/api-keys")
 async def list_api_keys(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_feature("api_access")),
     db: Session = Depends(get_db)
 ):
     """
     List all API keys for the current user
     Pro feature - requires Pro subscription
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PRO)
-    
     try:
         keys = await api_key_service.list_api_keys(current_user, db)
         
@@ -99,16 +88,13 @@ async def list_api_keys(
 async def update_api_key(
     key_id: int,
     request: UpdateAPIKeyRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_feature("api_access")),
     db: Session = Depends(get_db)
 ):
     """
     Update an API key
     Pro feature - requires Pro subscription
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PRO)
-    
     try:
         updated_key = await api_key_service.update_api_key(
             user=current_user,
@@ -134,16 +120,13 @@ async def update_api_key(
 @router.delete("/api-keys/{key_id}")
 async def revoke_api_key(
     key_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_feature("api_access")),
     db: Session = Depends(get_db)
 ):
     """
     Revoke an API key
     Pro feature - requires Pro subscription
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PRO)
-    
     try:
         success = await api_key_service.revoke_api_key(current_user, db, key_id)
         
@@ -160,16 +143,13 @@ async def revoke_api_key(
 
 @router.get("/api-keys/usage")
 async def get_api_usage_stats(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_feature("api_access")),
     db: Session = Depends(get_db)
 ):
     """
     Get API usage statistics
     Pro feature - requires Pro subscription
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PRO)
-    
     try:
         stats = await api_key_service.get_api_usage_stats(current_user, db)
         
@@ -186,14 +166,11 @@ async def get_api_usage_stats(
 
 @router.get("/api-keys/permissions")
 async def get_available_permissions(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_feature("api_access"))
 ):
     """
     Get list of available API permissions for Pro users
     """
-    # Check subscription level
-    await require_subscription_plan(current_user, SubscriptionPlan.PRO)
-    
     return {
         "success": True,
         "data": {

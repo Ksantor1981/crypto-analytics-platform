@@ -3,7 +3,7 @@ Signal collection endpoints — trigger real data collection from Telegram chann
 """
 import asyncio
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -26,6 +26,7 @@ from app.services.metrics_calculator import recalculate_all_channels, recalculat
 from app.services.price_validator import validate_signal_price
 from app.services.signal_checker import check_pending_signals
 from app.services.historical_validator import validate_all_signals
+from app.core.rate_limiter import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -172,7 +173,9 @@ async def check_signals(
 
 
 @router.post("/deep-collect")
+@limiter.limit("5/hour")
 async def deep_collect(
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

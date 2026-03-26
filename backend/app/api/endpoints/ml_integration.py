@@ -13,7 +13,7 @@ from datetime import datetime
 from ...core.database import get_db
 from ...models.signal import Signal
 from ...models.user import User
-from ...core.auth import get_current_user
+from ...core.auth import get_current_user, require_feature
 from ...core.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class BatchMLPredictionResponse(BaseModel):
 async def predict_signal(
     request: MLPredictionRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_feature("ml_predictions"))
 ):
     """
     Get ML prediction for a specific signal
@@ -130,7 +130,7 @@ async def predict_signal(
 async def predict_batch_signals(
     request: BatchMLPredictionRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_feature("ml_predictions"))
 ):
     """
     Get ML predictions for multiple signals
@@ -213,7 +213,10 @@ async def predict_batch_signals(
         )
 
 @router.post("/predict")
-async def direct_ml_predict(request: DirectMLPredictionRequest):
+async def direct_ml_predict(
+    request: DirectMLPredictionRequest,
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """
     Direct ML prediction without requiring signal in database
     """
@@ -290,7 +293,9 @@ async def ml_service_health():
         }
 
 @router.get("/model/info")
-async def get_ml_model_info():
+async def get_ml_model_info(
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """
     Get ML model information
     """

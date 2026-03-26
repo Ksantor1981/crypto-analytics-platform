@@ -8,15 +8,20 @@ from typing import List, Dict, Any
 from datetime import datetime
 
 from app.core.database import get_db
+from app.core.auth import require_feature
 from app.services.signal_prediction_service import signal_prediction_service
 from app.models.signal import Signal
 from app.models.channel import Channel
+from app.models.user import User
 
 router = APIRouter()
 
 
 @router.post("/train", response_model=Dict[str, Any])
-async def train_model(db: Session = Depends(get_db)):
+async def train_model(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """
     Обучает ML-модель на исторических данных сигналов
     """
@@ -43,7 +48,9 @@ async def train_model(db: Session = Depends(get_db)):
 
 
 @router.get("/model-status", response_model=Dict[str, Any])
-async def get_model_status():
+async def get_model_status(
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """
     Возвращает статус ML-модели
     """
@@ -61,7 +68,11 @@ async def get_model_status():
 
 
 @router.post("/predict/{signal_id}", response_model=Dict[str, Any])
-async def predict_signal_success(signal_id: int, db: Session = Depends(get_db)):
+async def predict_signal_success(
+    signal_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """
     Предсказывает успешность конкретного сигнала
     """
@@ -107,7 +118,11 @@ async def predict_signal_success(signal_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/batch-predict", response_model=Dict[str, Any])
-async def batch_predict_signals(signal_ids: List[int], db: Session = Depends(get_db)):
+async def batch_predict_signals(
+    signal_ids: List[int],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """
     Предсказывает успешность для списка сигналов
     """
@@ -154,7 +169,9 @@ async def batch_predict_signals(signal_ids: List[int], db: Session = Depends(get
 
 
 @router.get("/feature-importance", response_model=Dict[str, Any])
-async def get_feature_importance():
+async def get_feature_importance(
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """
     Возвращает важность признаков модели
     """
@@ -202,7 +219,10 @@ async def get_feature_importance():
 
 
 @router.post("/save-model", response_model=Dict[str, Any])
-async def save_model(filepath: str = "models/signal_prediction_model.pkl"):
+async def save_model(
+    filepath: str = "models/signal_prediction_model.pkl",
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """
     Сохраняет обученную модель в файл
     """
@@ -237,7 +257,10 @@ async def save_model(filepath: str = "models/signal_prediction_model.pkl"):
 
 
 @router.post("/load-model", response_model=Dict[str, Any])
-async def load_model(filepath: str = "models/signal_prediction_model.pkl"):
+async def load_model(
+    filepath: str = "models/signal_prediction_model.pkl",
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """
     Загружает модель из файла
     """

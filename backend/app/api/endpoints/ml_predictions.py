@@ -3,13 +3,18 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from ...core.database import get_db
+from ...core.auth import require_feature
+from ...models.user import User
 from ...services.signal_prediction_service import SignalPredictionService
 from ...schemas.ml_schemas import PredictionRequest, PredictionResponse, BatchPredictionRequest, BatchPredictionResponse, ModelStatusResponse, TrainResponse
 
 router = APIRouter()
 
 @router.post("/train", response_model=TrainResponse)
-def train_model(db: Session = Depends(get_db)):
+def train_model(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """Запускает обучение ML-модели на всех доступных данных SignalResult."""
     service = SignalPredictionService(db)
     try:
@@ -19,14 +24,21 @@ def train_model(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Model training failed: {str(e)}")
 
 @router.get("/model-status", response_model=ModelStatusResponse)
-def get_model_status(db: Session = Depends(get_db)):
+def get_model_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """Возвращает статус текущей ML-модели."""
     service = SignalPredictionService(db)
     status = service.get_model_status()
     return status
 
 @router.post("/predict", response_model=PredictionResponse)
-def predict_signal_success(request: PredictionRequest, db: Session = Depends(get_db)):
+def predict_signal_success(
+    request: PredictionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """Предсказывает вероятность успеха для одного сигнала."""
     service = SignalPredictionService(db)
     try:
@@ -38,7 +50,11 @@ def predict_signal_success(request: PredictionRequest, db: Session = Depends(get
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 @router.post("/batch-predict", response_model=BatchPredictionResponse)
-def batch_predict_signal_success(request: BatchPredictionRequest, db: Session = Depends(get_db)):
+def batch_predict_signal_success(
+    request: BatchPredictionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_feature("ml_predictions")),
+):
     """Предсказывает вероятность успеха для списка сигналов."""
     service = SignalPredictionService(db)
     try:

@@ -60,7 +60,7 @@ async def create_signal(
 def get_signals(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
-    size: int = Query(100, ge=1, le=1000, description="Page size"),
+    size: int = Query(100, ge=1, le=200, description="Page size"),
     filters: schemas.signal.SignalFilterParams = Depends(),
     current_user: User = Depends(require_premium),
 ):
