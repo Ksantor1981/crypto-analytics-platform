@@ -85,6 +85,11 @@ settings = get_settings()
 trading_scheduler = None
 
 
+def _scheduler_mode() -> str:
+    mode = str(getattr(settings, "SCHEDULER_MODE", "asyncio") or "asyncio").strip().lower()
+    return mode if mode in ("asyncio", "celery") else "asyncio"
+
+
 def _seed_demo_data(db_engine):
     """Seed database with demo data if empty (отключается AUTO_SEED_DEMO_CHANNELS=false)."""
     if not getattr(settings, "AUTO_SEED_DEMO_CHANNELS", True):
@@ -204,63 +209,67 @@ async def lifespan(app: FastAPI):
         else:
             logger.warning("Trading scheduler not available")
 
-        # Auto-collect signals from Telegram channels on startup
-        import asyncio
-        async def _auto_collect():
-            await asyncio.sleep(3)
-            try:
-                from app.core.database import SessionLocal
-                from app.core.config import get_settings
-                from app.services.collection_pipeline import run_full_collection_async
-                from app.services.metrics_calculator import recalculate_all_channels
-                db = SessionLocal()
-                st = get_settings()
-                result = await run_full_collection_async(db, st)
-                tg = result.get("telegram") or {}
-                rd = result.get("reddit") or {}
-                total = (tg.get("saved") or 0) + (rd.get("saved") or 0)
-                db.commit()
-                recalculate_all_channels(db)
-                db.close()
-                logger.info(
-                    "Startup collection: saved=%s tg_posts=%s tg_channels=%s reddit_saved=%s",
-                    total,
-                    tg.get("posts_fetched"),
-                    tg.get("channels"),
-                    rd.get("saved"),
-                )
-            except Exception as e:
-                logger.warning("Startup collection failed: %s", e)
-        t1 = asyncio.create_task(_auto_collect())
-        _background_tasks.append(t1)
+        mode = _scheduler_mode()
+        if mode == "asyncio":
+            # Auto-collect signals from Telegram channels on startup
+            import asyncio
+            async def _auto_collect():
+                await asyncio.sleep(3)
+                try:
+                    from app.core.database import SessionLocal
+                    from app.core.config import get_settings
+                    from app.services.collection_pipeline import run_full_collection_async
+                    from app.services.metrics_calculator import recalculate_all_channels
+                    db = SessionLocal()
+                    st = get_settings()
+                    result = await run_full_collection_async(db, st)
+                    tg = result.get("telegram") or {}
+                    rd = result.get("reddit") or {}
+                    total = (tg.get("saved") or 0) + (rd.get("saved") or 0)
+                    db.commit()
+                    recalculate_all_channels(db)
+                    db.close()
+                    logger.info(
+                        "Startup collection: saved=%s tg_posts=%s tg_channels=%s reddit_saved=%s",
+                        total,
+                        tg.get("posts_fetched"),
+                        tg.get("channels"),
+                        rd.get("saved"),
+                    )
+                except Exception as e:
+                    logger.warning("Startup collection failed: %s", e)
+            t1 = asyncio.create_task(_auto_collect())
+            _background_tasks.append(t1)
 
-        # Start periodic collection schedulers
-        try:
-            from app.tasks.scheduler import (
-                periodic_collection,
-                periodic_reddit_collection,
-                periodic_weekly_digest,
-                periodic_daily_revalidation,
-                periodic_ml_train,
-                periodic_source_health,
-                periodic_source_discovery,
-            )
-            t2 = asyncio.create_task(periodic_collection())
-            t3 = asyncio.create_task(periodic_reddit_collection())
-            t4 = asyncio.create_task(periodic_weekly_digest())
-            t5 = asyncio.create_task(periodic_daily_revalidation())
-            t6 = asyncio.create_task(periodic_ml_train())
-            t7 = asyncio.create_task(periodic_source_health())
-            t8 = asyncio.create_task(periodic_source_discovery())
-            _background_tasks.extend([t2, t3, t4, t5, t6, t7, t8])
-            from app.tasks.scheduler import COLLECTION_INTERVAL, REDDIT_INTERVAL
-            logger.info(
-                "Schedulers started: tg_collect=%ss reddit=%ss digest=7d reval=24h ml=24h health=24h discovery=24h",
-                COLLECTION_INTERVAL,
-                REDDIT_INTERVAL,
-            )
-        except Exception as sched_err:
-            logger.warning("Scheduler not started", error=str(sched_err))
+            # Start periodic collection schedulers
+            try:
+                from app.tasks.scheduler import (
+                    periodic_collection,
+                    periodic_reddit_collection,
+                    periodic_weekly_digest,
+                    periodic_daily_revalidation,
+                    periodic_ml_train,
+                    periodic_source_health,
+                    periodic_source_discovery,
+                )
+                t2 = asyncio.create_task(periodic_collection())
+                t3 = asyncio.create_task(periodic_reddit_collection())
+                t4 = asyncio.create_task(periodic_weekly_digest())
+                t5 = asyncio.create_task(periodic_daily_revalidation())
+                t6 = asyncio.create_task(periodic_ml_train())
+                t7 = asyncio.create_task(periodic_source_health())
+                t8 = asyncio.create_task(periodic_source_discovery())
+                _background_tasks.extend([t2, t3, t4, t5, t6, t7, t8])
+                from app.tasks.scheduler import COLLECTION_INTERVAL, REDDIT_INTERVAL
+                logger.info(
+                    "Schedulers started (asyncio): tg_collect=%ss reddit=%ss digest=7d reval=24h ml=24h health=24h discovery=24h",
+                    COLLECTION_INTERVAL,
+                    REDDIT_INTERVAL,
+                )
+            except Exception as sched_err:
+                logger.warning("Scheduler not started", error=str(sched_err))
+        else:
+            logger.info("In-process schedulers disabled (SCHEDULER_MODE=celery); relying on Celery beat/worker")
 
         logger.info("Application startup completed")
         yield

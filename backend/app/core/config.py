@@ -118,6 +118,10 @@ class Settings(BaseSettings):
 
     # C1: сбор без Telegram — при False периодический сбор только Reddit/seed
     COLLECT_TELEGRAM: bool = True
+    # Scheduler mode:
+    # - "asyncio": run periodic background loops inside backend process
+    # - "celery": disable in-process loops; rely on celery worker/beat
+    SCHEDULER_MODE: str = "asyncio"
     # Один прогон run_collection / CLI: после Telegram подтянуть Reddit (дубли с periodic_reddit отсекаются дедупом)
     COLLECT_REDDIT_IN_RUN_COLLECTION: bool = True
     # Лимит постов t.me/s: base + (priority-1)*step, capped
