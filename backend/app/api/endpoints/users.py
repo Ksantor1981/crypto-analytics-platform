@@ -7,8 +7,8 @@ from slowapi.util import get_remote_address
 
 from app.core.database import get_db
 from app.core.auth import (
-    get_current_user, 
-    get_current_active_user, 
+    get_current_user,
+    get_current_active_user,
     get_current_admin_user,
     require_admin,
     require_premium
@@ -22,7 +22,7 @@ from app.models.user import User
 
 # Import specific schemas
 from app.schemas.user import (
-    UserResponse, UserCreate, UserUpdate, UserLogin, TokenResponse, 
+    UserResponse, UserCreate, UserUpdate, UserLogin, TokenResponse,
     TokenRefresh, UserProfile, UserStats, UserListResponse, UserChangePassword, UserRole
 )
 
@@ -40,6 +40,16 @@ async def _send_welcome_email_task(user: User):
         logger.warning("Welcome email failed", user_id=user.id, error=str(e))
 
 
+async def _send_email_verification_task(user: User):
+    """Background task: send email verification."""
+    from app.services.email_service import EmailService
+    try:
+        svc = EmailService()
+        await svc.send_verification_email(user)
+    except Exception as e:
+        logger.warning("Verification email failed", user_id=user.id, error=str(e))
+
+
 @router.post("/register", response_model=schemas.user.UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit(get_auth_rate_limit())
 async def register_user(
@@ -51,13 +61,13 @@ async def register_user(
     """Register a new user."""
     client_ip = get_remote_address(request)
     user_agent = request.headers.get("user-agent", "")
-    
+
     try:
         user_service = UserService(db)
-        
+
         # Create user
         user = user_service.create_user(user_data)
-        
+
         logger.info(
             "User registered successfully",
             user_id=user.id,
@@ -65,10 +75,11 @@ async def register_user(
             ip=client_ip
         )
 
-        background_tasks.add_task(_send_welcome_email_task, user)
-        
+        # Send email verification instead of welcome
+        background_tasks.add_task(_send_email_verification_task, user)
+
         return schemas.user.UserResponse.model_validate(user)
-        
+
     except Exception as e:
         logger.error(
             "User registration failed",
@@ -89,32 +100,32 @@ async def login_user(
     """Login user and return JWT tokens."""
     client_ip = get_remote_address(request)
     user_agent = request.headers.get("user-agent", "")
-    
+
     try:
         user_service = UserService(db)
-        
+
         # Authenticate user
         user = user_service.authenticate(user_data.email, user_data.password)
-        
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User account is disabled",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         # Create tokens
         tokens = create_user_tokens(user)
-        
+
         return TokenResponse(**tokens)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -139,12 +150,12 @@ async def refresh_token(
 ):
     """Refresh access token using refresh token."""
     client_ip = get_remote_address(request)
-    
+
     try:
         # Verify refresh token
         payload = verify_token(token_data.refresh_token, token_type="refresh")
         user_id = payload.get("sub")
-        
+
         if user_id is None:
             log_security_event(
                 "invalid_refresh_token",
@@ -157,11 +168,11 @@ async def refresh_token(
                 detail="Invalid refresh token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         # Get user and create new tokens
         user_service = UserService(db)
         user = user_service.get_user_by_id(int(user_id))
-        
+
         if not user or not user.is_active:
             log_security_event(
                 "refresh_token_for_inactive_user",
@@ -174,18 +185,18 @@ async def refresh_token(
                 detail="User not found or inactive",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         # Create new tokens
         tokens = create_user_tokens(user)
-        
+
         logger.info(
             "Token refreshed successfully",
             user_id=user.id,
             ip=client_ip
         )
-        
+
         return TokenResponse(**tokens)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -198,6 +209,47 @@ async def refresh_token(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Token refresh failed"
         )
+
+
+@router.post("/verify-email")
+async def verify_email(
+    token: str,
+    db: Session = Depends(get_db)
+):
+    """Verify user email with token."""
+    user_service = UserService(db)
+
+    user = user_service.verify_email_token(token)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification token"
+        )
+
+    return {"message": "Email verified successfully"}
+
+
+@router.post("/resend-verification")
+async def resend_verification_email(
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Resend email verification."""
+    if current_user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already verified"
+        )
+
+    # Generate new token
+    import secrets
+    current_user.email_verification_token = secrets.token_urlsafe(32)
+    db.commit()
+
+    background_tasks.add_task(_send_email_verification_task, current_user)
+
+    return {"message": "Verification email sent"}
 
 
 @router.get("/me", response_model=schemas.user.UserProfile)
@@ -249,19 +301,19 @@ async def update_current_user(
 ):
     """Update current user profile."""
     user_service = UserService(db)
-    
+
     try:
         # Update user
         updated_user = user_service.update_user(current_user.id, user_data)
-        
+
         logger.info(
             "User profile updated",
             user_id=current_user.id,
             email=current_user.email
         )
-        
+
         return schemas.user.UserResponse.model_validate(updated_user)
-        
+
     except Exception as e:
         logger.error(
             "User profile update failed",
@@ -285,11 +337,11 @@ async def change_current_user_password(
     """Change current user password."""
     client_ip = get_remote_address(request)
     user_service = UserService(db)
-    
+
     try:
         # Change password
         success = user_service.change_password(current_user.id, password_data)
-        
+
         if success:
             log_security_event(
                 "password_changed",
@@ -309,7 +361,7 @@ async def change_current_user_password(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed to change password"
             )
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -332,10 +384,10 @@ async def get_current_user_stats(
 ):
     """Get current user statistics."""
     user_service = UserService(db)
-    
+
     # Get user stats
     stats = user_service.get_user_stats(current_user.id)
-    
+
     return UserStats(**stats)
 
 
@@ -348,11 +400,11 @@ async def deactivate_current_user(
     """Deactivate current user account."""
     client_ip = get_remote_address(request)
     user_service = UserService(db)
-    
+
     try:
         # Deactivate user
         success = user_service.deactivate_user(current_user.id)
-        
+
         if success:
             log_security_event(
                 "user_deactivated",
@@ -366,7 +418,7 @@ async def deactivate_current_user(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed to deactivate account"
             )
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -392,15 +444,15 @@ async def get_users(
 ):
     """Get list of users (admin only)."""
     user_service = UserService(db)
-    
+
     try:
         # Get users and total count
         users, total = user_service.get_users(skip=skip, limit=limit, active_only=active_only)
-        
+
         # Calculate pagination
         total_pages = ceil(total / limit)
         current_page = (skip // limit) + 1
-        
+
         return {
             "users": [schemas.user.UserResponse.model_validate(user) for user in users],
             "total": total,
@@ -426,14 +478,14 @@ async def get_user_by_id(
 ):
     """Get user by ID (admin only)."""
     user_service = UserService(db)
-    
+
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     return schemas.user.UserProfile.model_validate(user)
 
 
@@ -445,7 +497,7 @@ async def update_user_by_id(
 ):
     """Update user by ID (admin only)."""
     user_service = UserService(db)
-    
+
     try:
         updated_user = user_service.update_user(user_id, user_data)
         if not updated_user:
@@ -473,7 +525,7 @@ async def activate_user(
 ):
     """Activate user (admin only)."""
     user_service = UserService(db)
-    
+
     success = user_service.activate_user(user_id)
     if success:
         return {"message": "User activated successfully"}
@@ -491,7 +543,7 @@ async def deactivate_user(
 ):
     """Deactivate user (admin only)."""
     user_service = UserService(db)
-    
+
     success = user_service.deactivate_user(user_id)
     if success:
         return {"message": "User deactivated successfully"}
@@ -510,7 +562,7 @@ async def upgrade_user_subscription(
 ):
     """Upgrade user subscription (admin only)."""
     user_service = UserService(db)
-    
+
     try:
         updated_user = user_service.upgrade_user_subscription(user_id, role)
         if not updated_user:
@@ -538,7 +590,7 @@ async def delete_user(
 ):
     """Delete user (admin only)."""
     user_service = UserService(db)
-    
+
     success = user_service.delete_user(user_id)
     if success:
         return {"message": "User deleted successfully"}
@@ -556,12 +608,12 @@ async def get_user_stats_by_id(
 ):
     """Get user statistics by ID (admin only)."""
     user_service = UserService(db)
-    
+
     stats = user_service.get_user_stats(user_id)
     if not stats:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
-    return UserStats(**stats) 
+
+    return UserStats(**stats)

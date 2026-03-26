@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from math import ceil
 from datetime import datetime, timedelta
@@ -22,48 +22,53 @@ def get_channel_real_name(channel_id: int) -> str:
     """
     channel_mapping = {
         200: "📱 Reddit",
-        300: "🌐 External APIs", 
+        300: "🌐 External APIs",
         301: "📊 CQS API",
         302: "📈 CTA API",
         400: "💬 Telegram",
         401: "🚀 CryptoPapa",
-        402: "🐷 FatPigSignals", 
+        402: "🐷 FatPigSignals",
         403: "⚡ BinanceKiller",
         404: "🌍 CryptoSignalsWorld",
         405: "💎 CryptoPumps"
     }
-    
+
     return channel_mapping.get(channel_id, f"📋 Unknown Source {channel_id}")
 
 
 @router.post("/", response_model=schemas.signal.SignalResponse, status_code=status.HTTP_201_CREATED)
-def create_signal(
+async def create_signal(
     signal_in: schemas.signal.SignalCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
     """Create a new signal."""
     signal_service = SignalService(db)
     # TODO: Add logic to check if user has permission to create signal for the channel
-    return signal_service.create_signal(signal_in=signal_in)
+    signal = signal_service.create_signal(signal_in=signal_in)
+
+    # Send notifications to subscribed users
+    from app.services.notification_service import NotificationService
+    notification_service = NotificationService(db)
+    background_tasks.add_task(notification_service.notify_users_of_new_signal, signal)
+
+    return signal
 
 
 @router.get("/", response_model=schemas.signal.SignalListResponse)
 def get_signals(
     db: Session = Depends(get_db),
-    skip: int = Query(0, ge=0),
+    cursor: Optional[int] = Query(None, description="Cursor for pagination"),
     limit: int = Query(100, ge=1, le=1000),
     filters: schemas.signal.SignalFilterParams = Depends(),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_premium),
 ):
-    """Retrieve a list of signals with pagination and filtering."""
+    """Retrieve a list of signals with cursor-based pagination and filtering."""
     signal_service = SignalService(db)
-    signals, total = signal_service.get_signals(
-        skip=skip, limit=limit, filters=filters
+    signals, next_cursor = signal_service.get_signals_paginated(
+        cursor=cursor, limit=limit, filters=filters, user_subscription_tier=current_user.role.value
     )
-    
-    pages = ceil(total / limit) if limit > 0 else 0
-    page = (skip // limit) + 1
 
     signals_with_channels = []
     for s in signals:
@@ -74,14 +79,9 @@ def get_signals(
 
     return {
         "signals": signals_with_channels,
-        "total": total,
-        "page": page,
-        "size": len(signals_with_channels),
-        "pages": pages,
+        "next_cursor": next_cursor,
+        "limit": limit,
     }
-
-
-@router.get("/dashboard", response_model=List[dict])
 def get_signals_dashboard(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
@@ -89,13 +89,13 @@ def get_signals_dashboard(
 ):
     """Get signals without JOIN - simple version for dashboard."""
     query = db.query(Signal)
-    
+
     # Get total count
     total = query.count()
-    
+
     # Apply pagination
     signals = query.order_by(Signal.created_at.desc()).offset(skip).limit(limit).all()
-    
+
     # Convert to simple dict format
     result = []
     for signal in signals:
@@ -119,7 +119,7 @@ def get_signals_dashboard(
             "channel_name": get_channel_real_name(signal.channel_id)
         }
         result.append(signal_dict)
-    
+
     return result
 
 
@@ -211,4 +211,3 @@ def handle_telegram_signal(
     # to parse different message formats, find channels, etc.
     telegram_signal = telegram_signal_service.create_signal(signal_in)
     return telegram_signal
-

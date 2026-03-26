@@ -42,8 +42,8 @@ try:
     from .core.config import get_settings
     from .core.database import engine, Base
     from .api.endpoints import (
-        channels, users, signals, subscriptions, 
-        payments, ml_integration, telegram_integration, 
+        channels, users, signals, subscriptions,
+        payments, ml_integration, telegram_integration,
         trading, ml_predictions, backtesting, dashboard,
         user_sources, feedback, analytics, collect, export_signals, export as export_endpoints,
         stripe_checkout
@@ -172,7 +172,7 @@ async def lifespan(app: FastAPI):
     _background_tasks: list = []
 
     logger.info("Starting Crypto Analytics Platform...")
-    
+
     try:
         # В production используем Alembic (alembic upgrade head перед запуском).
         # В development — create_all для быстрого старта без PostgreSQL.
@@ -192,7 +192,7 @@ async def lifespan(app: FastAPI):
                 logger.error(f"Database initialization failed: {db_error}")
         else:
             logger.warning("Database engine not available - running in limited mode")
-        
+
         # Запускаем планировщик торговли (если доступен)
         if TradingScheduler:
             try:
@@ -203,7 +203,7 @@ async def lifespan(app: FastAPI):
                 logger.error(f"Trading scheduler failed to start: {scheduler_error}")
         else:
             logger.warning("Trading scheduler not available")
-        
+
         # Auto-collect signals from Telegram channels on startup
         import asyncio
         async def _auto_collect():
@@ -373,6 +373,15 @@ if getattr(settings, "ENVIRONMENT", "development") == "production":
 if SubscriptionLimitMiddleware:
     app.add_middleware(SubscriptionLimitMiddleware)
 
+# Добавляем rate limiting middleware
+try:
+    from app.middleware.rate_limit_middleware import RateLimitMiddleware
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    app.add_middleware(RateLimitMiddleware, redis_url=redis_url)
+    logger.info("RateLimitMiddleware enabled")
+except Exception as e:
+    logger.warning("RateLimitMiddleware not loaded: %s", e)
+
 # Middleware для обработки ошибок
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -388,7 +397,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Безопасное подключение роутеров
 routers_config = [
     ("users", "/api/v1/users", "users"),
-    ("channels", "/api/v1/channels", "channels"), 
+    ("channels", "/api/v1/channels", "channels"),
     ("signals", "/api/v1/signals", "signals"),
     ("subscriptions", "/api/v1/subscriptions", "subscriptions"),
     ("payments", "/api/v1/payments", "payments"),
@@ -415,8 +424,8 @@ for router_name, prefix, tag in routers_config:
             router_module = globals()[router_name]
             if hasattr(router_module, 'router'):
                 app.include_router(
-                    router_module.router, 
-                    prefix=prefix, 
+                    router_module.router,
+                    prefix=prefix,
                     tags=[tag]
                 )
                 logger.info(f"Router {router_name} included successfully")
@@ -523,10 +532,10 @@ async def api_status():
     """Статус API для мониторинга"""
     return {
         "api_version": "v1",
-        "status": "operational", 
+        "status": "operational",
         "features": [
             "user_management",
-            "channel_analytics", 
+            "channel_analytics",
             "ml_predictions",
             "trading_signals",
             "payment_processing"
@@ -563,13 +572,13 @@ async def test_signals():
         from sqlalchemy.orm import Session
         from app.core.database import get_db
         from app.models.signal import Signal
-        
+
         # Создаем сессию базы данных
         db = next(get_db())
-        
+
         # Получаем сигналы
         signals = db.query(Signal).order_by(Signal.created_at.desc()).limit(10).all()
-        
+
         # Конвертируем в простой формат
         result = []
         for signal in signals:
@@ -589,9 +598,9 @@ async def test_signals():
                 "channel_name": signal.channel.name if signal.channel else f"Channel {signal.channel_id}"
             }
             result.append(signal_dict)
-        
+
         return result
-        
+
     except Exception as e:
         return {"error": str(e), "message": "Failed to get signals"}
 
@@ -602,13 +611,13 @@ async def dashboard_channels():
         from sqlalchemy.orm import Session
         from app.core.database import get_db
         from app.models.channel import Channel
-        
+
         # Создаем сессию базы данных
         db = next(get_db())
-        
+
         # Получаем каналы
         channels = db.query(Channel).order_by(Channel.created_at.desc()).limit(10).all()
-        
+
         # Конвертируем в простой формат
         result = []
         for channel in channels:
@@ -629,9 +638,9 @@ async def dashboard_channels():
                 "updated_at": channel.updated_at.isoformat() if channel.updated_at else None
             }
             result.append(channel_dict)
-        
+
         return result
-        
+
     except Exception as e:
         return {"error": str(e), "message": "Failed to get channels"}
 

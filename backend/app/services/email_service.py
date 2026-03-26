@@ -21,24 +21,24 @@ logger = logging.getLogger(__name__)
 
 class EmailService:
     """Service for sending email notifications"""
-    
+
     def __init__(self):
         self.settings = get_settings()
         self.smtp_configured = bool(
-            self.settings.EMAIL_SMTP_HOST and 
-            self.settings.EMAIL_SMTP_USERNAME and 
+            self.settings.EMAIL_SMTP_HOST and
+            self.settings.EMAIL_SMTP_USERNAME and
             self.settings.EMAIL_SMTP_PASSWORD
         )
         self.sendgrid_configured = bool(self.settings.SENDGRID_API_KEY)
-        
+
         if not self.smtp_configured and not self.sendgrid_configured:
             logger.warning("No email provider configured - email notifications will be disabled")
-    
+
     async def send_payment_confirmation(self, user: User, payment: Payment) -> bool:
         """Send payment confirmation email"""
         try:
             subject = "Payment Confirmed - Crypto Analytics Platform"
-            
+
             # Prepare email data
             email_data = {
                 "user_name": user.full_name or user.email,
@@ -50,26 +50,26 @@ class EmailService:
                 "subscription_plan": self._get_subscription_plan_name(payment),
                 "support_email": "support@crypto-analytics.com"
             }
-            
+
             html_content = self._render_payment_confirmation_template(email_data)
             text_content = self._render_payment_confirmation_text(email_data)
-            
+
             return await self._send_email(
                 to_email=user.email,
                 subject=subject,
                 html_content=html_content,
                 text_content=text_content
             )
-            
+
         except Exception as e:
             logger.error(f"Error sending payment confirmation email: {e}")
             return False
-    
+
     async def send_payment_reminder(self, user: User, subscription: Subscription) -> bool:
         """Send payment reminder email"""
         try:
             subject = "Payment Reminder - Crypto Analytics Platform"
-            
+
             email_data = {
                 "user_name": user.full_name or user.email,
                 "subscription_plan": subscription.plan.value.title(),
@@ -78,21 +78,21 @@ class EmailService:
                 "currency": subscription.currency,
                 "support_email": "support@crypto-analytics.com"
             }
-            
+
             html_content = self._render_payment_reminder_template(email_data)
             text_content = self._render_payment_reminder_text(email_data)
-            
+
             return await self._send_email(
                 to_email=user.email,
                 subject=subject,
                 html_content=html_content,
                 text_content=text_content
             )
-            
+
         except Exception as e:
             logger.error(f"Error sending payment reminder email: {e}")
             return False
-    
+
     async def send_welcome_email(self, user: User) -> bool:
         """Send welcome email after registration"""
         try:
@@ -112,6 +112,32 @@ class EmailService:
             )
         except Exception as e:
             logger.error(f"Error sending welcome email: {e}")
+            return False
+
+    async def send_verification_email(self, user: User) -> bool:
+        """Send email verification link"""
+        try:
+            if not user.email_verification_token:
+                logger.error(f"No verification token for user {user.id}")
+                return False
+
+            subject = "Подтвердите ваш email — Crypto Analytics Platform"
+            verification_url = f"https://crypto-analytics.com/verify-email?token={user.email_verification_token}"
+            email_data = {
+                "user_name": user.full_name or user.email.split("@")[0],
+                "verification_url": verification_url,
+                "support_email": "support@crypto-analytics.com",
+            }
+            html_content = self._render_verification_template(email_data)
+            text_content = self._render_verification_text(email_data)
+            return await self._send_email(
+                to_email=user.email,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+            )
+        except Exception as e:
+            logger.error(f"Error sending verification email: {e}")
             return False
 
     async def send_weekly_digest(
@@ -176,28 +202,28 @@ class EmailService:
         """Send subscription expired notification"""
         try:
             subject = "Subscription Expired - Crypto Analytics Platform"
-            
+
             email_data = {
                 "user_name": user.full_name or user.email,
                 "subscription_plan": subscription.plan.value.title(),
                 "expired_date": subscription.current_period_end.strftime("%B %d, %Y"),
                 "support_email": "support@crypto-analytics.com"
             }
-            
+
             html_content = self._render_subscription_expired_template(email_data)
             text_content = self._render_subscription_expired_text(email_data)
-            
+
             return await self._send_email(
                 to_email=user.email,
                 subject=subject,
                 html_content=html_content,
                 text_content=text_content
             )
-            
+
         except Exception as e:
             logger.error(f"Error sending subscription expired email: {e}")
             return False
-    
+
     async def _send_email(self, to_email: str, subject: str, html_content: str, text_content: str) -> bool:
         """Send email using configured provider"""
         if self.sendgrid_configured:
@@ -207,7 +233,7 @@ class EmailService:
         else:
             logger.warning("No email provider configured - skipping email send")
             return False
-    
+
     async def _send_via_sendgrid(self, to_email: str, subject: str, html_content: str, text_content: str) -> bool:
         """Send email via SendGrid API"""
         try:
@@ -216,7 +242,7 @@ class EmailService:
                 "Authorization": f"Bearer {self.settings.SENDGRID_API_KEY}",
                 "Content-Type": "application/json"
             }
-            
+
             data = {
                 "personalizations": [
                     {
@@ -239,21 +265,21 @@ class EmailService:
                     }
                 ]
             }
-            
+
             async with httpx.AsyncClient() as client:
                 response = await client.post(url, headers=headers, json=data)
-                
+
                 if response.status_code == 202:
                     logger.info(f"Email sent successfully via SendGrid to {to_email}")
                     return True
                 else:
                     logger.error(f"SendGrid API error: {response.status_code} - {response.text}")
                     return False
-                    
+
         except Exception as e:
             logger.error(f"Error sending email via SendGrid: {e}")
             return False
-    
+
     async def _send_via_smtp(self, to_email: str, subject: str, html_content: str, text_content: str) -> bool:
         """Send email via SMTP"""
         try:
@@ -261,33 +287,33 @@ class EmailService:
             message["Subject"] = subject
             message["From"] = f"{self.settings.EMAIL_FROM_NAME} <{self.settings.EMAIL_FROM_ADDRESS}>"
             message["To"] = to_email
-            
+
             # Attach both HTML and text versions
             text_part = MIMEText(text_content, "plain")
             html_part = MIMEText(html_content, "html")
-            
+
             message.attach(text_part)
             message.attach(html_part)
-            
+
             # Create SMTP connection
             context = ssl.create_default_context()
-            
+
             with smtplib.SMTP(self.settings.EMAIL_SMTP_HOST, self.settings.EMAIL_SMTP_PORT) as server:
                 if self.settings.EMAIL_USE_TLS:
                     server.starttls(context=context)
                 elif self.settings.EMAIL_USE_SSL:
                     server = smtplib.SMTP_SSL(self.settings.EMAIL_SMTP_HOST, self.settings.EMAIL_SMTP_PORT, context=context)
-                
+
                 server.login(self.settings.EMAIL_SMTP_USERNAME, self.settings.EMAIL_SMTP_PASSWORD)
                 server.send_message(message)
-                
+
             logger.info(f"Email sent successfully via SMTP to {to_email}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error sending email via SMTP: {e}")
             return False
-    
+
     def _render_welcome_template(self, data: Dict[str, Any]) -> str:
         template = """
 <!DOCTYPE html>
@@ -318,6 +344,40 @@ class EmailService:
 Привет, {data['user_name']}!
 
 Спасибо за регистрацию в Crypto Analytics Platform. Открыть дашборд: {data['dashboard_url']}
+Вопросы: {data['support_email']}
+
+Crypto Analytics Platform"""
+
+    def _render_verification_template(self, data: Dict[str, Any]) -> str:
+        template = """
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Подтвердите email</title>
+<style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333;}
+.container{max-width:600px;margin:0 auto;padding:20px;}
+.header{background:#2563eb;color:white;padding:20px;text-align:center;}
+.content{padding:20px;background:#f9fafb;}
+.footer{text-align:center;padding:20px;color:#6b7280;font-size:14px;}
+.button{display:inline-block;padding:12px 24px;background:#2563eb;color:white;text-decoration:none;border-radius:6px;}
+</style></head><body>
+<div class="container">
+<div class="header"><h1>Подтвердите ваш email</h1></div>
+<div class="content">
+<h2>Привет, {{ user_name }}!</h2>
+<p>Для завершения регистрации подтвердите ваш email:</p>
+<p><a href="{{ verification_url }}" class="button">Подтвердить email</a></p>
+<p>Если кнопка не работает, скопируйте ссылку: {{ verification_url }}</p>
+<p>Вопросы? Пишите на <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+</div><div class="footer"><p>Crypto Analytics Platform</p></div>
+</div></body></html>
+"""
+        return Template(template).render(**data)
+
+    def _render_verification_text(self, data: Dict[str, Any]) -> str:
+        return f"""Подтвердите ваш email
+
+Привет, {data['user_name']}!
+
+Для завершения регистрации перейдите по ссылке: {data['verification_url']}
 Вопросы: {data['support_email']}
 
 Crypto Analytics Platform"""
@@ -388,7 +448,7 @@ Crypto Analytics Platform"""
             # In a real implementation, you'd fetch this from Stripe
             return "Premium Plan"
         return "Unknown Plan"
-    
+
     def _render_payment_confirmation_template(self, data: Dict[str, Any]) -> str:
         """Render payment confirmation HTML template"""
         template = """
@@ -414,7 +474,7 @@ Crypto Analytics Platform"""
                 <div class="content">
                     <h2>Hello {{ user_name }},</h2>
                     <p>Thank you for your payment! Your transaction has been successfully processed.</p>
-                    
+
                     <h3>Payment Details:</h3>
                     <ul>
                         <li><strong>Amount:</strong> {{ payment_amount }} {{ payment_currency }}</li>
@@ -422,13 +482,13 @@ Crypto Analytics Platform"""
                         <li><strong>Transaction ID:</strong> {{ payment_id }}</li>
                         <li><strong>Plan:</strong> {{ subscription_plan }}</li>
                     </ul>
-                    
+
                     {% if receipt_url %}
                     <p><a href="{{ receipt_url }}" class="button">View Receipt</a></p>
                     {% endif %}
-                    
+
                     <p>Your subscription is now active. You can access all premium features immediately.</p>
-                    
+
                     <p>If you have any questions, please contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
                 </div>
                 <div class="footer">
@@ -439,7 +499,7 @@ Crypto Analytics Platform"""
         </html>
         """
         return Template(template).render(**data)
-    
+
     def _render_payment_confirmation_text(self, data: Dict[str, Any]) -> str:
         """Render payment confirmation text template"""
         template = """
@@ -463,7 +523,7 @@ Best regards,
 Crypto Analytics Platform Team
         """
         return Template(template).render(**data)
-    
+
     def _render_payment_reminder_template(self, data: Dict[str, Any]) -> str:
         """Render payment reminder HTML template"""
         template = """
@@ -489,16 +549,16 @@ Crypto Analytics Platform Team
                 <div class="content">
                     <h2>Hello {{ user_name }},</h2>
                     <p>This is a friendly reminder that your subscription payment is due soon.</p>
-                    
+
                     <h3>Subscription Details:</h3>
                     <ul>
                         <li><strong>Plan:</strong> {{ subscription_plan }}</li>
                         <li><strong>Next Billing Date:</strong> {{ next_billing_date }}</li>
                         <li><strong>Amount:</strong> {{ amount }} {{ currency }}</li>
                     </ul>
-                    
+
                     <p>To ensure uninterrupted access to your premium features, please make sure your payment method is up to date.</p>
-                    
+
                     <p>If you have any questions, please contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
                 </div>
                 <div class="footer">
@@ -509,7 +569,7 @@ Crypto Analytics Platform Team
         </html>
         """
         return Template(template).render(**data)
-    
+
     def _render_payment_reminder_text(self, data: Dict[str, Any]) -> str:
         """Render payment reminder text template"""
         template = """
@@ -532,7 +592,7 @@ Best regards,
 Crypto Analytics Platform Team
         """
         return Template(template).render(**data)
-    
+
     def _render_subscription_expired_template(self, data: Dict[str, Any]) -> str:
         """Render subscription expired HTML template"""
         template = """
@@ -558,15 +618,15 @@ Crypto Analytics Platform Team
                 <div class="content">
                     <h2>Hello {{ user_name }},</h2>
                     <p>Your subscription has expired. You've been downgraded to the free plan.</p>
-                    
+
                     <h3>Subscription Details:</h3>
                     <ul>
                         <li><strong>Plan:</strong> {{ subscription_plan }}</li>
                         <li><strong>Expired Date:</strong> {{ expired_date }}</li>
                     </ul>
-                    
+
                     <p>To restore access to premium features, please renew your subscription.</p>
-                    
+
                     <p>If you have any questions, please contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
                 </div>
                 <div class="footer">
@@ -577,7 +637,7 @@ Crypto Analytics Platform Team
         </html>
         """
         return Template(template).render(**data)
-    
+
     def _render_subscription_expired_text(self, data: Dict[str, Any]) -> str:
         """Render subscription expired text template"""
         template = """

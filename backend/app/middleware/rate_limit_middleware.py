@@ -1,0 +1,59 @@
+"""
+Rate Limiting Middleware
+Implements Redis-based rate limiting with sliding window.
+"""
+import time
+import redis
+from fastapi import Request, HTTPException, status
+from starlette.middleware.base import BaseHTTPMiddleware
+from app.core.database import get_db
+from app.models.user import User
+from sqlalchemy.orm import Session
+
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, redis_url: str):
+        super().__init__(app)
+        self.redis = redis.from_url(redis_url)
+        # Rate limits per hour
+        self.limits = {
+            'FREE_USER': 100,
+            'PREMIUM_USER': 1000,
+            'ADMIN': 10000
+        }
+
+    async def dispatch(self, request: Request, call_next):
+        # Skip rate limiting for health checks and static files
+        if request.url.path in ['/health', '/docs', '/openapi.json'] or request.url.path.startswith('/static'):
+            return await call_next(request)
+
+        # Get user from request state (set by auth middleware)
+        user = getattr(request.state, 'user', None)
+        if not user:
+            # Anonymous requests - low limit
+            limit = 10
+            key = f"rate_limit:anon:{request.client.host}:{int(time.time() / 3600)}"
+        else:
+            limit = self.limits.get(user.role.value, 100)
+            key = f"rate_limit:{user.id}:{int(time.time() / 3600)}"
+
+        # Sliding window: count requests in current hour
+        current = self.redis.incr(key)
+        if current == 1:
+            self.redis.expire(key, 3600)  # Expire in 1 hour
+
+        if current > limit:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Rate limit exceeded. Please try again later."
+            )
+
+        response = await call_next(request)
+
+        # Add rate limit headers
+        remaining = max(0, limit - current)
+        response.headers['X-RateLimit-Limit'] = str(limit)
+        response.headers['X-RateLimit-Remaining'] = str(remaining)
+        response.headers['X-RateLimit-Reset'] = str(int(time.time() / 3600) * 3600 + 3600)
+
+        return response

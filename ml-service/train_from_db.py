@@ -273,9 +273,11 @@ def train():
     model = XGBClassifier(**xgb_params)
     model.fit(features, labels)
 
+    from sklearn.model_selection import TimeSeriesSplit
+
     train_acc = (model.predict(features) == labels).mean()
-    cv_folds = min(5, max(2, len(features) // 10))
-    cv_scores = cross_val_score(model, features, labels, cv=cv_folds, scoring="accuracy")
+    tscv = TimeSeriesSplit(n_splits=min(5, max(2, len(features) // 10)))
+    cv_scores = cross_val_score(model, features, labels, cv=tscv, scoring="accuracy")
     accuracy = cv_scores.mean()
 
     y_pred = model.predict(features)
