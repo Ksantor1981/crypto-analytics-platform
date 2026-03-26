@@ -1,0 +1,38 @@
+groups:
+  - name: crypto-analytics-platform
+    rules:
+      - alert: BackendDown
+        expr: up{job="backend"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend is down"
+          description: "FastAPI backend has not been reachable for 5 minutes."
+
+      - alert: High5xxRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx error rate"
+          description: "Backend 5xx rate is above 5% for 10 minutes."
+
+      - alert: MlServiceDown
+        expr: up{job="ml-service"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ML service is down"
+          description: "ML service has not been reachable for 5 minutes."
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis endpoint has not been reachable for 5 minutes."

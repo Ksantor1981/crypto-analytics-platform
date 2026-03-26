@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
-from app.core.auth import get_current_user, get_optional_current_user
+from app.core.auth import get_current_user, get_optional_current_user, require_premium
 from app.models.channel import Channel
 from app.models.signal import Signal
 from app.models.user import User
@@ -78,7 +78,7 @@ async def collect_channel_signals(
 @router.post("/collect-all")
 async def collect_all_channels(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_premium),
 ):
     """Collect signals from all active channels."""
     settings = get_settings()
@@ -133,7 +133,7 @@ async def collect_all_channels(
 @router.post("/recalculate-metrics")
 async def recalculate_metrics(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_premium),
 ):
     """Recalculate accuracy and ROI for all channels."""
     results = recalculate_all_channels(db)
@@ -165,7 +165,7 @@ async def validate_signal(
 @router.post("/check-signals")
 async def check_signals(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_premium),
 ):
     """Check pending signals against current market prices. Updates TP/SL hit status."""
     result = await check_pending_signals(db)
@@ -177,7 +177,7 @@ async def check_signals(
 async def deep_collect(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_premium),
 ):
     """Deep historical collection: scrape ALL posts, validate against CoinGecko prices."""
     result = await deep_collect_and_validate(db)
@@ -187,7 +187,7 @@ async def deep_collect(
 @router.post("/collect-reddit")
 async def collect_reddit(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_premium),
 ):
     """Collect signals from Reddit crypto subreddits."""
     total_saved = 0
@@ -247,7 +247,7 @@ async def ocr_parse_signal(
 @router.post("/validate-history")
 async def validate_historical(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_premium),
 ):
     """Validate all signals against historical CoinGecko prices. Updates accuracy."""
     result = await validate_all_signals(db)
@@ -268,7 +268,7 @@ async def telethon_collect(
     channel_username: str,
     days: int = 90,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_premium),
 ):
     """Collect deep history from a channel via Telethon (requires auth)."""
     if not telethon_ready():

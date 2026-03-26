@@ -101,6 +101,8 @@ jobs:
             exit 1
           fi
           echo "OK: no banned patterns in tracked compose/helm"
+      - name: Docs sync guard
+        run: python scripts/validate_docs_sync.py
 
   # E2E: continue-on-error — Playwright может флакать (таймауты, сеть); стабилизировать при необходимости
   e2e:
