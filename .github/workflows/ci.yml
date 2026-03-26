@@ -95,7 +95,7 @@ jobs:
       - name: Block known leaked credential patterns in compose/helm
         run: |
           set -e
-          if grep -rE 'REDACTED|REDACTED' --include='*.yml' --include='*.yaml' \
+          if grep -rE 'postgres123|crypto-analytics-secret-key-2024' --include='*.yml' --include='*.yaml' \
             helm/ docker-compose.yml docker-compose.simple.yml docker-compose.deploy.yml docker-compose.production.yml 2>/dev/null; then
             echo "Found banned placeholder/leaked patterns in deploy configs"
             exit 1
