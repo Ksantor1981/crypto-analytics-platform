@@ -200,7 +200,7 @@ export default function Demo() {
         <title>Demo - CryptoAnalytics</title>
         <meta
           name="description"
-          content="Experience CryptoAnalytics with real data and AI-powered insights"
+          content="CryptoAnalytics UI demo — illustrative numbers, not verified trading performance"
         />
       </Head>
 
@@ -250,6 +250,9 @@ export default function Demo() {
             </h1>
             <p className="text-xl text-gray-300 mb-8">
               Experience the power of AI-driven crypto analysis
+            </p>
+            <p className="text-sm text-amber-200 bg-amber-900/40 border border-amber-600/50 rounded-lg px-4 py-3 max-w-3xl mx-auto mb-6">
+              Демо: числа и проценты — макет интерфейса, не реальная торговая статистика и не подтверждённая точность ML.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-500/20 text-green-200 border border-green-500/30">
@@ -506,9 +509,9 @@ export default function Demo() {
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center">
                     <div className="text-3xl font-bold text-white mb-2">
-                      87.2%
+                      —
                     </div>
-                    <div className="text-gray-300">AI Accuracy Rate</div>
+                    <div className="text-gray-300">ML accuracy (not verified in demo)</div>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center">
                     <div className="text-3xl font-bold text-white mb-2">
@@ -568,7 +571,7 @@ export default function Demo() {
                           Successful signals:
                         </span>
                         <span className="font-bold text-green-400">
-                          8,935 (87.2%)
+                          illustrative split (demo)
                         </span>
                       </div>
                       <div className="flex justify-between items-center">

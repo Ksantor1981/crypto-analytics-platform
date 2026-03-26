@@ -14,7 +14,8 @@
 - [Закрытие разрывов с ТЗ](./docs/TZ_GAPS_REMEDIATION.md) — ML, coverage, RPS, GA, алерты Pro
 - [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production  
 - [Оценка статуса](./docs/ARCHITECT_STATUS_EVALUATION.md) — технический архитектор (текущее состояние)
-- [ML Pipeline](./ml-service/README.md) — train-скрипт, feature engineering, воспроизводимость
+- [ML Pipeline](./ml-service/README.md) — train-скрипт, воспроизводимость  
+- [Целостность данных ML](./docs/ML_DATA_INTEGRITY_ROADMAP.md) — план: свечи, индикаторы, честные метрики
 
 ---
 
@@ -41,7 +42,7 @@ Frontend (3000)  ←→  Backend API (8000)  ←→  ML Service (8001)
 2. **Парсит** asset, direction (LONG/SHORT), entry price, TP, SL из текста постов
 3. **Валидирует** цены через CoinGecko API (текущие + исторические OHLC)
 4. **Рассчитывает accuracy** каналов: TP hit / SL hit за 7 дней
-5. **ML-предсказания**: XGBoost; заявленная CV accuracy ~96% — **не** out-of-sample метрика; возможны temporal leakage и расхождение с реальной точностью (см. `docs/ML_ACCURACY_DISCREPANCY.md`)
+5. **ML-предсказания**: XGBoost; **87.2% в SPEC — целевой KPI**, не подтверждённый маркетинговый факт. Скрипт `train_from_db.py` по умолчанию без аугментации и без синтетического fallback; CV на сидах/плейсхолдерах **не** равна торговой точности (см. `docs/ML_ACCURACY_DISCREPANCY.md`, `docs/ML_DATA_INTEGRITY_ROADMAP.md`).
 6. **Рейтинг + антирейтинг** каналов по реальным данным
 7. **Stripe подписки**: Free / Premium ($19) / Pro ($49)
 
@@ -112,7 +113,7 @@ cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # 
 - 27 Telegram каналов + 20 Reddit сабреддитов (конфиг в `workers/real_data_config.py`)
 - ~150 сигналов (seed data; для реальных — нужны Telegram API ключи в `.env`)
 - Accuracy каналов: 41.7% (по seed)
-- ML CV accuracy: 96.0% ±2.4% (валидация в train-скрипте; для OOS/leakage см. `docs/ML_ACCURACY_DISCREPANCY.md`)
+- ML: метрика зависит от данных; старые отчёты с CV ~96% относились к **нечестной** выборке (плейсхолдеры/аугментация). Текущий пайплайн — см. `ml-service/README.md` и `docs/ML_DATA_INTEGRITY_ROADMAP.md`
 - 0 hardcoded secrets в коде
 - 85 тестов (pytest), pytest-cov в CI
 

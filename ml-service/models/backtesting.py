@@ -22,7 +22,8 @@ class BacktestingEngine:
     
     def __init__(self, data_path: str = "data/historical_signals.csv"):
         self.data_path = data_path
-        self.target_accuracy = 0.872  # 87.2% target
+        # SPEC целевой KPI (не текущая достигнутая метрика продукта)
+        self.target_accuracy = float(os.getenv("ML_TARGET_ACCURACY", "0.872"))
         self.models = {}
         self.results = {}
         

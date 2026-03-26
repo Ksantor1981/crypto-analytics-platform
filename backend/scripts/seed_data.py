@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-Database seeding script for development and testing
+Database seeding script for development and testing.
+
+ВНИМАНИЕ: создаёт демонстрационные сигналы/пользователей (часто с одинаковыми timestamp).
+Для ML и отчётов о точности это НЕ реальная торговая история.
+Прод: не использовать как источник истины; см. docs/ML_DATA_INTEGRITY_ROADMAP.md
 """
 import sys
 import os
@@ -31,6 +35,7 @@ from app.models import (
 def create_test_users(session):
     """Create test users"""
     print("Creating test users...")
+    print("[seed_data] DEMO DATA ONLY — not for production ML accuracy claims.")
     
     # Admin user
     admin = User(

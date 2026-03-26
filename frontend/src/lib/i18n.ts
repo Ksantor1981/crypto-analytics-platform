@@ -10,15 +10,19 @@ const translations: Record<Language, Record<string, string>> = {
       'ML-предсказания, антирейтинг каналов и прозрачная статистика без приукрашивания.',
     'hero.startTrial': 'Бесплатный пробный период',
     'hero.viewDemo': 'Смотреть демо',
-    'stats.accuracy': 'Точность ML',
-    'stats.features': 'Признаков в модели',
+    'stats.accuracy': 'ML: валидация',
+    'stats.accuracyValue': 'По данным',
+    'stats.accuracyFootnote':
+      'Нет публичной метрики до бэктеста на реальных OHLC и исходах; см. docs/ML_ACCURACY_DISCREPANCY.md',
+    'stats.features': 'Признаков (текущий пайплайн)',
+    'stats.featuresValue': '~8',
     'stats.responseTime': 'Время ответа',
     'features.title': 'Возможности платформы',
     'features.subtitle':
       'Всё необходимое для анализа крипто-сигналов в одном месте.',
     'features.ai.title': 'ML-предсказания',
     'features.ai.description':
-      'Точность 87.2% на основе 110+ признаков. Ensemble-модели XGBoost и scikit-learn.',
+      'XGBoost; качество зависит от исторических свечей и исходов TP/SL. Целевой KPI в SPEC — только после подтверждения на живых данных.',
     'features.realtime.title': 'Мониторинг в реальном времени',
     'features.realtime.description':
       'Сбор сигналов каждые 15 минут из Telegram и Reddit.',
@@ -67,15 +71,19 @@ const translations: Record<Language, Record<string, string>> = {
       'ML predictions, channel anti-rating, and transparent statistics without sugarcoating.',
     'hero.startTrial': 'Free Trial',
     'hero.viewDemo': 'View Demo',
-    'stats.accuracy': 'ML Accuracy',
-    'stats.features': 'Model Features',
+    'stats.accuracy': 'ML validation',
+    'stats.accuracyValue': 'Data-driven',
+    'stats.accuracyFootnote':
+      'No public accuracy until backtest on real OHLC + outcomes; see docs/ML_ACCURACY_DISCREPANCY.md',
+    'stats.features': 'Features (current pipeline)',
+    'stats.featuresValue': '~8',
     'stats.responseTime': 'Response Time',
     'features.title': 'Platform Features',
     'features.subtitle':
       'Everything you need for crypto signal analysis in one place.',
     'features.ai.title': 'ML Predictions',
     'features.ai.description':
-      '87.2% accuracy with 110+ features. XGBoost and scikit-learn ensemble.',
+      'XGBoost; quality depends on historical candles and TP/SL outcomes. SPEC target KPI only after validation on live data.',
     'features.realtime.title': 'Real-time Monitoring',
     'features.realtime.description':
       'Signal collection every 15 min from Telegram and Reddit.',

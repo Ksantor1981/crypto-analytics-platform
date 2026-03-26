@@ -90,13 +90,16 @@ function HomeContent() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600 mb-2">
-                    87.2%
+                    {t('stats.accuracyValue')}
                   </div>
                   <div className="text-gray-600">{t('stats.accuracy')}</div>
+                  <p className="text-xs text-gray-500 mt-2 max-w-xs mx-auto">
+                    {t('stats.accuracyFootnote')}
+                  </p>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600 mb-2">
-                    110+
+                    {t('stats.featuresValue')}
                   </div>
                   <div className="text-gray-600">{t('stats.features')}</div>
                 </div>

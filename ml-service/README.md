@@ -67,14 +67,16 @@ cd ..
 python backend/scripts/run_ml_train.py
 ```
 
-**Что делает `train_from_db.py`:**
-- Читает сигналы напрямую из БД (signals + channels.accuracy, channels.signals_count)
-- Fallback: API `GET /api/v1/signals/` при недоступности БД (нужен TRAIN_API_TOKEN при auth)
-- Обучает только при достаточном числе «закрытых» сигналов (TP/SL/EXPIRED), иначе предупреждение
-- XGBoost Classifier, сохраняет в `models/signal_model_v{N}_{timestamp}.pkl` и `models/signal_model.pkl`
-- Выводит CV accuracy и отчёт в `models/evaluation_report_v{N}.json`
+**Что делает `train_from_db.py`:** см. также `docs/ML_DATA_INTEGRITY_ROADMAP.md`.
+- Читает `signals` + `channels`; при PostgreSQL и наличии таблицы **`technical_indicators`** подтягивает **RSI/MACD** (JOIN по символу и времени сигнала, таймфрейм `ML_INDICATOR_TIMEFRAME`, по умолчанию `1d`).
+- Сортировка **`created_at ASC`** для осмысленного `TimeSeriesSplit`.
+- При **≥15 закрытых** сигналах обучение **только** на TP/SL/EXPIRED; иначе — слабые прокси-метки для PENDING (с предупреждением в отчёте).
+- **Аугментация выключена** по умолчанию (`ML_AUGMENT_TARGET=0`). Синтетический fallback только при `ML_SYNTHETIC_FALLBACK=1`.
+- Отчёт: `indicator_coverage_percent`, `warnings`, дисклеймер про CV.
 
-**Признаки:** confidence, risk_reward, price_dev, direction (LONG=1), rsi (placeholder), macd (placeholder), ch_accuracy (из канала), ch_signals (из канала)
+**Альтернатива с `real_signals`:** `python train_from_real_signals.py` (после заполнения `real_signals` и индикаторов).
+
+**Признаки:** confidence, risk_reward, price_dev, direction, **rsi, macd** (из БД или плейсхолдер), ch_accuracy, ch_signals
 
 ## Inference
 
