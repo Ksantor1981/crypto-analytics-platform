@@ -1,39 +1,45 @@
-version: '3.8'
-
+# Только PostgreSQL + Redis для разработки backend/ml на хосте.
+# Обязателен .env в корне: POSTGRES_PASSWORD, REDIS_PASSWORD (и при необходимости POSTGRES_USER, POSTGRES_DB).
+# Запуск: docker compose -f docker-compose.simple.yml --env-file .env up -d
 services:
-  # PostgreSQL database
   postgres:
-    image: postgres:15
-    container_name: crypto-analytics-postgres
+    image: postgres:15-alpine
+    container_name: crypto-analytics-postgres-simple
     environment:
-      POSTGRES_DB: crypto_analytics
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: REDACTED
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: ${POSTGRES_DB:-crypto_analytics}
+      POSTGRES_USER: ${POSTGRES_USER:-crypto_analytics_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Задайте POSTGRES_PASSWORD в .env}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_simple_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-crypto_analytics_user} -d ${POSTGRES_DB:-crypto_analytics}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - crypto_analytics_network
 
-  # Redis for Celery
   redis:
     image: redis:7-alpine
-    container_name: crypto-analytics-redis
+    container_name: crypto-analytics-redis-simple
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Задайте REDIS_PASSWORD в .env}
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
-      - "6379:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
-      - redis_data:/data
+      - redis_simple_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 5
     networks:
       - crypto_analytics_network
@@ -43,5 +49,5 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_simple_data:
+  redis_simple_data:

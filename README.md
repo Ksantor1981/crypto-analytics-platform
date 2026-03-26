@@ -39,7 +39,7 @@ Frontend (3000)  ←→  Backend API (8000)  ←→  ML Service (8001)
 2. **Парсит** asset, direction (LONG/SHORT), entry price, TP, SL из текста постов
 3. **Валидирует** цены через CoinGecko API (текущие + исторические OHLC)
 4. **Рассчитывает accuracy** каналов: TP hit / SL hit за 7 дней
-5. **ML-предсказания**: XGBoost модель (CV accuracy 96% ±2.4%)
+5. **ML-предсказания**: XGBoost; заявленная CV accuracy ~96% — **не** out-of-sample метрика; возможны temporal leakage и расхождение с реальной точностью (см. `docs/ML_ACCURACY_DISCREPANCY.md`)
 6. **Рейтинг + антирейтинг** каналов по реальным данным
 7. **Stripe подписки**: Free / Premium ($19) / Pro ($49)
 
@@ -78,6 +78,17 @@ cd frontend && npm install --legacy-peer-deps && npm run dev
 
 Swagger: http://localhost:8000/docs
 
+### Какой `docker-compose` использовать
+
+| Файл | Когда |
+|------|--------|
+| `docker-compose.yml` | Основной локальный полный стек (разработка; bind-mount кода). |
+| `docker-compose.simple.yml` | Только Postgres + Redis на `127.0.0.1`; backend/ml на хосте. Нужен `.env` с паролями. |
+| `docker-compose.deploy.yml` | Упрощённый стек + nginx; БД/Redis только на localhost портах; секреты из `.env`. |
+| `docker-compose.production.yml` | Лимиты ресурсов, отдельный `celery-beat`, без bind-mount исходников в примере. |
+
+Дублирующие Helm-деревья: `helm/` и `infrastructure/helm/crypto-analytics/` — разные сценарии упаковки; перед релизом выберите один канон и обновите CI.
+
 ### Docker Compose (полный стек)
 
 - Сбор сигналов **непрерывно** в процессе `backend`: asyncio-планировщик (интервалы задаются `COLLECTION_INTERVAL_SECONDS` / `REDDIT_COLLECTION_INTERVAL_SECONDS`, в `docker-compose.yml` по умолчанию **180** с).
@@ -99,7 +110,7 @@ cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # 
 - 27 Telegram каналов + 20 Reddit сабреддитов (конфиг в `workers/real_data_config.py`)
 - ~150 сигналов (seed data; для реальных — нужны Telegram API ключи в `.env`)
 - Accuracy каналов: 41.7% (по seed)
-- ML CV accuracy: 96.0% ±2.4% (на валидационном наборе)
+- ML CV accuracy: 96.0% ±2.4% (валидация в train-скрипте; для OOS/leakage см. `docs/ML_ACCURACY_DISCREPANCY.md`)
 - 0 hardcoded secrets в коде
 - 85 тестов (pytest), pytest-cov в CI
 
