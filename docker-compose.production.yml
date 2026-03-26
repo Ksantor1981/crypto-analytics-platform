@@ -49,6 +49,7 @@ services:
       - ENVIRONMENT=production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/crypto_analytics
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - ML_SERVICE_URL=${ML_SERVICE_URL:-http://ml-service:8001}
       - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env.production}
       - TELEGRAM_API_ID=${TELEGRAM_API_ID}
       - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}

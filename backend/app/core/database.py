@@ -4,6 +4,10 @@ from app.models.base import Base
 
 from .config import get_settings
 
+# Ensure all SQLAlchemy models are imported/registered with Base.metadata
+# before any Base.metadata.create_all() calls (especially in tests).
+import app.models  # noqa: F401
+
 # Получаем настройки
 settings = get_settings()
 

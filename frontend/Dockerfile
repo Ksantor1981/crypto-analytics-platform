@@ -24,6 +24,9 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
+# Used by Docker HEALTHCHECK in this image
+RUN apk add --no-cache curl
+
 # Копирование собранного приложения
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./

@@ -59,15 +59,16 @@ async def create_signal(
 @router.get("/", response_model=schemas.signal.SignalListResponse)
 def get_signals(
     db: Session = Depends(get_db),
-    cursor: Optional[int] = Query(None, description="Cursor for pagination"),
-    limit: int = Query(100, ge=1, le=1000),
+    page: int = Query(1, ge=1, description="Page number (1-based)"),
+    size: int = Query(100, ge=1, le=1000, description="Page size"),
     filters: schemas.signal.SignalFilterParams = Depends(),
     current_user: User = Depends(require_premium),
 ):
-    """Retrieve a list of signals with cursor-based pagination and filtering."""
+    """Retrieve a list of signals with pagination and filtering."""
     signal_service = SignalService(db)
-    signals, next_cursor = signal_service.get_signals_paginated(
-        cursor=cursor, limit=limit, filters=filters, user_subscription_tier=current_user.role.value
+    skip = (page - 1) * size
+    signals, total = signal_service.get_signals(
+        skip=skip, limit=size, filters=filters, user_subscription_tier=current_user.role.value
     )
 
     signals_with_channels = []
@@ -77,11 +78,17 @@ def get_signals(
         s_dict["channel_username"] = s.channel.username if s.channel else None
         signals_with_channels.append(s_dict)
 
+    pages = ceil(total / size) if size else 0
     return {
         "signals": signals_with_channels,
-        "next_cursor": next_cursor,
-        "limit": limit,
+        "total": total,
+        "page": page,
+        "size": size,
+        "pages": pages,
     }
+
+
+@router.get("/dashboard")
 def get_signals_dashboard(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),

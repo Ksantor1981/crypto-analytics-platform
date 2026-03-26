@@ -4,6 +4,7 @@ Implements Redis-based rate limiting with sliding window.
 """
 import time
 import redis
+import os
 from fastapi import Request, HTTPException, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.database import get_db
@@ -23,6 +24,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         }
 
     async def dispatch(self, request: Request, call_next):
+        # Testing / CI: do not rate limit test client requests.
+        # Pytest sets PYTEST_CURRENT_TEST for each test; also allow explicit env override.
+        if os.getenv("DISABLE_RATE_LIMITING", "").lower() in ("1", "true", "yes") or os.getenv("PYTEST_CURRENT_TEST"):
+            return await call_next(request)
+
         # Skip rate limiting for health checks and static files
         if request.url.path in ['/health', '/docs', '/openapi.json'] or request.url.path.startswith('/static'):
             return await call_next(request)

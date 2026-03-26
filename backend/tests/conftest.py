@@ -12,19 +12,27 @@ from pathlib import Path
 backend_path = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_path))
 
-# Ensure test-friendly env before any app imports
-os.environ.setdefault("USE_SQLITE", "true")
-os.environ.setdefault("SECRET_KEY", "test-secret-key-32-chars-minimum")
-os.environ.setdefault("DEBUG", "true")
-os.environ.setdefault("AUTH_RATE_LIMIT_REQUESTS", "1000")  # Relax rate limit for tests
-# Use separate test DB; remove stale file so create_all gets fresh schema (discovered_at etc.)
-_test_db = Path(__file__).parent.parent / "test_crypto_analytics.db"
-if _test_db.exists():
-    try:
-        _test_db.unlink()
-    except OSError:
-        pass
-os.environ.setdefault("DATABASE_URL", f"sqlite:///./{_test_db.name}")
+# Ensure test-friendly env before any app imports.
+# IMPORTANT: backend containers often set DATABASE_URL to Postgres via compose;
+# tests must override it deterministically so we don't reuse a stale sqlite file
+# like ./crypto_analytics.db between runs.
+os.environ["USE_SQLITE"] = "true"
+os.environ["SECRET_KEY"] = "test-secret-key-32-chars-minimum"
+os.environ["DEBUG"] = "true"
+os.environ["AUTH_RATE_LIMIT_REQUESTS"] = "1000"  # Relax rate limit for tests
+os.environ.setdefault("DISABLE_RATE_LIMITING", "true")
+# Use a separate test DB (absolute path) and remove any stale file.
+# IMPORTANT: sqlite URLs with relative paths depend on current working directory;
+# tests previously deleted backend/test_crypto_analytics.db, but SQLAlchemy created ./test_crypto_analytics.db,
+# leaving a stale schema between runs.
+_test_db = (Path(__file__).parent.parent / "test_crypto_analytics.db").resolve()
+for _candidate in (_test_db, Path.cwd() / _test_db.name, Path.cwd() / "crypto_analytics.db"):
+    if _candidate.exists():
+        try:
+            _candidate.unlink()
+        except OSError:
+            pass
+os.environ["DATABASE_URL"] = f"sqlite:///{_test_db.as_posix()}"
 
 # Ensure redis module exists for patch — inject fake if not installed (e.g. minimal CI env)
 try:
@@ -109,7 +117,7 @@ def test_settings():
     
     # Override some settings for testing
     os.environ.update({
-        'DATABASE_URL': 'sqlite:///./test_crypto_analytics.db',
+        'DATABASE_URL': f"sqlite:///{_test_db.as_posix()}",
         'USE_SQLITE': 'true',
         'REDIS_URL': 'redis://localhost:6379/15',  # Use different DB for tests
         'SECRET_KEY': 'test-secret-key-for-testing-very-long-and-secure',
@@ -127,6 +135,11 @@ async def async_client():
     from app.main import app
     from app.core.database import engine
     from app.models.base import Base
+    # Ensure all models are imported before create_all, otherwise SQLite schema
+    # can be created without newly added columns (e.g. content_fingerprint).
+    import app.models.signal  # noqa: F401
+    import app.models.channel  # noqa: F401
+    import app.models.user  # noqa: F401
     
     # Ensure tables exist for auth/integration tests
     Base.metadata.create_all(bind=engine)
