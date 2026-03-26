@@ -5,7 +5,7 @@ from math import ceil
 from datetime import datetime, timedelta
 
 from app.core.database import get_db
-from app.core.auth import get_current_active_user, require_admin, get_current_user
+from app.core.auth import get_current_active_user, require_admin, get_current_user, require_premium
 from app.services.signal_service import SignalService
 from app.services.telegram_signal_service import TelegramSignalService
 from app.models.user import User
