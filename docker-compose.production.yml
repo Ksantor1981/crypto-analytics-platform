@@ -51,12 +51,12 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - ML_SERVICE_URL=${ML_SERVICE_URL:-http://ml-service:8001}
       - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env.production}
-      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
-      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST}
-      - EMAIL_SMTP_USERNAME=${EMAIL_SMTP_USERNAME}
-      - EMAIL_SMTP_PASSWORD=${EMAIL_SMTP_PASSWORD}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID:-}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH:-}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-}
+      - EMAIL_SMTP_USERNAME=${EMAIL_SMTP_USERNAME:-}
+      - EMAIL_SMTP_PASSWORD=${EMAIL_SMTP_PASSWORD:-}
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:?Set BACKEND_CORS_ORIGINS (JSON array) in .env.production}
     volumes:
       - backend_data:/app/data
@@ -154,8 +154,8 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/crypto_analytics
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
-      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
-      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID:-}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH:-}
     volumes:
       - worker_data:/app/data
       - ./logs:/app/logs

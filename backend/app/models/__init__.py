@@ -40,7 +40,7 @@ from .trading import (
 from .performance_metric import PerformanceMetric
 
 # Импортируем остальные модели
-from .apikey import APIKey
+from .api_key import APIKey
 from .custom_alert import CustomAlert
 from .feedback import Feedback
 

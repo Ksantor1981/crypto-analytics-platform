@@ -10,9 +10,6 @@ from pathlib import Path
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
-# Set environment
-os.environ['ENVIRONMENT'] = 'development'
-
 from app.core.config import get_settings
 from app.models.base import Base
 import app.models  # noqa: F401 - load all models for autogenerate

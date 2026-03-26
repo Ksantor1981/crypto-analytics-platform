@@ -19,6 +19,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    bind = op.get_bind()
+
+    # Be idempotent on partially reset databases where enum types may survive
+    # table drops (common in staging/local resets).
+    postgresql.ENUM('FREE_USER', 'PREMIUM_USER', 'ADMIN', 'CHANNEL_OWNER', name='userrole').create(bind, checkfirst=True)
+    postgresql.ENUM('FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', name='subscriptionplan').create(bind, checkfirst=True)
+    postgresql.ENUM('ACTIVE', 'CANCELLED', 'EXPIRED', 'PENDING', 'TRIALING', 'PAST_DUE', name='subscriptionstatus').create(bind, checkfirst=True)
+    postgresql.ENUM('ACTIVE', 'INACTIVE', 'REVOKED', 'EXPIRED', name='apikeystatus').create(bind, checkfirst=True)
+    postgresql.ENUM('PENDING', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'CANCELLED', 'REFUNDED', 'PARTIALLY_REFUNDED', name='paymentstatus').create(bind, checkfirst=True)
+    postgresql.ENUM('STRIPE_CARD', 'STRIPE_BANK', 'STRIPE_WALLET', 'CRYPTO', 'OTHER', name='paymentmethod').create(bind, checkfirst=True)
+    postgresql.ENUM('LONG', 'SHORT', 'BUY', 'SELL', name='signaldirection').create(bind, checkfirst=True)
+    postgresql.ENUM('PENDING', 'ENTRY_HIT', 'TP1_HIT', 'TP2_HIT', 'TP3_HIT', 'SL_HIT', 'EXPIRED', 'CANCELLED', name='signalstatus').create(bind, checkfirst=True)
+
     # Create users table
     op.create_table('users',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -30,7 +43,7 @@ def upgrade() -> None:
         sa.Column('hashed_password', sa.String(length=255), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=True),
         sa.Column('is_verified', sa.Boolean(), nullable=True),
-        sa.Column('role', sa.Enum('FREE_USER', 'PREMIUM_USER', 'ADMIN', 'CHANNEL_OWNER', name='userrole'), nullable=True),
+        sa.Column('role', postgresql.ENUM('FREE_USER', 'PREMIUM_USER', 'ADMIN', 'CHANNEL_OWNER', name='userrole', create_type=False), nullable=True),
         sa.Column('avatar_url', sa.String(length=500), nullable=True),
         sa.Column('bio', sa.Text(), nullable=True),
         sa.Column('timezone', sa.String(length=50), nullable=True),
@@ -83,8 +96,8 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
         sa.Column('user_id', sa.Integer(), nullable=False),
-        sa.Column('plan', sa.Enum('FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', name='subscriptionplan'), nullable=False),
-        sa.Column('status', sa.Enum('ACTIVE', 'CANCELLED', 'EXPIRED', 'PENDING', 'TRIALING', 'PAST_DUE', name='subscriptionstatus'), nullable=False),
+        sa.Column('plan', postgresql.ENUM('FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', name='subscriptionplan', create_type=False), nullable=False),
+        sa.Column('status', postgresql.ENUM('ACTIVE', 'CANCELLED', 'EXPIRED', 'PENDING', 'TRIALING', 'PAST_DUE', name='subscriptionstatus', create_type=False), nullable=False),
         sa.Column('price', sa.Numeric(precision=10, scale=2), nullable=False),
         sa.Column('currency', sa.String(length=3), nullable=True),
         sa.Column('started_at', sa.DateTime(timezone=True), nullable=False),
@@ -121,7 +134,7 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=255), nullable=False),
         sa.Column('key_hash', sa.String(length=255), nullable=False),
         sa.Column('key_prefix', sa.String(length=20), nullable=False),
-        sa.Column('status', sa.Enum('ACTIVE', 'INACTIVE', 'REVOKED', 'EXPIRED', name='apikeystatus'), nullable=True),
+        sa.Column('status', postgresql.ENUM('ACTIVE', 'INACTIVE', 'REVOKED', 'EXPIRED', name='apikeystatus', create_type=False), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
         sa.Column('requests_per_day', sa.Integer(), nullable=True),
         sa.Column('requests_per_hour', sa.Integer(), nullable=True),
@@ -152,8 +165,8 @@ def upgrade() -> None:
         sa.Column('amount', sa.Numeric(precision=10, scale=2), nullable=False),
         sa.Column('currency', sa.String(length=3), nullable=True),
         sa.Column('description', sa.String(length=500), nullable=True),
-        sa.Column('status', sa.Enum('PENDING', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'CANCELLED', 'REFUNDED', 'PARTIALLY_REFUNDED', name='paymentstatus'), nullable=False),
-        sa.Column('payment_method', sa.Enum('STRIPE_CARD', 'STRIPE_BANK', 'STRIPE_WALLET', 'CRYPTO', 'OTHER', name='paymentmethod'), nullable=False),
+        sa.Column('status', postgresql.ENUM('PENDING', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'CANCELLED', 'REFUNDED', 'PARTIALLY_REFUNDED', name='paymentstatus', create_type=False), nullable=False),
+        sa.Column('payment_method', postgresql.ENUM('STRIPE_CARD', 'STRIPE_BANK', 'STRIPE_WALLET', 'CRYPTO', 'OTHER', name='paymentmethod', create_type=False), nullable=False),
         sa.Column('stripe_payment_intent_id', sa.String(length=255), nullable=True),
         sa.Column('stripe_customer_id', sa.String(length=255), nullable=True),
         sa.Column('stripe_subscription_id', sa.String(length=255), nullable=True),
@@ -235,7 +248,7 @@ def upgrade() -> None:
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
         sa.Column('channel_id', sa.Integer(), nullable=False),
         sa.Column('asset', sa.String(length=20), nullable=False),
-        sa.Column('direction', sa.Enum('LONG', 'SHORT', 'BUY', 'SELL', name='signaldirection'), nullable=False),
+        sa.Column('direction', postgresql.ENUM('LONG', 'SHORT', 'BUY', 'SELL', name='signaldirection', create_type=False), nullable=False),
         sa.Column('entry_price', sa.Numeric(precision=20, scale=8), nullable=False),
         sa.Column('tp1_price', sa.Numeric(precision=20, scale=8), nullable=True),
         sa.Column('tp2_price', sa.Numeric(precision=20, scale=8), nullable=True),
@@ -246,7 +259,7 @@ def upgrade() -> None:
         sa.Column('original_text', sa.Text(), nullable=True),
         sa.Column('message_timestamp', sa.DateTime(timezone=True), nullable=True),
         sa.Column('telegram_message_id', sa.String(length=50), nullable=True),
-        sa.Column('status', sa.Enum('PENDING', 'ENTRY_HIT', 'TP1_HIT', 'TP2_HIT', 'TP3_HIT', 'SL_HIT', 'EXPIRED', 'CANCELLED', name='signalstatus'), nullable=True),
+        sa.Column('status', postgresql.ENUM('PENDING', 'ENTRY_HIT', 'TP1_HIT', 'TP2_HIT', 'TP3_HIT', 'SL_HIT', 'EXPIRED', 'CANCELLED', name='signalstatus', create_type=False), nullable=True),
         sa.Column('entry_hit_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('tp1_hit_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('tp2_hit_at', sa.DateTime(timezone=True), nullable=True),

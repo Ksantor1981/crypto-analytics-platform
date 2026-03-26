@@ -268,6 +268,13 @@ async def run_reddit_collection_cycle(db: Session, settings: Any) -> Dict[str, A
             )
             aggregate_stats(total, st)
         except Exception as e:
+            # Keep the rest of subreddits processing even if one item fails.
+            # Without rollback SQLAlchemy session stays in aborted transaction state
+            # and every next DB call fails with InFailedSqlTransaction.
+            try:
+                db.rollback()
+            except Exception:
+                pass
             logger.warning("Reddit r/%s: %s", sub, e)
 
     total["subreddits"] = len(CRYPTO_SUBREDDITS)

@@ -5,7 +5,8 @@ Implements Redis-based rate limiting with sliding window.
 import time
 import redis
 import os
-from fastapi import Request, HTTPException, status
+from fastapi import Request, status
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.database import get_db
 from app.models.user import User
@@ -49,9 +50,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             self.redis.expire(key, 3600)  # Expire in 1 hour
 
         if current > limit:
-            raise HTTPException(
+            # Never raise HTTPException directly from middleware dispatch:
+            # it bypasses FastAPI exception routing and can surface as 500.
+            return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Rate limit exceeded. Please try again later."
+                content={"detail": "Rate limit exceeded. Please try again later."},
+                headers={
+                    "X-RateLimit-Limit": str(limit),
+                    "X-RateLimit-Remaining": "0",
+                    "X-RateLimit-Reset": str(int(time.time() / 3600) * 3600 + 3600),
+                },
             )
 
         response = await call_next(request)
