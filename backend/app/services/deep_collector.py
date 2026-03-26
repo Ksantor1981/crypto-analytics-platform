@@ -5,12 +5,70 @@ using pagination, extracts signals, validates against CoinGecko historical price
 import re
 import logging
 import httpx
+import os
 from bs4 import BeautifulSoup
 from datetime import datetime
 from typing import List, Tuple
 from app.services.telegram_scraper import ParsedSignal, parse_signal_from_text, ChannelPost
 
 logger = logging.getLogger(__name__)
+
+def _extract_image_urls(msg_wrap) -> List[str]:
+    urls: List[str] = []
+    try:
+        for a in msg_wrap.select(".tgme_widget_message_photo_wrap"):
+            style = (a.get("style") or "").strip()
+            m = re.search(r"url\\(['\\\"]?(https?://[^'\\\"\\)]+)['\\\"]?\\)", style)
+            if m:
+                urls.append(m.group(1))
+        for img in msg_wrap.select("img"):
+            src = (img.get("src") or "").strip()
+            if src.startswith("http"):
+                urls.append(src)
+    except Exception:
+        return []
+    seen = set()
+    out: List[str] = []
+    for u in urls:
+        if u not in seen:
+            seen.add(u)
+            out.append(u)
+    return out
+
+
+def _extract_caption_or_alt_text(msg_wrap) -> str:
+    parts: List[str] = []
+    try:
+        for sel in (
+            ".tgme_widget_message_caption",
+            ".tgme_widget_message_text",
+            ".tgme_widget_message_poll",
+        ):
+            el = msg_wrap.select_one(sel)
+            if el:
+                txt = el.get_text(separator="\n").strip()
+                if txt:
+                    parts.append(txt)
+
+        for tag in msg_wrap.select("img"):
+            for attr in ("alt", "title", "aria-label"):
+                v = (tag.get(attr) or "").strip()
+                if v:
+                    parts.append(v)
+        for tag in msg_wrap.select("a.tgme_widget_message_photo_wrap"):
+            for attr in ("title", "aria-label"):
+                v = (tag.get(attr) or "").strip()
+                if v:
+                    parts.append(v)
+    except Exception:
+        return ""
+    seen = set()
+    out: List[str] = []
+    for p in parts:
+        if p not in seen:
+            seen.add(p)
+            out.append(p)
+    return "\n".join(out).strip()
 
 
 async def fetch_all_posts(username: str, max_pages: int = 10) -> List[ChannelPost]:
@@ -45,9 +103,6 @@ async def fetch_all_posts(username: str, max_pages: int = 10) -> List[ChannelPos
                     text_el = msg.select_one(".tgme_widget_message_text")
                     date_el = msg.select_one(".tgme_widget_message_date time")
 
-                    if not text_el:
-                        continue
-
                     # Get message ID for pagination
                     if msg_el:
                         data_post = msg_el.get("data-post", "")
@@ -56,7 +111,9 @@ async def fetch_all_posts(username: str, max_pages: int = 10) -> List[ChannelPos
                             if earliest_id is None or msg_id < earliest_id:
                                 earliest_id = msg_id
 
-                    text = text_el.get_text(separator="\n").strip()
+                    text = ""
+                    if text_el:
+                        text = text_el.get_text(separator="\n").strip()
                     date = None
                     if date_el and date_el.get("datetime"):
                         try:
@@ -70,7 +127,12 @@ async def fetch_all_posts(username: str, max_pages: int = 10) -> List[ChannelPos
                         data_post = msg_el.get("data-post", "")
                         if "/" in data_post:
                             mid = data_post.split("/")[-1]
-                    all_posts.append(ChannelPost(text=text, date=date, message_id=mid))
+                    image_urls = _extract_image_urls(msg)
+                    if not text and image_urls:
+                        text = _extract_caption_or_alt_text(msg)
+                    if not text and not image_urls:
+                        continue
+                    all_posts.append(ChannelPost(text=text, date=date, message_id=mid, image_urls=image_urls))
                     new_posts += 1
 
                 if new_posts == 0 or earliest_id is None:
@@ -78,6 +140,11 @@ async def fetch_all_posts(username: str, max_pages: int = 10) -> List[ChannelPos
 
                 before_id = earliest_id
                 logger.info(f"@{username} page {page+1}: {new_posts} posts (total: {len(all_posts)}, before={before_id})")
+
+                page_sleep_ms = int(os.getenv("TELEGRAM_DEEP_PAGE_SLEEP_MS", "250"))
+                if page_sleep_ms > 0:
+                    import asyncio as _aio
+                    await _aio.sleep(page_sleep_ms / 1000.0)
 
             except Exception as e:
                 logger.warning(f"@{username} page {page+1} error: {e}")

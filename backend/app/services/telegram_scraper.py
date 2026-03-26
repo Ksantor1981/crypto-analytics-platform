@@ -6,6 +6,7 @@ import re
 import logging
 import random
 import httpx
+import os
 from bs4 import BeautifulSoup
 from datetime import datetime
 from typing import List, Optional, Tuple
@@ -106,6 +107,7 @@ class ChannelPost:
     date: Optional[datetime] = None
     views: Optional[int] = None
     message_id: Optional[str] = None
+    image_urls: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -126,6 +128,82 @@ def _extract_telegram_message_id(msg_block) -> Optional[str]:
     return m.group(1) if m else None
 
 
+def _extract_image_urls(msg_block) -> List[str]:
+    """
+    Extract image URLs from Telegram web-preview message block.
+    Supports:
+    - <a class="tgme_widget_message_photo_wrap" style="background-image:url('...')">
+    - <img ... src="...">
+    """
+    urls: List[str] = []
+    try:
+        # background-image:url('...') wrapper
+        for a in msg_block.select(".tgme_widget_message_photo_wrap"):
+            style = (a.get("style") or "").strip()
+            m = re.search(r"url\\(['\\\"]?(https?://[^'\\\"\\)]+)['\\\"]?\\)", style)
+            if m:
+                urls.append(m.group(1))
+        # direct <img> tags (some layouts)
+        for img in msg_block.select("img"):
+            src = (img.get("src") or "").strip()
+            if src.startswith("http"):
+                urls.append(src)
+    except Exception:
+        return []
+    # Dedup preserve order
+    seen = set()
+    out: List[str] = []
+    for u in urls:
+        if u not in seen:
+            seen.add(u)
+            out.append(u)
+    return out
+
+
+def _extract_caption_or_alt_text(msg_block) -> str:
+    """
+    Try to extract caption/alt text from media-only posts in t.me/s HTML.
+    This helps when Telegram renders a post with media but without
+    `.tgme_widget_message_text` (or when text is only in attributes).
+    """
+    parts: List[str] = []
+    try:
+        # Some layouts still store caption in alternative containers
+        for sel in (
+            ".tgme_widget_message_caption",
+            ".tgme_widget_message_text",
+            ".tgme_widget_message_poll",
+        ):
+            el = msg_block.select_one(sel)
+            if el:
+                txt = el.get_text(separator="\n").strip()
+                if txt:
+                    parts.append(txt)
+
+        # Media attributes
+        for tag in msg_block.select("img"):
+            for attr in ("alt", "title", "aria-label"):
+                v = (tag.get(attr) or "").strip()
+                if v:
+                    parts.append(v)
+        for tag in msg_block.select("a.tgme_widget_message_photo_wrap"):
+            for attr in ("title", "aria-label"):
+                v = (tag.get(attr) or "").strip()
+                if v:
+                    parts.append(v)
+    except Exception:
+        return ""
+
+    # Dedup preserve order
+    seen = set()
+    out: List[str] = []
+    for p in parts:
+        if p not in seen:
+            seen.add(p)
+            out.append(p)
+    return "\n".join(out).strip()
+
+
 async def fetch_channel_posts(username: str, limit: int = 20) -> List[ChannelPost]:
     """Fetch recent posts from a public Telegram channel."""
     url = f"https://t.me/s/{username}"
@@ -141,9 +219,9 @@ async def fetch_channel_posts(username: str, limit: int = 20) -> List[ChannelPos
             soup = BeautifulSoup(resp.text, "html.parser")
             for msg in soup.select(".tgme_widget_message_wrap")[-limit:]:
                 text_el = msg.select_one(".tgme_widget_message_text")
-                if not text_el:
-                    continue
-                text = text_el.get_text(separator="\n").strip()
+                text = ""
+                if text_el:
+                    text = text_el.get_text(separator="\n").strip()
                 date_el = msg.select_one(".tgme_widget_message_date time")
                 date = None
                 if date_el and date_el.get("datetime"):
@@ -160,8 +238,15 @@ async def fetch_channel_posts(username: str, limit: int = 20) -> List[ChannelPos
                     except ValueError:
                         pass
                 mid = _extract_telegram_message_id(msg)
+                image_urls = _extract_image_urls(msg)
+                if not text and image_urls:
+                    # media-only post: try caption/alt from html
+                    text = _extract_caption_or_alt_text(msg)
+                # Keep posts that have either text OR images (OCR fallback)
+                if not text and not image_urls:
+                    continue
                 posts.append(
-                    ChannelPost(text=text, date=date, views=views, message_id=mid)
+                    ChannelPost(text=text, date=date, views=views, message_id=mid, image_urls=image_urls)
                 )
     except Exception as e:
         logger.error(f"Error fetching @{username}: {e}")
@@ -418,14 +503,42 @@ async def collect_signals_from_channel(
     username: str, limit: Optional[int] = None
 ) -> ChannelScrapeResult:
     """Fetch and extract signals from a public Telegram channel."""
+    from app.services.ocr_signal_parser import parse_signal_from_image_url
+
     lim = limit if limit is not None else 20
     posts = await fetch_channel_posts(username, limit=lim)
     signals = []
+    ocr_enabled = os.getenv("OCR_TELEGRAM_ENABLED", "true").lower() in ("1", "true", "yes")
+    ocr_max_images = int(os.getenv("OCR_TELEGRAM_MAX_IMAGES_PER_POST", "1"))
+    ocr_sleep_ms = int(os.getenv("OCR_TELEGRAM_SLEEP_MS", "250"))
+
     for post in posts:
-        sig = parse_signal_from_text(post.text)
+        sig = parse_signal_from_text(post.text) if post.text else None
         if sig:
             sig.timestamp = post.date
             sig.telegram_message_id = post.message_id
             signals.append(sig)
+            continue
+
+        # OCR fallback: only if enabled and message has images
+        if ocr_enabled and post.image_urls:
+            for u in post.image_urls[: max(0, ocr_max_images)]:
+                try:
+                    ocr_sig = await parse_signal_from_image_url(u)
+                except Exception as e:
+                    logger.debug("OCR error @%s msg=%s: %s", username, post.message_id, e)
+                    ocr_sig = None
+                if ocr_sig and ocr_sig.entry_price:
+                    ocr_sig.timestamp = post.date
+                    ocr_sig.telegram_message_id = post.message_id
+                    # Make sure we store something traceable; keep original text empty if none
+                    if not ocr_sig.original_text:
+                        ocr_sig.original_text = f"[OCR] {u}"
+                    signals.append(ocr_sig)
+                    break
+                # small throttle between OCR calls
+                if ocr_sleep_ms > 0:
+                    import asyncio as _aio
+                    await _aio.sleep(ocr_sleep_ms / 1000.0)
     logger.info(f"@{username}: {len(posts)} posts, {len(signals)} signals")
     return ChannelScrapeResult(posts_fetched=len(posts), signals=signals)

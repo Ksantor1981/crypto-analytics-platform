@@ -5,13 +5,14 @@
 from __future__ import annotations
 
 import logging
+import os
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
 from app.models.channel import Channel
-from app.models.signal import Signal
+from app.models.signal import Signal, TelegramSignal
 from app.services.dedup import content_fingerprint, signal_exists
 
 if TYPE_CHECKING:
@@ -55,16 +56,59 @@ def persist_parsed_signals_for_channel(
     Сохраняет ParsedSignal в БД с дедупом по content_fingerprint.
 
     Returns:
-        saved, skipped_no_entry, skipped_duplicate, parsed_with_entry (кол-во сигналов с ценой входа)
+        saved, raw_saved, skipped_no_entry, skipped_duplicate, raw_skipped_duplicate,
+        parsed_with_entry (кол-во сигналов с ценой входа)
     """
     saved = 0
+    raw_saved = 0
     skipped_no_entry = 0
     skipped_duplicate = 0
+    raw_skipped_duplicate = 0
     parsed_with_entry = 0
+
+    store_raw = str(getattr(channel, "platform", "")).lower() == "telegram" and (
+        os.getenv("STORE_RAW_TELEGRAM_SIGNALS", "true").lower() in ("1", "true", "yes")
+    )
 
     for sig in signals:
         if not sig.entry_price:
-            skipped_no_entry += 1
+            if not store_raw:
+                skipped_no_entry += 1
+                continue
+
+            # RAW telegram signal: keep asset+direction+text+media evidence, even without entry/TP/SL.
+            # Dedup by (source + original_text) to avoid unbounded growth.
+            source = getattr(channel, "username", None) or getattr(channel, "name", "telegram")
+            exists = (
+                db.query(TelegramSignal)
+                .filter(TelegramSignal.source == source, TelegramSignal.original_text == sig.original_text)
+                .first()
+            )
+            if exists:
+                raw_skipped_duplicate += 1
+                continue
+
+            fp = content_fingerprint(sig.original_text)
+            meta: Dict[str, Any] = {
+                "kind": "RAW_MEDIA_SIGNAL",
+                "fingerprint": fp,
+                "telegram_message_id": getattr(sig, "telegram_message_id", None),
+                "timestamp": sig.timestamp.isoformat() if getattr(sig, "timestamp", None) else None,
+            }
+            db_raw = TelegramSignal(
+                symbol=str(sig.asset or "").replace("/", "").upper()[:20] or "UNKNOWN",
+                signal_type=str(getattr(sig, "direction", "")).lower() or "unknown",
+                entry_price=None,
+                target_price=None,
+                stop_loss=None,
+                confidence=getattr(sig, "confidence", 0.5),
+                source=source,
+                original_text=sig.original_text,
+                signal_metadata=meta,
+                status="PENDING",
+            )
+            db.add(db_raw)
+            raw_saved += 1
             continue
         parsed_with_entry += 1
 
@@ -123,20 +167,24 @@ def persist_parsed_signals_for_channel(
     if _log_funnel:
         logger.info(
             "parse_funnel channel_id=%s platform=%s posts_fetched=%s parsed=%s "
-            "saved=%s skip_no_entry=%s skip_dup=%s",
+            "saved=%s raw_saved=%s skip_no_entry=%s skip_dup=%s raw_skip_dup=%s",
             channel.id,
             getattr(channel, "platform", "?"),
             posts_fetched,
             len(signals),
             saved,
+            raw_saved,
             skipped_no_entry,
             skipped_duplicate,
+            raw_skipped_duplicate,
         )
 
     return {
         "saved": saved,
+        "raw_saved": raw_saved,
         "skipped_no_entry": skipped_no_entry,
         "skipped_duplicate": skipped_duplicate,
+        "raw_skipped_duplicate": raw_skipped_duplicate,
         "parsed_with_entry": parsed_with_entry,
     }
 
