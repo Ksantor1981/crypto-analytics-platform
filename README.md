@@ -4,6 +4,8 @@
 
 **Статус:** MVP. Локальная разработка и демо — готовы. Production требует настройки секретов и подключения реальных источников данных.
 
+**Последнее обновление:** 2026-03-26 (см. также [SPEC_COMPLIANCE_2026_02_25.md](./SPEC_COMPLIANCE_2026_02_25.md) и [docs/DATA_INTEGRITY_FIX.md](./DATA_INTEGRITY_FIX.md))
+
 **Публичный репозиторий:** считайте все когда-либо попавшие в git секреты скомпрометированными — см. [docs/SECURITY_PUBLIC_REPO.md](./docs/SECURITY_PUBLIC_REPO.md).
 
 **Документация:**
@@ -42,7 +44,7 @@ Frontend (3000)  ←→  Backend API (8000)  ←→  ML Service (8001)
 2. **Парсит** asset, direction (LONG/SHORT), entry price, TP, SL из текста постов
 3. **Валидирует** цены через CoinGecko API (текущие + исторические OHLC)
 4. **Рассчитывает accuracy** каналов: TP hit / SL hit за 7 дней
-5. **ML-предсказания**: XGBoost; **87.2% в SPEC — целевой KPI**, не подтверждённый маркетинговый факт. Скрипт `train_from_db.py` по умолчанию без аугментации и без синтетического fallback; CV на сидах/плейсхолдерах **не** равна торговой точности (см. `docs/ML_ACCURACY_DISCREPANCY.md`, `docs/ML_DATA_INTEGRITY_ROADMAP.md`).
+5. **ML-предсказания**: XGBoost; **рабочий коридор качества 66-75%** на backtested/исторически валидированных данных (в зависимости от окна и состава сигналов). KPI 87.2% в `SPEC` — целевой ориентир, а не подтвержденный production-факт.
 6. **Рейтинг + антирейтинг** каналов по реальным данным
 7. **Stripe подписки**: Free / Premium ($19) / Pro ($49)
 
@@ -94,7 +96,9 @@ Swagger: http://localhost:8000/docs
 
 ### Docker Compose (полный стек)
 
-- Сбор сигналов **непрерывно** в процессе `backend`: asyncio-планировщик (интервалы задаются `COLLECTION_INTERVAL_SECONDS` / `REDDIT_COLLECTION_INTERVAL_SECONDS`, в `docker-compose.yml` по умолчанию **180** с).
+- Режим планировщика задаётся `SCHEDULER_MODE`:
+  - `asyncio` — фоновые циклы внутри `backend` процесса.
+  - `celery` — только Celery beat/worker (рекомендуется для production, без дублей задач).
 - **`AUTO_SEED_DEMO_CHANNELS=false`** в compose — при пустой БД не создаётся длинный список демо-каналов; добавьте каналы через API или `scripts/seed_data.py`.
 - **Celery** для сбора (`celery-collect-beat` + `celery-collect-worker`) в профиле **`celery-beat`**, чтобы не дублировать опрос вместе с планировщиком в backend:  
   `docker compose --profile celery-beat up -d`
@@ -113,9 +117,15 @@ cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # 
 - 27 Telegram каналов + 20 Reddit сабреддитов (конфиг в `workers/real_data_config.py`)
 - ~150 сигналов (seed data; для реальных — нужны Telegram API ключи в `.env`)
 - Accuracy каналов: 41.7% (по seed)
-- ML: метрика зависит от данных; старые отчёты с CV ~96% относились к **нечестной** выборке (плейсхолдеры/аугментация). Текущий пайплайн — см. `ml-service/README.md` и `docs/ML_DATA_INTEGRITY_ROADMAP.md`
+- ML: метрика зависит от данных; старые отчёты с CV ~96% относились к **нечестной** выборке (плейсхолдеры/аугментация). Актуальный честный диапазон на валидированных данных: **66-75%**. Подробно: `docs/DATA_INTEGRITY_FIX.md`, `docs/ML_ACCURACY_DISCREPANCY.md`, `docs/ML_DATA_INTEGRITY_ROADMAP.md`.
 - 0 hardcoded secrets в коде
 - 85 тестов (pytest), pytest-cov в CI
+
+## Как считаем точность ML
+
+- Оцениваем модель на исторически проверяемых сигналах с рыночными данными и индикаторами.
+- Не используем синтетические placeholders как источник «боевой» метрики.
+- `TimeSeriesSplit` и отчеты в `ml-service/` используются как техническая валидация, но бизнес-метрика фиксируется по честной выборке из `docs/DATA_INTEGRITY_FIX.md`.
 
 ## Структура репозитория (tree -L 2)
 
