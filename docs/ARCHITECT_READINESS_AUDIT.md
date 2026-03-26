@@ -7,7 +7,7 @@
 ## Executive Summary
 
 Платформа — **MVP с хорошим фундаментом**, готовый для локальной разработки и демо.  
-Production-deploy требует доработок. Соответствие ТЗ: **~55%** (см. `СООТВЕТСТВИЕ_ТЗ_2026_02_25.md`).
+Production-deploy требует доработок. Соответствие ТЗ: **~55%** (см. `SPEC_COMPLIANCE_2026_02_25.md`).
 
 ---
 
@@ -25,7 +25,7 @@ Production-deploy требует доработок. Соответствие Т
 **Структура репозитория:**
 ```
 backend/      frontend/     ml-service/   workers/
-helm/         monitoring/   infrastructure/  nginx/
+helm/         monitoring/   nginx/
 ```
 
 ---

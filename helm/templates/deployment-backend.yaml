@@ -19,10 +19,10 @@ spec:
             - containerPort: {{ .Values.backend.port }}
           env:
             - name: DATABASE_URL
-              value: {{ .Values.backend.env.DATABASE_URL | quote }}
+              value: {{ required "backend.env.DATABASE_URL is required (see helm/README.md)" .Values.backend.env.DATABASE_URL | quote }}
             - name: REDIS_URL
-              value: {{ .Values.backend.env.REDIS_URL | quote }}
+              value: {{ required "backend.env.REDIS_URL is required (include redis password in URL)" .Values.backend.env.REDIS_URL | quote }}
             - name: ENVIRONMENT
               value: {{ .Values.backend.env.ENVIRONMENT | quote }}
             - name: SECRET_KEY
-              value: {{ .Values.backend.env.SECRET_KEY | quote }} 
+              value: {{ required "backend.env.SECRET_KEY is required" .Values.backend.env.SECRET_KEY | quote }} 

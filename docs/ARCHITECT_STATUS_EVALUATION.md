@@ -24,13 +24,13 @@
 
 ### 1. Архитектура
 - **Микросервисы:** backend (FastAPI), frontend (Next.js 14), ml-service (XGBoost), workers (Celery)
-- **Infra:** helm/, infrastructure/helm/, monitoring/ (Prometheus + Grafana), nginx/
+- **Infra:** helm/, monitoring/ (Prometheus + Grafana), nginx/
 - **БД:** PostgreSQL, Alembic-миграции
 - **Очереди:** Celery + Redis
 
 ### 2. Документация
 - README: стек, схема, quick start, эндпоинты, Stripe, Sentry
-- ТЗ.md — полное техническое задание
+- SPEC.md — полное техническое задание
 - ml-service/README.md — train_from_db.py, feature engineering, воспроизводимость
 - QUICK_START.md, USER_DOCUMENTATION.md
 - 4 варианта docker-compose (simple, deploy, production, fixed)

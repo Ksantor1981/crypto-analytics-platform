@@ -128,7 +128,7 @@ class ProjectAnalyzer:
         
         results['README.md'] = (self.root / 'README.md').exists()
         results['TASKS2.md'] = (self.root / 'TASKS2.md').exists()
-        results['ТЗ документ'] = (self.root / 'ТЗ.md').exists()
+        results['ТЗ документ'] = (self.root / 'SPEC.md').exists()
         results['API документация'] = (self.root / 'docs' / 'api.md').exists()
         
         return results

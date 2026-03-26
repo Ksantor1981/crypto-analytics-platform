@@ -17,10 +17,10 @@ spec:
           image: {{ .Values.workers.image }}
           env:
             - name: DATABASE_URL
-              value: {{ .Values.workers.env.DATABASE_URL | quote }}
+              value: {{ required "workers.env.DATABASE_URL is required" .Values.workers.env.DATABASE_URL | quote }}
             - name: REDIS_URL
-              value: {{ .Values.workers.env.REDIS_URL | quote }}
+              value: {{ required "workers.env.REDIS_URL is required" .Values.workers.env.REDIS_URL | quote }}
             - name: ENVIRONMENT
               value: {{ .Values.workers.env.ENVIRONMENT | quote }}
             - name: SECRET_KEY
-              value: {{ .Values.workers.env.SECRET_KEY | quote }} 
+              value: {{ required "workers.env.SECRET_KEY is required" .Values.workers.env.SECRET_KEY | quote }} 

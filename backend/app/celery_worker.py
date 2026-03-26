@@ -1,6 +1,7 @@
 """
 Celery worker for background signal collection.
-Run: celery -A app.celery_worker worker --beat --loglevel=info
+Run worker: celery -A app.celery_worker worker --loglevel=info
+Run beat:   celery -A app.celery_worker beat --loglevel=info
 """
 import os
 import asyncio
@@ -31,7 +32,8 @@ celery_app.conf.timezone = "UTC"
 def collect_all_signals():
     """Celery task: collect signals from all Telegram channels."""
     os.environ.setdefault("USE_SQLITE", "true")
-    os.environ.setdefault("SECRET_KEY", "celery-worker-key-32-chars-min!")
+    if not os.getenv("SECRET_KEY"):
+        raise RuntimeError("SECRET_KEY must be set for Celery tasks (see env.example)")
 
     from app.core.database import SessionLocal
     from app.core.config import get_settings
@@ -67,7 +69,8 @@ def collect_all_signals():
 def check_signal_outcomes():
     """Celery task: check pending signals against market prices."""
     os.environ.setdefault("USE_SQLITE", "true")
-    os.environ.setdefault("SECRET_KEY", "celery-worker-key-32-chars-min!")
+    if not os.getenv("SECRET_KEY"):
+        raise RuntimeError("SECRET_KEY must be set for Celery tasks (see env.example)")
 
     from app.core.database import SessionLocal
     from app.services.signal_checker import check_pending_signals

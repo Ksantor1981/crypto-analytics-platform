@@ -62,6 +62,6 @@ Docker Compose:
 - backend (uvicorn)
 - frontend (Next.js)
 - ml-service
-- celery-collect, signal-worker, trading-worker
+- celery-collect-beat, celery-collect-worker, signal-worker, trading-worker
 - prometheus, grafana (monitoring)
 ```

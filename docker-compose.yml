@@ -188,16 +188,42 @@ services:
       - crypto_analytics_network
     restart: unless-stopped
 
-  # Celery beat для сбора — опционально: в backend уже asyncio-scheduler (см. README).
-  # Запуск: docker compose --profile celery-beat up -d
-  celery-collect:
+  # Celery для сбора — опционально: в backend уже asyncio-scheduler (см. README).
+  # Запуск: docker compose --profile celery-beat up -d  (поднимает beat + worker отдельно)
+  celery-collect-beat:
     profiles:
       - celery-beat
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: crypto-analytics-celery-collect
-    command: celery -A app.celery_worker worker --beat --loglevel=info
+    container_name: crypto-analytics-celery-beat
+    command: celery -A app.celery_worker beat --loglevel=info
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL:-redis://:cryptoanalytics_redis_local_dev@redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - celery_collect_logs:/app/logs
+    networks:
+      - crypto_analytics_network
+    restart: unless-stopped
+
+  celery-collect-worker:
+    profiles:
+      - celery-beat
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crypto-analytics-celery-worker
+    command: celery -A app.celery_worker worker --loglevel=info
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL:-redis://:cryptoanalytics_redis_local_dev@redis:6379/0}

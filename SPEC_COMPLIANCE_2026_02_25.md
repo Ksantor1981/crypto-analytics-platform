@@ -71,7 +71,7 @@
 |---|---|
 | Alembic миграции | ✅ Добавлена миграция feedback, custom_alerts, signal_results, trading_* |
 | ML versioning | ✅ train_from_db: версии vN_timestamp, manifest.json |
-| Celery worker production | ✅ celery-collect в docker-compose |
+| Celery worker production | ✅ celery-collect-beat + celery-collect-worker (профиль `celery-beat`) в docker-compose |
 | E2E тесты | ✅ Playwright в e2e/, smoke.spec.ts |
 | Load test (k6) | ✅ scripts/load-test/k6-load.js, k6-stress.js |
 | Auth на всех endpoints | ✅ discover, add-source, my-sources, init-db |
@@ -89,7 +89,7 @@
 - Тесты: +50 (138 всего) — security, Stripe webhook, collect, UserService, services integration
 - **Alembic:** миграция feedback, custom_alerts, signal_results, trading_* (`a1b2c3d4e5f6`)
 - **ML versioning:** train_from_db сохраняет `signal_model_vN_timestamp.pkl`, manifest.json
-- **Celery:** celery-collect в docker-compose (backend celery_worker)
+- **Celery:** `celery-collect-beat` + `celery-collect-worker` в docker-compose (backend `celery_worker`)
 - **E2E:** Playwright в e2e/, smoke.spec.ts, job в CI
 - **Load test:** k6 скрипты в scripts/load-test/
 - **Индексы БД:** ix_signals_channel_created, ix_signals_status, ix_channels_accuracy

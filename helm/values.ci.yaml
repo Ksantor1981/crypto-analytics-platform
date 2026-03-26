@@ -1,0 +1,19 @@
+# Только для CI / helm template — не для production.
+backend:
+  env:
+    DATABASE_URL: "postgresql://user:ci-not-a-real-password@postgres:5432/crypto_analytics"
+    REDIS_URL: "redis://:ci-redis-password@redis:6379/0"
+    SECRET_KEY: "ci-helm-template-secret-32-chars-min!!"
+mlService:
+  env:
+    DATABASE_URL: "postgresql://user:ci-not-a-real-password@postgres:5432/crypto_analytics"
+workers:
+  env:
+    DATABASE_URL: "postgresql://user:ci-not-a-real-password@postgres:5432/crypto_analytics"
+    REDIS_URL: "redis://:ci-redis-password@redis:6379/0"
+    SECRET_KEY: "ci-helm-template-secret-32-chars-min!!"
+postgres:
+  env:
+    POSTGRES_PASSWORD: "ci-not-a-real-password"
+redis:
+  password: "ci-redis-password"

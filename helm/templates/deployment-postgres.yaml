@@ -23,4 +23,4 @@ spec:
             - name: POSTGRES_USER
               value: {{ .Values.postgres.env.POSTGRES_USER | quote }}
             - name: POSTGRES_PASSWORD
-              value: {{ .Values.postgres.env.POSTGRES_PASSWORD | quote }} 
+              value: {{ required "postgres.env.POSTGRES_PASSWORD is required" .Values.postgres.env.POSTGRES_PASSWORD | quote }} 

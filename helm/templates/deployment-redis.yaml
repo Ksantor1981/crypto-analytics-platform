@@ -16,4 +16,10 @@ spec:
         - name: redis
           image: {{ .Values.redis.image }}
           ports:
-            - containerPort: {{ .Values.redis.port }} 
+            - containerPort: {{ .Values.redis.port }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - redis-server --requirepass "$$REDIS_PASSWORD"
+          env:
+            - name: REDIS_PASSWORD
+              value: {{ required "redis.password is required" .Values.redis.password | quote }} 

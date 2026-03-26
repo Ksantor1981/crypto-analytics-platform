@@ -58,7 +58,7 @@
 
 ### Фаза D — Production
 
-- Развёртывание по `ТЗ.md` / Docker / Helm
+- Развёртывание по `SPEC.md` / Docker / Helm
 - Секреты только в env
 - Мониторинг (Prometheus/Grafana) на стенде
 

@@ -4,9 +4,11 @@
 
 **Статус:** MVP. Локальная разработка и демо — готовы. Production требует настройки секретов и подключения реальных источников данных.
 
+**Публичный репозиторий:** считайте все когда-либо попавшие в git секреты скомпрометированными — см. [docs/SECURITY_PUBLIC_REPO.md](./docs/SECURITY_PUBLIC_REPO.md).
+
 **Документация:**
-- [ТЗ (Техническое задание)](./ТЗ.md) — полные требования, этапы, критерии успеха
-- [Соответствие ТЗ](./СООТВЕТСТВИЕ_ТЗ_2026_02_25.md) — актуальный статус реализации
+- [ТЗ (спецификация)](./SPEC.md) — полные требования, этапы, критерии успеха
+- [Соответствие ТЗ](./SPEC_COMPLIANCE_2026_02_25.md) — актуальный статус реализации
 - [План ~99% готовности](./docs/PLAN_99_READINESS.md) — фазы A–D, регрессия
 - [Stripe test checkout (smoke)](./docs/STRIPE_TEST_CHECKOUT.md) — проверка оплаты в test mode
 - [Закрытие разрывов с ТЗ](./docs/TZ_GAPS_REMEDIATION.md) — ML, coverage, RPS, GA, алерты Pro
@@ -87,13 +89,13 @@ Swagger: http://localhost:8000/docs
 | `docker-compose.deploy.yml` | Упрощённый стек + nginx; БД/Redis только на localhost портах; секреты из `.env`. |
 | `docker-compose.production.yml` | Лимиты ресурсов, отдельный `celery-beat`, без bind-mount исходников в примере. |
 
-Дублирующие Helm-деревья: `helm/` и `infrastructure/helm/crypto-analytics/` — разные сценарии упаковки; перед релизом выберите один канон и обновите CI.
+**Helm:** единственный chart — [`helm/`](./helm/README.md) (старый `infrastructure/helm/` с захардкоженными кредами удалён).
 
 ### Docker Compose (полный стек)
 
 - Сбор сигналов **непрерывно** в процессе `backend`: asyncio-планировщик (интервалы задаются `COLLECTION_INTERVAL_SECONDS` / `REDDIT_COLLECTION_INTERVAL_SECONDS`, в `docker-compose.yml` по умолчанию **180** с).
 - **`AUTO_SEED_DEMO_CHANNELS=false`** в compose — при пустой БД не создаётся длинный список демо-каналов; добавьте каналы через API или `scripts/seed_data.py`.
-- **Celery beat** для сбора (`celery-collect`) вынесен в профиль **`celery-beat`**, чтобы не дублировать опрос вместе с планировщиком в backend:  
+- **Celery** для сбора (`celery-collect-beat` + `celery-collect-worker`) в профиле **`celery-beat`**, чтобы не дублировать опрос вместе с планировщиком в backend:  
   `docker compose --profile celery-beat up -d`
 - Проверка с хоста после `up`:  
   `python backend/scripts/smoke_real_services.py --base-url http://127.0.0.1:8000`
@@ -134,8 +136,7 @@ cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # 
 │   ├── telegram/       # парсеры, коллекторы
 │   ├── real_data_config.py
 │   └── requirements.txt
-├── helm/               # Kubernetes манифесты
-├── infrastructure/helm/crypto-analytics/
+├── helm/               # Kubernetes (см. helm/README.md)
 ├── monitoring/         # Prometheus, Grafana
 ├── nginx/
 ├── scripts/
@@ -145,7 +146,7 @@ cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing  # 
 ├── backend/alembic.ini  # миграции БД (каталог backend/alembic/versions/)
 ├── docker-compose*.yml
 ├── env.example
-└── ТЗ.md
+└── SPEC.md
 ```
 
 ## Зависимости

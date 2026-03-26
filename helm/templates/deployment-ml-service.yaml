@@ -19,6 +19,6 @@ spec:
             - containerPort: {{ .Values.mlService.port }}
           env:
             - name: DATABASE_URL
-              value: {{ .Values.mlService.env.DATABASE_URL | quote }}
+              value: {{ required "mlService.env.DATABASE_URL is required" .Values.mlService.env.DATABASE_URL | quote }}
             - name: ENVIRONMENT
               value: {{ .Values.mlService.env.ENVIRONMENT | quote }} 

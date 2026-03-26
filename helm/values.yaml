@@ -1,11 +1,15 @@
+# Установка: передайте секреты через свой values-файл или --set.
+# Пример локальной проверки шаблонов: helm template . -f values.ci.yaml
+# Никогда не коммитьте реальные пароли и URL с кредами.
+
 backend:
   image: crypto-analytics-backend:latest
   port: 8000
   env:
-    DATABASE_URL: postgresql://REDACTED:REDACTED@postgres:5432/crypto_analytics
-    REDIS_URL: redis://redis:6379/0
+    DATABASE_URL: ""
+    REDIS_URL: ""
     ENVIRONMENT: production
-    SECRET_KEY: REDACTED
+    SECRET_KEY: ""
 
 frontend:
   image: crypto-analytics-frontend:latest
@@ -18,25 +22,26 @@ mlService:
   image: crypto-analytics-ml-service:latest
   port: 8001
   env:
-    DATABASE_URL: postgresql://REDACTED:REDACTED@postgres:5432/crypto_analytics
+    DATABASE_URL: ""
     ENVIRONMENT: production
 
 workers:
   image: crypto-analytics-workers:latest
   env:
-    DATABASE_URL: postgresql://REDACTED:REDACTED@postgres:5432/crypto_analytics
-    REDIS_URL: redis://redis:6379/0
+    DATABASE_URL: ""
+    REDIS_URL: ""
     ENVIRONMENT: production
-    SECRET_KEY: REDACTED
+    SECRET_KEY: ""
 
 postgres:
   image: postgres:15
   port: 5432
   env:
     POSTGRES_DB: crypto_analytics
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: REDACTED
+    POSTGRES_USER: crypto_analytics_user
+    POSTGRES_PASSWORD: ""
 
 redis:
   image: redis:7-alpine
-  port: 6379 
+  port: 6379
+  password: ""
