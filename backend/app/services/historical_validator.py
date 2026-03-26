@@ -7,6 +7,7 @@ import httpx
 from datetime import datetime, timedelta
 from typing import Optional, List
 from dataclasses import dataclass
+from sqlalchemy import text
 
 logger = logging.getLogger(__name__)
 
@@ -103,13 +104,80 @@ async def get_price_range_after(asset: str, after_date: datetime, days: int = 7)
     return None
 
 
+def _asset_to_symbol(asset: str) -> Optional[str]:
+    """
+    Convert 'BTC/USDT' -> 'BTCUSDT', 'BTCUSDT' -> 'BTCUSDT'.
+    """
+    if not asset:
+        return None
+    a = asset.strip().upper()
+    if "/" in a:
+        a = a.replace("/", "")
+    return a
+
+
+def get_price_range_after_from_db(db, asset: str, after_date: datetime, days: int = 14, timeframe: str = "1h") -> Optional[dict]:
+    """
+    Prefer DB candles (market_candles) if available.
+    Returns dict with high/low/close and data_points.
+    """
+    symbol = _asset_to_symbol(asset)
+    if not symbol:
+        return None
+    to_date = after_date + timedelta(days=days)
+
+    try:
+        q = text(
+            """
+            SELECT
+              MAX(high) AS high,
+              MIN(low)  AS low,
+              (ARRAY_AGG(close ORDER BY timestamp DESC))[1] AS close,
+              COUNT(*) AS n
+            FROM market_candles
+            WHERE symbol = :symbol
+              AND timeframe = :tf
+              AND timestamp >= :from_ts
+              AND timestamp <= :to_ts
+            """
+        )
+        row = db.execute(
+            q,
+            {
+                "symbol": symbol,
+                "tf": timeframe,
+                "from_ts": after_date,
+                "to_ts": to_date,
+            },
+        ).mappings().first()
+        if not row:
+            return None
+        if row.get("n", 0) == 0 or row.get("high") is None or row.get("low") is None:
+            return None
+        return {
+            "high": float(row["high"]),
+            "low": float(row["low"]),
+            "close": float(row["close"]) if row.get("close") is not None else None,
+            "data_points": int(row["n"]),
+            "source": f"db.market_candles.{timeframe}",
+        }
+    except Exception as e:
+        logger.warning("DB candles lookup failed for %s: %s", symbol, e)
+        return None
+
+
 async def validate_signal_historically(
     asset: str, direction: str, entry_price: float,
     tp_price: Optional[float], sl_price: Optional[float],
     signal_date: datetime, signal_id: int = 0,
+    db=None,
 ) -> ValidationResult:
     """Check if a historical signal would have hit TP or SL."""
-    price_data = await get_price_range_after(asset, signal_date, days=14)
+    price_data = None
+    if db is not None:
+        price_data = get_price_range_after_from_db(db, asset, signal_date, days=14, timeframe="1h")
+    if not price_data:
+        price_data = await get_price_range_after(asset, signal_date, days=14)
 
     if not price_data:
         return ValidationResult(
@@ -209,6 +277,7 @@ async def validate_all_signals(db) -> dict:
             tp_price=float(s.tp1_price) if s.tp1_price else None,
             sl_price=float(s.stop_loss) if s.stop_loss else None,
             signal_date=sig_date, signal_id=s.id,
+            db=db,
         )
 
         if r.outcome != "NO_DATA":
