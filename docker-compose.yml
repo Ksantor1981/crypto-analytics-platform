@@ -1,5 +1,8 @@
 # Локальный стек: Redis с паролем (см. REDIS_PASSWORD / REDIS_URL в .env).
 # Не поднимайте profile celery-beat вместе со встроенным asyncio-сбором в backend — двойной опрос Telegram.
+#
+# Переменные с :-default ниже нужны только чтобы `docker compose config` и подъём без полного .env
+# не падали; в проде задайте свои секреты в .env.
 services:
   postgres:
     image: postgres:15-alpine
@@ -175,7 +178,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
       - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
-      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY:?Set TRADING_ENCRYPTION_KEY in .env}
+      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef}
     depends_on:
       postgres:
         condition: service_healthy
@@ -290,7 +293,7 @@ services:
     container_name: crypto-analytics-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-grafana_admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3001}
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
