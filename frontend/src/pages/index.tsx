@@ -14,7 +14,7 @@ function HomeContent() {
   return (
     <>
       <Head>
-        <title>CryptoAnalytics - {t('hero.title')}</title>
+        <title>{`CryptoAnalytics - ${t('hero.title')}`}</title>
         <meta name="description" content={t('hero.subtitle')} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

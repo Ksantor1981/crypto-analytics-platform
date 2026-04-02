@@ -1,9 +1,15 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { env } from '@/config/env';
+
+/** Axios шлёт пути вида /api/v1/... — база должна быть origin без /api/v1. */
+function apiOriginFromEnv(): string {
+  const base = env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
+  return base.replace(/\/api\/v1\/?$/, '') || 'http://localhost:8000';
+}
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: apiOriginFromEnv(),
   headers: { 'Content-Type': 'application/json' },
 });
 

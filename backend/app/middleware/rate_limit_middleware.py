@@ -5,6 +5,7 @@ Implements Redis-based rate limiting with sliding window.
 import time
 import redis
 import os
+import logging
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -12,6 +13,8 @@ from app.core.database import get_db
 from app.models.user import User
 from sqlalchemy.orm import Session
 
+
+logger = logging.getLogger(__name__)
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, redis_url: str):
@@ -45,9 +48,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             key = f"rate_limit:{user.id}:{int(time.time() / 3600)}"
 
         # Sliding window: count requests in current hour
-        current = self.redis.incr(key)
-        if current == 1:
-            self.redis.expire(key, 3600)  # Expire in 1 hour
+        # If Redis is unavailable, degrade gracefully to avoid breaking the app.
+        try:
+            current = self.redis.incr(key)
+            if current == 1:
+                self.redis.expire(key, 3600)  # Expire in 1 hour
+        except Exception as e:
+            logger.warning("RateLimitMiddleware redis unavailable, skipping: %s", e)
+            return await call_next(request)
 
         if current > limit:
             # Never raise HTTPException directly from middleware dispatch:

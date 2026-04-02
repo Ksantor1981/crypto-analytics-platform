@@ -188,6 +188,13 @@ export default function SubscriptionPage() {
                   <Button
                     className={`w-full ${isCurrent ? 'bg-gray-200 text-gray-600' : plan.popular ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
+                    data-test={
+                      plan.id === 'premium'
+                        ? 'premium-subscribe-btn'
+                        : plan.id === 'pro'
+                          ? 'pro-subscribe-btn'
+                          : undefined
+                    }
                     disabled={
                       isCurrent || (loading && selectedPlan === plan.id)
                     }

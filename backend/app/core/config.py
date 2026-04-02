@@ -139,6 +139,10 @@ class Settings(BaseSettings):
     STRIPE_PUBLISHABLE_KEY: Optional[str] = None
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    # Enables a deterministic "fake Stripe" flow for CI/E2E.
+    # When enabled, /stripe/create-checkout will return a mock checkout URL
+    # that completes the subscription without calling Stripe APIs.
+    STRIPE_MOCK_MODE: bool = False
     
     # Email Configuration
     EMAIL_SMTP_HOST: Optional[str] = None

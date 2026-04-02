@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { env } from '@/config/env';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -64,7 +65,7 @@ export default function ResetPasswordPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/reset-password`,
+        `${env.NEXT_PUBLIC_API_URL}/users/reset-password`,
         {
           method: 'POST',
           headers: {

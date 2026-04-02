@@ -1,111 +1,60 @@
-# Ревизия: что поправить
+# Ревизия: статус и оставшиеся задачи
 
-**Дата:** март 2026
+**Последнее обновление:** апрель 2026
 
----
-
-## 1. Критичные (ломают работу)
-
-### 1.1 API-клиент: отсутствующие методы
-
-**Файл:** `frontend/lib/api.ts`
-
-| Метод | Используется в | Статус |
-|-------|----------------|--------|
-| `getSubscriptionPlans()` | pricing.tsx | ❌ Нет — страница падает или использует только defaults |
-| `getSignalsWithTotal()` | profile.tsx | ❌ Нет — профиль может падать при загрузке статистики |
-
-**Решение:** Добавить в `lib/api.ts`:
-```ts
-async getSubscriptionPlans() {
-  const { data } = await api.get('/api/v1/subscriptions/plans');
-  return data;
-},
-async getSignalsWithTotal(channelId?: string, limit = 1000) {
-  const params: Record<string, string> = { limit: String(limit) };
-  if (channelId) params.channel_id = channelId;
-  const { data } = await api.get('/api/v1/signals/', { params });
-  return { signals: data?.signals ?? [], total: data?.total ?? 0 };
-},
-```
-
-**Примечание:** Backend `/api/v1/signals/` требует auth. Profile вызывается после входа — ок. Subscriptions/plans — публичный или auth?
+Документ заменяет прежний список «что сломано»: критичные пункты ревизии марта 2026 закрыты в коде. Ниже — что сделано, что ещё имеет смысл сделать.
 
 ---
 
-### 1.2 API signals: неверные параметры
+## Сделано (закрыто в коде)
 
-**Файл:** `frontend/lib/api.ts` — `getSignals()`
-
-- Frontend передаёт `page`, backend ожидает `skip` и `limit`.
-- Нужно: `skip: (page - 1) * limit` при пагинации.
-
----
-
-## 2. Важные (UX / консистентность)
-
-### 2.1 Кнопки без обработчиков
-
-| Страница | Кнопка | Действие |
-|----------|--------|----------|
-| dashboard | «Обновить план» | Добавить `onClick={() => router.push('/subscription')}` |
-| dashboard | «Добавить канал» | Добавить `onClick={() => router.push('/channels')}` или открыть модалку |
-| dashboard | «Детали» у канала | Добавить `onClick` → `/channels/{id}` |
-
-### 2.2 Страница «Пусто»
-
-- Dashboard уже показывает «Нет отслеживаемых каналов. Добавьте первый канал!» и «Пока нет сигналов.» — ок.
-- Проверить signals, ratings при 0 данных — есть ли понятная подсказка.
+| Тема | Детали |
+|------|--------|
+| **API-клиент** | Один источник: `frontend/src/lib/api.ts` (axios). Удалены дубли `frontend/src/lib/api/index.ts` (fetch) и неиспользуемый `frontend/src/lib/api/channels.ts`. |
+| **Методы API** | В `apiClient` есть `getSubscriptionPlans()`, `getSignalsWithTotal()`; `getSignals()` передаёт в backend `skip` и `limit` из `page`/`limit`. |
+| **База URL фронта** | `frontend/src/config/env.ts` — `normalizePublicApiUrl()`: при `NEXT_PUBLIC_API_URL=http://localhost:8000` добавляется `/api/v1`. Страницы подписки, forgot/reset и согласованные вызовы не бьют в неверный путь. |
+| **Axios origin** | `api.ts` берёт origin из `env` (без дублирования `/api/v1` в baseURL). |
+| **Dashboard** | Кнопки «Обновить план», «Добавить канал», «Детали» ведут на `/subscription`, `/channels`, `/channels/[id]`. |
+| **Восстановление пароля** | Используется `env.NEXT_PUBLIC_API_URL`, не «голый» `process.env` без fallback. |
+| **`<title>` / Head** | Главная и страница канала: один текстовый узел в `<title>` (без лишних children для React). |
+| **Rate limit / Redis** | `RateLimitMiddleware`: при недоступном Redis лимит пропускается, без 500. В `main.py` также slowapi. |
+| **E2E** | `e2e/full-user-flow.spec.ts` — Stripe mock; `e2e/smoke.spec.ts`; таймауты и сценарий с уникальным пользователем. См. `e2e/playwright.config.ts`. |
 
 ---
 
-### 2.3 Восстановление пароля: fallback для API URL
+## Актуальные оставшиеся задачи (по приоритету)
 
-**Файлы:** `auth/forgot-password.tsx`, `auth/reset-password.tsx`
+### Средний
 
-- Используют `process.env.NEXT_PUBLIC_API_URL` без fallback.
-- При отсутствии переменной URL будет `undefined/...`.
-- Добавить: `|| 'http://localhost:8000'`.
+- **Пустые списки UX:** явные подсказки на `signals` / `ratings` при нуле данных (dashboard уже поясняет пустые каналы/сигналы).
+- **AlertSystem:** в коде нет `mockAlerts`; price alerts ходят в API (`getAnalyticsCurrentPrice`). «Системные алерты» — локальный state; при появлении бэкенда правил — подключить сохранение/список с сервера.
+- **READINESS_IMPROVEMENTS.md:** обновить таблицы сценариев (E2E покрывает часть auth/Stripe mock; убрать устаревшее про mockAlerts, если правите файл).
 
----
+### Низкий / инфраструктура
 
-## 3. Средний приоритет
-
-### 3.1 AlertSystem — mock
-
-**Файл:** `components/notifications/AlertSystem.tsx`
-
-- Использует `mockAlerts` вместо API.
-- Варианты: подключить к API уведомлений или временно скрыть/заглушить.
-
-### 3.2 Два API-клиента
-
-- `lib/api.ts` — основной (axios)
-- `lib/api/index.ts` — альтернативный (fetch)
-
-Импорты идут из `@/lib/api` → обычно резолвится в `lib/api.ts`. Имеет смысл оставить один источник правды и перенести недостающие методы в `lib/api.ts`.
-
-### 3.3 Документация
-
-- `READINESS_IMPROVEMENTS.md` — устарела (useUserLimits уже через API).
-- Обновить чек-листы и статусы.
+- Stripe: реальный ключ, webhook (ngrok / публичный URL).
+- ML-сервис `:8001` — явный fallback в UI при недоступности.
+- Нагрузочное тестирование (k6), целевой uptime.
 
 ---
 
-## 4. Низкий приоритет / после VPS
+## Архив: что было в ревизии марта 2026
 
-- Stripe checkout — ручная проверка с `STRIPE_SECRET_KEY`.
-- Webhook — нужен ngrok/публичный URL.
-- ML-сервис на 8001 — fallback при недоступности.
-- k6 load test, uptime 99.9%.
+Ранее отмечалось как критичное:
+
+1. Отсутствие `getSubscriptionPlans` / `getSignalsWithTotal` — **исправлено**.
+2. Пагинация signals (`skip`) — **исправлено**.
+3. Два клиента `lib/api.ts` и `lib/api/index.ts` — **устранено** (оставлен axios).
+4. Fallback URL в forgot/reset — **исправлено** через `env`.
 
 ---
 
-## 5. Чек-лист для быстрого фикса
+## Быстрый чек-лист
 
-- [x] Добавить `getSubscriptionPlans` и `getSignalsWithTotal` в `lib/api.ts`
-- [x] Исправить пагинацию signals (skip вместо page)
-- [x] Кнопки dashboard: «Обновить план», «Добавить канал», «Детали»
-- [x] Fallback API URL в forgot-password, reset-password
-- [x] Обновить READINESS_IMPROVEMENTS.md
-- [x] HANDOVER_CHECKLIST: отметить auth как проверенный
+- [x] Один API-клиент, методы подписки/сигналов
+- [x] Нормализация `NEXT_PUBLIC_API_URL`
+- [x] Кнопки dashboard
+- [x] E2E smoke + full-user-flow (Stripe mock)
+- [x] Redis graceful degradation в rate-limit middleware
+- [ ] Обновить `READINESS_IMPROVEMENTS.md` под текущие E2E и AlertSystem (по желанию)
+- [ ] Прод-Stripe + webhook (после деплоя)

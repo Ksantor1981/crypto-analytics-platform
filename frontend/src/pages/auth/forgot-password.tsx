@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { env } from '@/config/env';
 
 export default function ForgotPasswordPage() {
   // const router = useRouter(); // не используется
@@ -26,7 +27,7 @@ export default function ForgotPasswordPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/forgot-password`,
+        `${env.NEXT_PUBLIC_API_URL}/users/forgot-password`,
         {
           method: 'POST',
           headers: {

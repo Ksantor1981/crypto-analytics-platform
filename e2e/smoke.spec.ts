@@ -27,7 +27,7 @@ test.describe('Smoke tests', () => {
 
   test('channels page accessible when logged out', async ({ page }) => {
     await page.goto('/channels');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     // Should show channels list or login prompt
     const body = await page.textContent('body');
     expect(body).toBeTruthy();
@@ -35,7 +35,7 @@ test.describe('Smoke tests', () => {
 
   test('dashboard page loads', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     const body = await page.textContent('body');
     expect(body).toBeTruthy();
   });

@@ -109,7 +109,7 @@ export default function ChannelDetailPage() {
   return (
     <>
       <Head>
-        <title>{channel.name} - Crypto Analytics Platform</title>
+        <title>{`${channel.name} - Crypto Analytics Platform`}</title>
         <meta
           name="description"
           content={`Детальная информация о канале ${channel.name}`}
