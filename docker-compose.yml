@@ -3,6 +3,10 @@
 #
 # Переменные с :-default ниже нужны только чтобы `docker compose config` и подъём без полного .env
 # не падали; в проде задайте свои секреты в .env.
+#
+# Мониторинг (Prometheus + Grafana) — профиль `monitoring` (меньше контейнеров по умолчанию, меньше сбоев Docker Desktop):
+#   docker compose --profile monitoring up -d
+# Только БД: docker compose -f docker-compose.simple.yml up -d
 services:
   postgres:
     image: postgres:15-alpine
@@ -272,6 +276,8 @@ services:
     restart: unless-stopped
 
   prometheus:
+    profiles:
+      - monitoring
     image: prom/prometheus:v2.47.0
     container_name: crypto-analytics-prometheus
     volumes:
@@ -289,6 +295,8 @@ services:
     restart: unless-stopped
 
   grafana:
+    profiles:
+      - monitoring
     image: grafana/grafana:10.2.0
     container_name: crypto-analytics-grafana
     environment:
