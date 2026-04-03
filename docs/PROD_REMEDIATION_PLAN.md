@@ -23,7 +23,7 @@
 | Метрики Prometheus | Уже есть `/metrics` | есть |
 | k6 / нагрузка | Скрипты + заполнение `LOAD_TEST_RESULTS.md` на стенде | процесс |
 | Секреты в истории Git | `SECURITY_PUBLIC_REPO.md` + ротация ключей | процесс |
-| Покрытие тестами | Постепенное повышение `--cov-fail-under` в CI (**сейчас 45**) | CI |
+| Покрытие тестами | Постепенное повышение `--cov-fail-under` в CI (**сейчас 50**) | CI |
 
 ## Фаза B — 1–2 недели (операционка)
 
@@ -39,9 +39,9 @@
 
 ## Фаза D — инфраструктура
 
-- HA: managed Postgres/Redis или документированный single-node SLA.
-- Celery beat: один инстанс или Redis lock (отдельная задача при горизонтальном масштабе).
+- HA: managed Postgres/Redis или документированный single-node SLA — см. [SINGLE_NODE_SLA.md](./SINGLE_NODE_SLA.md).
+- Celery: Redis lock для периодических задач в `app/celery_worker.py` (`redis_task_lock`); при масштабе — один beat или отдельный leader-election.
 
 ---
 
-**Версия:** 2026-04-04 (фаза B: алерты, reconcile, CI 45%). Обновлять при закрытии крупных пунктов.
+**Версия:** 2026-04-04 (фаза D: Celery Redis lock, single-node SLA doc, CI 50%). Обновлять при закрытии крупных пунктов.

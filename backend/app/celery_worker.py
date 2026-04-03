@@ -12,6 +12,9 @@ from celery.schedules import crontab
 logger = logging.getLogger(__name__)
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+# TTL lock ≥ ожидаемой длительности задачи; при падении воркера ключ истечёт сам
+_COLLECT_LOCK_TTL = int(os.getenv("CELERY_COLLECT_LOCK_TTL", "1800"))
+_CHECK_LOCK_TTL = int(os.getenv("CELERY_CHECK_SIGNALS_LOCK_TTL", "1700"))
 
 celery_app = Celery("crypto_analytics", broker=REDIS_URL, backend=REDIS_URL)
 
@@ -35,34 +38,40 @@ def collect_all_signals():
     if not os.getenv("SECRET_KEY"):
         raise RuntimeError("SECRET_KEY must be set for Celery tasks (see env.example)")
 
-    from app.core.database import SessionLocal
-    from app.core.config import get_settings
-    from app.services.collection_pipeline import run_telegram_collection_cycle
-    from app.services.metrics_calculator import recalculate_all_channels
+    from app.core.redis_task_lock import celery_task_lock
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    with celery_task_lock(REDIS_URL, "celery:lock:collect_all_signals", _COLLECT_LOCK_TTL) as acquired:
+        if not acquired:
+            return {"skipped": True, "reason": "lock_held"}
 
-    db = SessionLocal()
-    try:
-        settings = get_settings()
-        stats = loop.run_until_complete(run_telegram_collection_cycle(db, settings))
-        total = stats.get("saved", 0)
-        db.commit()
-        recalculate_all_channels(db)
-        logger.info(
-            "Celery collected %s signals (channels=%s)",
-            total,
-            stats.get("channels"),
-        )
-        return {"channels": stats.get("channels", 0), "new_signals": total}
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Collection error: {e}")
-        return {"error": str(e)}
-    finally:
-        db.close()
-        loop.close()
+        from app.core.database import SessionLocal
+        from app.core.config import get_settings
+        from app.services.collection_pipeline import run_telegram_collection_cycle
+        from app.services.metrics_calculator import recalculate_all_channels
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        db = SessionLocal()
+        try:
+            settings = get_settings()
+            stats = loop.run_until_complete(run_telegram_collection_cycle(db, settings))
+            total = stats.get("saved", 0)
+            db.commit()
+            recalculate_all_channels(db)
+            logger.info(
+                "Celery collected %s signals (channels=%s)",
+                total,
+                stats.get("channels"),
+            )
+            return {"channels": stats.get("channels", 0), "new_signals": total}
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Collection error: {e}")
+            return {"error": str(e)}
+        finally:
+            db.close()
+            loop.close()
 
 
 @celery_app.task(name="app.celery_worker.check_signal_outcomes")
@@ -72,20 +81,26 @@ def check_signal_outcomes():
     if not os.getenv("SECRET_KEY"):
         raise RuntimeError("SECRET_KEY must be set for Celery tasks (see env.example)")
 
-    from app.core.database import SessionLocal
-    from app.services.signal_checker import check_pending_signals
+    from app.core.redis_task_lock import celery_task_lock
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    with celery_task_lock(REDIS_URL, "celery:lock:check_signal_outcomes", _CHECK_LOCK_TTL) as acquired:
+        if not acquired:
+            return {"skipped": True, "reason": "lock_held"}
 
-    db = SessionLocal()
-    try:
-        result = loop.run_until_complete(check_pending_signals(db))
-        logger.info(f"Celery checked signals: {result.get('updated', 0)} updated")
-        return result
-    except Exception as e:
-        logger.error(f"Signal check error: {e}")
-        return {"error": str(e)}
-    finally:
-        db.close()
-        loop.close()
+        from app.core.database import SessionLocal
+        from app.services.signal_checker import check_pending_signals
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        db = SessionLocal()
+        try:
+            result = loop.run_until_complete(check_pending_signals(db))
+            logger.info(f"Celery checked signals: {result.get('updated', 0)} updated")
+            return result
+        except Exception as e:
+            logger.error(f"Signal check error: {e}")
+            return {"error": str(e)}
+        finally:
+            db.close()
+            loop.close()
