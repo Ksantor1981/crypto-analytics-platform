@@ -4,7 +4,7 @@
 
 **Статус:** MVP. Локальная разработка и демо — готовы. Production требует настройки секретов и подключения реальных источников данных.
 
-**Последнее обновление:** 2026-03-26 (см. также [SPEC_COMPLIANCE_2026_02_25.md](./SPEC_COMPLIANCE_2026_02_25.md) и [docs/DATA_INTEGRITY_FIX.md](./DATA_INTEGRITY_FIX.md))
+**Последнее обновление документации:** 2026-04-03 (актуальность коммитов — ветка `main` на GitHub; см. [SPEC_COMPLIANCE_2026_02_25.md](./SPEC_COMPLIANCE_2026_02_25.md), [docs/TZ_TO_CODE_STATUS_MAP.md](./docs/TZ_TO_CODE_STATUS_MAP.md), [docs/DATA_INTEGRITY_FIX.md](./docs/DATA_INTEGRITY_FIX.md))
 
 **Публичный репозиторий:** считайте все когда-либо попавшие в git секреты скомпрометированными — см. [docs/SECURITY_PUBLIC_REPO.md](./docs/SECURITY_PUBLIC_REPO.md).
 
@@ -14,6 +14,12 @@
 - [План ~99% готовности](./docs/PLAN_99_READINESS.md) — фазы A–D, регрессия
 - [Stripe test checkout (smoke)](./docs/STRIPE_TEST_CHECKOUT.md) — проверка оплаты в test mode
 - [Закрытие разрывов с ТЗ](./docs/TZ_GAPS_REMEDIATION.md) — ML, coverage, RPS, GA, алерты Pro
+- [Карта ТЗ → код](./docs/TZ_TO_CODE_STATUS_MAP.md) — статусы требований и файлов
+- [ADR: источники цен](./docs/ADR_PRICE_DATA_SOURCES.md) — CoinGecko vs формулировка ТЗ (Binance/Bybit)
+- [Жизненный цикл сигнала](./docs/SIGNAL_LIFECYCLE_ROADMAP.md) — план «truth layer» / метрики
+- [CI и качество: следующие шаги](./docs/CI_AND_QUALITY_NEXT.md) — coverage, E2E gate, k6
+- [Техдолг Custom Alerts (Pro)](./docs/CUSTOM_ALERTS_TECH_DEBT.md) — выравнивание модели и сервиса до REST
+- [Security audit runbook](./docs/SECURITY_AUDIT_RUNBOOK.md) — pre-commit + секреты
 - [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production  
 - [Оценка статуса](./docs/ARCHITECT_STATUS_EVALUATION.md) — технический архитектор (текущее состояние)
 - [ML Pipeline](./ml-service/README.md) — train-скрипт, воспроизводимость  

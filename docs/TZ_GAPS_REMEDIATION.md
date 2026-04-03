@@ -73,8 +73,8 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 
 ## 7. Кастомные алерты (Pro) и страница `/alerts`
 
-- **Backend:** модель `CustomAlert`, сервис `custom_alerts_service.py`, RBAC в `rbac_middleware.py` (`/alerts/custom` → Pro).
-- **Пробел:** нужен **стабильный REST-router** в `main.py`, связывающий HTTP с `CustomAlertsService`, и при желании UI в профиле/отдельной странице.
+- **Backend:** модель `CustomAlert`, сервис `custom_alerts_service.py`, RBAC в `rbac_middleware.py` (Pro).
+- **Пробел:** перед REST нужно **согласовать модель и сервис** (сейчас разные схемы полей) — см. [`CUSTOM_ALERTS_TECH_DEBT.md`](./CUSTOM_ALERTS_TECH_DEBT.md). После этого — router в `main.py` и UI.
 
 Страница `/alerts` сейчас показывает **ленту сигналов из API** и явно помечает, что push-центр Pro — отдельная дорожка.
 

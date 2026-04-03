@@ -2,7 +2,7 @@
 
 **Назначение:** единая привязка пунктов `SPEC.md` к файлам/модулям репозитория и честный статус (без смешения «код есть» и «критерий ТЗ доказан»).
 
-**Связанные документы:** [SPEC.md](../SPEC.md), [SPEC_COMPLIANCE_2026_02_25.md](../SPEC_COMPLIANCE_2026_02_25.md), [TZ_GAPS_REMEDIATION.md](./TZ_GAPS_REMEDIATION.md).
+**Связанные документы:** [SPEC.md](../SPEC.md), [SPEC_COMPLIANCE_2026_02_25.md](../SPEC_COMPLIANCE_2026_02_25.md), [TZ_GAPS_REMEDIATION.md](./TZ_GAPS_REMEDIATION.md), [ADR_PRICE_DATA_SOURCES.md](./ADR_PRICE_DATA_SOURCES.md), [SIGNAL_LIFECYCLE_ROADMAP.md](./SIGNAL_LIFECYCLE_ROADMAP.md).
 
 **Дата карты:** 2026-04-03.
 

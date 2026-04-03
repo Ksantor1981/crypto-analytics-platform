@@ -61,6 +61,7 @@
 - ✅ Next.js 14, 9 страниц, Stripe на фронте
 - ✅ Руководство по закрытию разрывов с ТЗ: [`docs/TZ_GAPS_REMEDIATION.md`](./docs/TZ_GAPS_REMEDIATION.md)
 - ✅ Карта «пункт ТЗ → код/статус»: [`docs/TZ_TO_CODE_STATUS_MAP.md`](./docs/TZ_TO_CODE_STATUS_MAP.md)
+- ✅ ADR по источникам цен (CoinGecko vs ТЗ): [`docs/ADR_PRICE_DATA_SOURCES.md`](./docs/ADR_PRICE_DATA_SOURCES.md); план замыкания цикла сигнала: [`docs/SIGNAL_LIFECYCLE_ROADMAP.md`](./docs/SIGNAL_LIFECYCLE_ROADMAP.md); CI/качество: [`docs/CI_AND_QUALITY_NEXT.md`](./docs/CI_AND_QUALITY_NEXT.md)
 - ✅ Опциональная Google Analytics (GA4): `NEXT_PUBLIC_GA_MEASUREMENT_ID`, компонент в `_app.tsx`
 - ✅ Исправление structlog: поле `event` в словарях логов переименовано в `audit_event` (избежание конфликта с BoundLogger)
 
