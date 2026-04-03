@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime, timezone
 from typing import Any, Mapping, Optional, Union
 
 from sqlalchemy.orm import Session
@@ -35,6 +36,7 @@ def persist_raw_event_from_payload(
     source_id: Optional[str] = None,
     language: Optional[str] = None,
     content_hash: Optional[str] = None,
+    source_observed_at: Optional[datetime] = None,
 ) -> Optional[RawEvent]:
     """
     Создаёт RawEvent и первую MessageVersion (initial).
@@ -59,6 +61,10 @@ def persist_raw_event_from_payload(
         content_hash=ch,
         language=language,
     )
+    if source_observed_at is not None:
+        ta = _to_utc_aware(source_observed_at)
+        ev.first_seen_at = ta
+        ev.ingested_at = ta
     db.add(ev)
     db.flush()
     db.add(
@@ -68,6 +74,7 @@ def persist_raw_event_from_payload(
             text_snapshot=raw_text,
             content_hash=ch,
             version_reason="initial",
+            observed_at=ev.first_seen_at,
         )
     )
     db.flush()

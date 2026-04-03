@@ -116,6 +116,8 @@ class ChannelScrapeResult:
 
     posts_fetched: int
     signals: List[ParsedSignal] = field(default_factory=list)
+    # Все посты со страницы t.me/s (для shadow raw layer, см. docs/DATA_PLANE_MIGRATION.md)
+    posts: List[ChannelPost] = field(default_factory=list)
 
 
 def _extract_telegram_message_id(msg_block) -> Optional[str]:
@@ -541,4 +543,4 @@ async def collect_signals_from_channel(
                     import asyncio as _aio
                     await _aio.sleep(ocr_sleep_ms / 1000.0)
     logger.info(f"@{username}: {len(posts)} posts, {len(signals)} signals")
-    return ChannelScrapeResult(posts_fetched=len(posts), signals=signals)
+    return ChannelScrapeResult(posts_fetched=len(posts), signals=signals, posts=posts)

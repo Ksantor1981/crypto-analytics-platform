@@ -10,6 +10,7 @@ import os
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.channel import Channel
@@ -17,7 +18,7 @@ from app.models.signal import Signal, TelegramSignal
 from app.services.dedup import content_fingerprint, signal_exists
 
 if TYPE_CHECKING:
-    from app.services.telegram_scraper import ParsedSignal
+    from app.services.telegram_scraper import ChannelPost, ParsedSignal
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +50,81 @@ try:
         SIGNALS_POSTS_FETCHED,
         SIGNALS_SAVED,
         SIGNALS_SKIPPED,
+        SHADOW_RAW_EVENTS_WRITTEN,
+        SHADOW_RAW_EVENTS_DEDUP,
     )
 
     _METRICS = True
 except ImportError:
     _METRICS = False
+    SHADOW_RAW_EVENTS_WRITTEN = None  # type: ignore[assignment,misc]
+    SHADOW_RAW_EVENTS_DEDUP = None  # type: ignore[assignment,misc]
+
+
+def persist_shadow_telegram_posts_if_enabled(
+    db: Session,
+    channel: Channel,
+    posts: List["ChannelPost"],
+    *,
+    web_username: str,
+) -> Dict[str, int]:
+    """
+    Фаза 3 data plane: dual-write всех постов t.me/s в raw_events + message_versions.
+    Дубликат (channel_id, platform_message_id) → счётчик dedup, без прерывания цикла.
+    """
+    from app.core.config import get_settings
+    from app.services.raw_ingestion_service import persist_raw_event_from_payload
+
+    if not get_settings().SHADOW_PIPELINE_ENABLED or not posts:
+        return {"shadow_written": 0, "shadow_dedup": 0}
+
+    written = 0
+    dedup = 0
+    owner_id = getattr(channel, "owner_id", None)
+
+    for post in posts:
+        payload: Dict[str, Any] = {
+            "scraper": "telegram_web_tme_s",
+            "channel_username": web_username,
+            "telegram_message_id": post.message_id,
+            "views": post.views,
+            "image_urls": list(post.image_urls) if post.image_urls else [],
+            "post_date": post.date.isoformat() if post.date else None,
+        }
+        pmid = str(post.message_id) if post.message_id else None
+        try:
+            with db.begin_nested():
+                ev = persist_raw_event_from_payload(
+                    db,
+                    source_type="telegram_web",
+                    raw_payload=payload,
+                    channel_id=channel.id,
+                    author_id=owner_id,
+                    platform_message_id=pmid,
+                    raw_text=post.text or None,
+                    media_refs=list(post.image_urls) if post.image_urls else None,
+                    source_observed_at=post.date,
+                )
+                if ev:
+                    written += 1
+        except IntegrityError:
+            dedup += 1
+            if _METRICS and SHADOW_RAW_EVENTS_DEDUP is not None:
+                SHADOW_RAW_EVENTS_DEDUP.inc()
+
+    if written and _METRICS and SHADOW_RAW_EVENTS_WRITTEN is not None:
+        SHADOW_RAW_EVENTS_WRITTEN.inc(written)
+
+    if written or dedup:
+        logger.info(
+            "shadow_raw channel_id=%s username=%s written=%s dedup=%s",
+            channel.id,
+            web_username,
+            written,
+            dedup,
+        )
+
+    return {"shadow_written": written, "shadow_dedup": dedup}
 
 
 def telegram_fetch_limit(channel: Channel, settings: Any) -> int:
@@ -252,6 +323,7 @@ async def run_telegram_collection_cycle(db: Session, settings: Any) -> Dict[str,
             continue
 
         raw_posts += result.posts_fetched
+        persist_shadow_telegram_posts_if_enabled(db, channel, result.posts, web_username=uname)
         st = persist_parsed_signals_for_channel(
             db,
             channel,

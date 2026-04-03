@@ -52,6 +52,16 @@ SIGNALS_VALIDATED = Counter(
     ["status"],  # hit, miss, pending
 )
 
+# Shadow canonical raw layer (telegram web scrape → raw_events)
+SHADOW_RAW_EVENTS_WRITTEN = Counter(
+    "shadow_raw_events_written_total",
+    "New raw_events rows from shadow Telegram web ingestion",
+)
+SHADOW_RAW_EVENTS_DEDUP = Counter(
+    "shadow_raw_events_dedup_total",
+    "Skipped raw_events insert due to unique (channel_id, platform_message_id)",
+)
+
 
 def get_metrics() -> bytes:
     """Return Prometheus metrics in text format."""

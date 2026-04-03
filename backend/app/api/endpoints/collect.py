@@ -15,6 +15,7 @@ from app.models.user import User
 from app.services.telegram_scraper import collect_signals_from_channel
 from app.services.collection_pipeline import (
     persist_parsed_signals_for_channel,
+    persist_shadow_telegram_posts_if_enabled,
     telegram_fetch_limit,
 )
 from app.core.config import get_settings
@@ -53,6 +54,7 @@ async def collect_channel_signals(
     settings = get_settings()
     lim = telegram_fetch_limit(channel, settings)
     scrape = await collect_signals_from_channel(username, limit=lim)
+    persist_shadow_telegram_posts_if_enabled(db, channel, scrape.posts, web_username=username)
     st = persist_parsed_signals_for_channel(
         db,
         channel,
@@ -98,6 +100,7 @@ async def collect_all_channels(
         try:
             lim = telegram_fetch_limit(channel, settings)
             scrape = await collect_signals_from_channel(username, limit=lim)
+            persist_shadow_telegram_posts_if_enabled(db, channel, scrape.posts, web_username=username)
             st = persist_parsed_signals_for_channel(
                 db,
                 channel,
