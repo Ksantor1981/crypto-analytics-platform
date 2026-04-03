@@ -98,6 +98,7 @@ class TestStripeWebhook:
     def test_stripe_webhook_checkout_completed(self, client):
         """Вебхук только с валидной подписью при заданном STRIPE_WEBHOOK_SECRET."""
         payload = {
+            "id": "evt_checkout_unit_1",
             "type": "checkout.session.completed",
             "data": {
                 "object": {
@@ -105,7 +106,7 @@ class TestStripeWebhook:
                     "customer_email": "test@example.com",
                     "customer": "cus_test",
                 }
-            }
+            },
         }
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
         sig = _stripe_signature_header(body, _STRIPE_WEBHOOK_TEST_SECRET)
@@ -151,8 +152,9 @@ class TestStripeWebhook:
 
     def test_stripe_webhook_subscription_event(self, client):
         payload = {
+            "id": "evt_sub_unit_1",
             "type": "customer.subscription.deleted",
-            "data": {"object": {}}
+            "data": {"object": {}},
         }
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
         sig = _stripe_signature_header(body, _STRIPE_WEBHOOK_TEST_SECRET)
@@ -162,6 +164,27 @@ class TestStripeWebhook:
             headers={"Content-Type": "application/json", "Stripe-Signature": sig},
         )
         assert r.status_code == 200
+
+    def test_stripe_webhook_duplicate_event_id_returns_duplicate(self, client):
+        """Повторная доставка того же event.id — без повторной обработки."""
+        from app.core.stripe_webhook_dedup import clear_memory_dedup_for_tests
+
+        clear_memory_dedup_for_tests()
+        payload = {
+            "id": "evt_idempotent_test_1",
+            "type": "customer.subscription.deleted",
+            "data": {"object": {}},
+        }
+        body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+        sig = _stripe_signature_header(body, _STRIPE_WEBHOOK_TEST_SECRET)
+        h = {"Content-Type": "application/json", "Stripe-Signature": sig}
+        r1 = client.post("/api/v1/stripe/webhook", content=body, headers=h)
+        assert r1.status_code == 200
+        assert r1.json().get("received") is True
+        assert r1.json().get("duplicate") is not True
+        r2 = client.post("/api/v1/stripe/webhook", content=body, headers=h)
+        assert r2.status_code == 200
+        assert r2.json().get("duplicate") is True
 
 
 class TestRootAndHealth:

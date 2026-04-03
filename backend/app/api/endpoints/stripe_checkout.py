@@ -197,6 +197,16 @@ async def stripe_webhook(request: Request):
         logger.error(f"Webhook bad signature: {e}")
         raise HTTPException(status_code=400, detail="Invalid signature") from e
 
+    from app.core.stripe_webhook_dedup import (
+        mark_stripe_event_processed,
+        stripe_event_already_processed,
+    )
+
+    eid = event.get("id") if isinstance(event, dict) else getattr(event, "id", None)
+    _redis = (settings.REDIS_URL or "").strip()
+    if stripe_event_already_processed(eid, _redis):
+        return {"received": True, "duplicate": True}
+
     try:
         event_type = event["type"]
         data = event["data"]["object"]
@@ -221,11 +231,15 @@ async def stripe_webhook(request: Request):
                     user.stripe_customer_id = data.get("customer")
                     db.commit()
                     logger.info(f"User {user_id} upgraded to {plan}")
+                    mark_stripe_event_processed(eid, _redis)
             finally:
                 db.close()
-
     elif event_type in ("customer.subscription.deleted", "customer.subscription.updated"):
         logger.info(f"Subscription event: {event_type}")
+        mark_stripe_event_processed(eid, _redis)
+
+    else:
+        mark_stripe_event_processed(eid, _redis)
 
     return {"received": True}
 

@@ -6,7 +6,7 @@
 
 **Дата карты:** 2026-04-03.
 
-**CI (факт репозитория):** в `.github/workflows/ci.yml` для backend указано `--cov-fail-under=30` (не путать с целевым 80% из ТЗ).
+**CI (факт репозитория):** в `.github/workflows/ci.yml` для backend указано `--cov-fail-under=40` (не путать с целевым 80% из ТЗ).
 
 ---
 
