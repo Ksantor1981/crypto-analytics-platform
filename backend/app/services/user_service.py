@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 from datetime import datetime, timedelta
 
 from app.models.user import User, UserRole
+from app.models.channel import Channel
 from app.models.signal import Signal
 from app.schemas.user import UserCreate, UserUpdate, UserChangePassword
 from app.core.security import get_password_hash, verify_password, authenticate_user

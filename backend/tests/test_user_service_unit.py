@@ -3,7 +3,9 @@ import pytest
 from unittest.mock import MagicMock, patch
 from fastapi import HTTPException
 
-from app.models.user import UserRole as ModelUserRole
+from app.models.channel import Channel
+from app.models.signal import Signal
+from app.models.user import User, UserRole as ModelUserRole
 from app.schemas.user import UserChangePassword, UserCreate, UserUpdate
 from app.services.user_service import UserService
 
@@ -229,3 +231,83 @@ def test_authenticate_delegates():
     u = _user_row()
     with patch("app.services.user_service.authenticate_user", return_value=u):
         assert UserService(db).authenticate("a@b.com", "p") is u
+
+
+def test_get_user_stats_not_found():
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = None
+    with pytest.raises(HTTPException) as ei:
+        UserService(db).get_user_stats(999)
+    assert ei.value.status_code == 404
+
+
+def test_get_user_stats_empty_signals():
+    user = _user_row(id=3)
+
+    user_q = MagicMock()
+    user_q.filter.return_value = user_q
+    user_q.first.return_value = user
+
+    sig_q = MagicMock()
+    sig_q.join.return_value = sig_q
+    sig_q.filter.return_value = sig_q
+    sig_q.all.return_value = []
+
+    def query_side_effect(model):
+        if model is User:
+            return user_q
+        if model is Signal:
+            return sig_q
+        raise AssertionError(f"unexpected model {model!r}")
+
+    db = MagicMock()
+    db.query.side_effect = query_side_effect
+
+    stats = UserService(db).get_user_stats(3)
+    assert stats["total_signals_received"] == 0
+    assert stats["successful_signals"] == 0
+    assert stats["failed_signals"] == 0
+    assert stats["total_profit_loss"] == 0.0
+    assert stats["win_rate"] == 0.0
+    sig_q.join.assert_called_once_with(Channel)
+
+
+def test_get_user_stats_join_aggregates_profit_and_win_rate():
+    user = _user_row(id=7)
+    s_ok = MagicMock()
+    s_ok.is_successful = True
+    s_ok.profit_loss_percentage = 10.5
+    s_fail = MagicMock()
+    s_fail.is_successful = False
+    s_fail.profit_loss_percentage = -5.0
+    s_no_pl = MagicMock()
+    s_no_pl.is_successful = True
+    s_no_pl.profit_loss_percentage = None
+
+    user_q = MagicMock()
+    user_q.filter.return_value = user_q
+    user_q.first.return_value = user
+
+    sig_q = MagicMock()
+    sig_q.join.return_value = sig_q
+    sig_q.filter.return_value = sig_q
+    sig_q.all.return_value = [s_ok, s_fail, s_no_pl]
+
+    def query_side_effect(model):
+        if model is User:
+            return user_q
+        if model is Signal:
+            return sig_q
+        raise AssertionError(f"unexpected model {model!r}")
+
+    db = MagicMock()
+    db.query.side_effect = query_side_effect
+
+    stats = UserService(db).get_user_stats(7)
+    assert stats["total_signals_received"] == 3
+    assert stats["successful_signals"] == 2
+    assert stats["failed_signals"] == 1
+    assert stats["total_profit_loss"] == pytest.approx(5.5)
+    assert stats["win_rate"] == pytest.approx(200.0 / 3.0, rel=1e-3)
+    assert stats["active_subscriptions"] == 0
+    sig_q.join.assert_called_once_with(Channel)

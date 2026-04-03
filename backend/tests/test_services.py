@@ -39,13 +39,16 @@ class TestPriceValidator:
 
     def test_get_price_returns_type(self):
         from app.services.price_validator import get_current_price
-        result = asyncio.get_event_loop().run_until_complete(get_current_price("BTC/USDT"))
+
+        # Свежий event loop: после pytest-asyncio get_event_loop() может быть закрыт.
+        result = asyncio.run(get_current_price("BTC/USDT"))
         # May be None if rate limited, but should be float or None
         assert result is None or isinstance(result, (int, float))
 
     def test_validate_signal_returns_dict(self):
         from app.services.price_validator import validate_signal_price
-        result = asyncio.get_event_loop().run_until_complete(validate_signal_price("BTC/USDT", 65000))
+
+        result = asyncio.run(validate_signal_price("BTC/USDT", 65000))
         assert isinstance(result, dict)
         assert "valid" in result
 
