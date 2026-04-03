@@ -114,6 +114,43 @@ class TestCollectAPI:
         assert r.status_code == 200
         assert "authenticated" in r.json()
 
+    def test_telethon_collect_all_requires_telethon_session(self, client, auth_headers):
+        from unittest.mock import patch
+
+        if not auth_headers:
+            pytest.skip("Auth not available")
+        with patch("app.api.endpoints.collect.telethon_ready", return_value=False):
+            r = client.post(
+                "/api/v1/collect/telethon-collect-all",
+                headers=auth_headers,
+            )
+        assert r.status_code == 200
+        assert r.json().get("error")
+
+    def test_telethon_collect_all_runs_with_mocked_history(self, client, auth_headers):
+        from unittest.mock import AsyncMock, patch
+
+        if not auth_headers:
+            pytest.skip("Auth not available")
+
+        async def _empty(*_a, **_kw):
+            return [], []
+
+        with patch("app.api.endpoints.collect.telethon_ready", return_value=True):
+            with patch(
+                "app.api.endpoints.collect.collect_channel_history",
+                new=AsyncMock(side_effect=_empty),
+            ):
+                r = client.post(
+                    "/api/v1/collect/telethon-collect-all",
+                    headers=auth_headers,
+                )
+        assert r.status_code == 200
+        body = r.json()
+        assert "channels_processed" in body
+        assert "results" in body
+        assert isinstance(body["results"], list)
+
 
 class TestDashboardAPI:
     def test_dashboard_signals(self, client, auth_headers):

@@ -41,7 +41,7 @@ Legacy parser → Signal (текущая модель) → текущие мет
 |---|------|-----------------|--------|
 | 1 | Документы + глоссарий + policy + review guidelines | 2–4 д | **Done** (документы); код — флаг + таблицы v0 |
 | 2 | Таблицы `raw_events`, `message_versions`, индексы | 4–6 d | **Done** (Alembic `f8e9a0b1c2d3` + модели + `raw_ingestion_service`) |
-| 3 | Shadow ingestion (`SHADOW_PIPELINE_ENABLED`), dual-write, метрики | 3–5 d | **In progress** — Telegram web + **Reddit** (RSS + JSON backfill); Telethon — позже |
+| 3 | Shadow ingestion (`SHADOW_PIPELINE_ENABLED`), dual-write, метрики | 3–5 d | **In progress** — Telegram web + **Reddit** + **Telethon** (`raw_payload.mtproto`, `POST .../telethon-collect-all`) |
 | 4 | Review console v0.1 + `review_labels` | 4–7 d | **Done (baseline)** — таблица, admin API, UI очереди + карточка (в т.ч. extractions / normalized / relations) |
 | 5 | Extraction слой | 5–8 d | **Done (baseline)** — `extractions`, сервис, admin API, `EXTRACTION_PIPELINE_ENABLED` |
 | 6 | ExtractionDecision | 2–4 d | **Done (baseline)** — таблица + override/admin |

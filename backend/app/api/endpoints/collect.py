@@ -5,7 +5,7 @@ import asyncio
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from typing import List
+from typing import Any, Dict, List
 
 from app.core.database import get_db
 from app.core.auth import get_current_user, get_optional_current_user, require_premium
@@ -31,6 +31,66 @@ from app.core.rate_limiter import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+async def _telethon_collect_channel_core(
+    db: Session,
+    channel: Channel,
+    days: int,
+) -> Dict[str, Any]:
+    """
+    Telethon: shadow raw + legacy Signal rows для одного канала. Без commit.
+    """
+    username = channel.username
+    if not username and channel.url:
+        username = channel.url.rstrip("/").split("/")[-1]
+    if not username:
+        return {"error": "Channel has no username or URL", "channel_name": channel.name}
+
+    signals, telethon_shadow_posts = await collect_channel_history(username, days_back=days)
+    shadow_stats = persist_shadow_telegram_posts_if_enabled(
+        db,
+        channel,
+        telethon_shadow_posts,
+        web_username=username,
+        source_type="telegram_telethon",
+        payload_scraper="telethon",
+    )
+
+    saved = 0
+    for sig in signals:
+        if (
+            db.query(Signal)
+            .filter(Signal.channel_id == channel.id, Signal.original_text == sig.original_text[:500])
+            .first()
+        ):
+            continue
+        db.add(
+            Signal(
+                channel_id=channel.id,
+                asset=sig.asset,
+                symbol=sig.asset.replace("/", ""),
+                direction=sig.direction,
+                entry_price=sig.entry_price,
+                tp1_price=sig.take_profit,
+                stop_loss=sig.stop_loss,
+                confidence_score=sig.confidence,
+                original_text=sig.original_text,
+                status="PENDING",
+                message_timestamp=sig.timestamp,
+            )
+        )
+        saved += 1
+
+    channel.signals_count = db.query(Signal).filter(Signal.channel_id == channel.id).count()
+    return {
+        "channel": username,
+        "channel_label": channel.name,
+        "signals_found": len(signals),
+        "new_saved": saved,
+        "total": channel.signals_count,
+        "shadow_raw": shadow_stats,
+    }
 
 
 @router.post("/collect/{channel_id}")
@@ -281,43 +341,73 @@ async def telethon_collect(
     if not telethon_ready():
         return {"error": "Telethon not authenticated", "how_to": "Run: python -m app.services.telethon_collector --auth"}
 
-    signals, telethon_shadow_posts = await collect_channel_history(channel_username, days_back=days)
-
     channel = db.query(Channel).filter(Channel.username == channel_username).first()
     if not channel:
         return {"error": f"Channel @{channel_username} not in database"}
 
-    shadow_stats = persist_shadow_telegram_posts_if_enabled(
-        db,
-        channel,
-        telethon_shadow_posts,
-        web_username=channel_username,
-        source_type="telegram_telethon",
-        payload_scraper="telethon",
-    )
-
-    saved = 0
-    for sig in signals:
-        if db.query(Signal).filter(Signal.channel_id == channel.id, Signal.original_text == sig.original_text[:500]).first():
-            continue
-        db.add(Signal(
-            channel_id=channel.id, asset=sig.asset, symbol=sig.asset.replace("/", ""),
-            direction=sig.direction, entry_price=sig.entry_price,
-            tp1_price=sig.take_profit, stop_loss=sig.stop_loss,
-            confidence_score=sig.confidence, original_text=sig.original_text,
-            status="PENDING", message_timestamp=sig.timestamp,
-        ))
-        saved += 1
-
-    channel.signals_count = db.query(Signal).filter(Signal.channel_id == channel.id).count()
+    body = await _telethon_collect_channel_core(db, channel, days)
+    if body.get("error"):
+        return body
     db.commit()
+    return {
+        "channel": body["channel"],
+        "signals_found": body["signals_found"],
+        "new_saved": body["new_saved"],
+        "total": body["total"],
+        "shadow_raw": body["shadow_raw"],
+    }
+
+
+@router.post("/telethon-collect-all")
+async def telethon_collect_all(
+    days: int = 90,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_premium),
+):
+    """Telethon deep collect для всех активных Telegram-каналов из БД (как /collect-all по охвату)."""
+    if not telethon_ready():
+        return {
+            "error": "Telethon not authenticated",
+            "how_to": "Run: python -m app.services.telethon_collector --auth",
+        }
+
+    channels = (
+        db.query(Channel)
+        .filter(Channel.is_active == True, Channel.platform == "telegram")
+        .all()
+    )
+    results: List[Dict[str, Any]] = []
+    for channel in channels:
+        try:
+            body = await _telethon_collect_channel_core(db, channel, days)
+            if body.get("error"):
+                results.append(
+                    {
+                        "channel_name": channel.name,
+                        "error": body["error"],
+                    }
+                )
+                continue
+            results.append(
+                {
+                    "channel_name": body["channel_label"],
+                    "username": body["channel"],
+                    "signals_found": body["signals_found"],
+                    "new_saved": body["new_saved"],
+                    "total_signals": body["total"],
+                    "shadow_raw": body["shadow_raw"],
+                }
+            )
+        except Exception as e:
+            logger.error("telethon-collect-all %s: %s", channel.name, e)
+            results.append({"channel_name": channel.name, "error": str(e)})
+
+    db.commit()
+    recalculate_all_channels(db)
 
     return {
-        "channel": channel_username,
-        "signals_found": len(signals),
-        "new_saved": saved,
-        "total": channel.signals_count,
-        "shadow_raw": shadow_stats,
+        "channels_processed": len(results),
+        "results": results,
     }
 
 
