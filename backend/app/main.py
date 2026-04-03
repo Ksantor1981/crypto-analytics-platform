@@ -46,7 +46,11 @@ try:
         payments, ml_integration, telegram_integration,
         trading, ml_predictions, backtesting, dashboard,
         user_sources, feedback, analytics, collect, export_signals, export as export_endpoints,
-        stripe_checkout, custom_alerts, review_labels,
+        stripe_checkout, custom_alerts, review_labels, extractions, extraction_decisions,
+        normalized_signals,
+        signal_relations,
+        execution_models,
+        signal_outcomes,
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -59,7 +63,9 @@ except ImportError as e:
         from api.endpoints import (
             channels, users, signals, subscriptions,
             payments, ml_integration, telegram_integration,
-            trading, ml_predictions, backtesting, dashboard, review_labels,
+            trading, ml_predictions, backtesting, dashboard,             review_labels, extractions,
+            extraction_decisions,
+            normalized_signals,
         )
         from core.middleware import SubscriptionLimitMiddleware
         from core.scheduler import TradingScheduler
@@ -447,6 +453,12 @@ routers_config = [
     ("stripe_checkout", "/api/v1/stripe", "stripe"),
     ("custom_alerts", "/api/v1/alerts", "alerts"),
     ("review_labels", "/api/v1/admin/review-labels", "review-labels"),
+    ("extractions", "/api/v1/admin/extractions", "extractions"),
+    ("extraction_decisions", "/api/v1/admin/extraction-decisions", "extraction-decisions"),
+    ("normalized_signals", "/api/v1/admin/normalized-signals", "normalized-signals"),
+    ("signal_relations", "/api/v1/admin/signal-relations", "signal-relations"),
+    ("execution_models", "/api/v1/admin/execution-models", "execution-models"),
+    ("signal_outcomes", "/api/v1/admin/signal-outcomes", "signal-outcomes"),
 ]
 
 # Подключаем роутеры с обработкой ошибок

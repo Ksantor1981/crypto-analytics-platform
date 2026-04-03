@@ -118,6 +118,21 @@ class Settings(BaseSettings):
 
     # Канонический data plane: dual-write raw_events + message_versions (см. docs/DATA_PLANE_MIGRATION.md)
     SHADOW_PIPELINE_ENABLED: bool = False
+    # Запись в extractions + admin run (legacy_text экстрактор); без флага POST /admin/extractions/... → 503
+    EXTRACTION_PIPELINE_ENABLED: bool = False
+    # После materialize → normalized_signal автоматически создавать PENDING signal_outcomes для активных execution_models
+    OUTCOME_SLOTS_AUTO_ENSURE: bool = False
+    # GET карточки review (raw-event detail): при наличии normalized — дозаполнить недостающие PENDING outcomes
+    OUTCOME_SLOTS_AUTO_ENSURE_ON_REVIEW_DETAIL: bool = False
+    # Пересчёт signal_outcomes по свечам (DB market_candles или CoinGecko OHLC)
+    OUTCOME_RECALC_ENABLED: bool = False
+    OUTCOME_RECALC_LOOKAHEAD_DAYS: int = 14
+    OUTCOME_RECALC_TIMEFRAME: str = "1h"
+    OUTCOME_RECALC_BATCH_LIMIT: int = 50
+    # market_on_publish: опорная цена на свече сигнала — close | open | hl2 | ohlc4
+    OUTCOME_MOP_REFERENCE: str = "close"
+    # На одной свече при одновременном касании SL и TP: True = сначала SL (консервативно)
+    OUTCOME_INTRABAR_SL_BEFORE_TP: bool = True
 
     # C1: сбор без Telegram — при False периодический сбор только Reddit/seed
     COLLECT_TELEGRAM: bool = True

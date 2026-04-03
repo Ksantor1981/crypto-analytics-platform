@@ -7,14 +7,13 @@ import os
 import asyncio
 import logging
 from celery import Celery
-from celery.schedules import crontab
-
 logger = logging.getLogger(__name__)
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 # TTL lock ≥ ожидаемой длительности задачи; при падении воркера ключ истечёт сам
 _COLLECT_LOCK_TTL = int(os.getenv("CELERY_COLLECT_LOCK_TTL", "1800"))
 _CHECK_LOCK_TTL = int(os.getenv("CELERY_CHECK_SIGNALS_LOCK_TTL", "1700"))
+_OUTCOME_RECALC_LOCK_TTL = int(os.getenv("CELERY_OUTCOME_RECALC_LOCK_TTL", "900"))
 
 celery_app = Celery("crypto_analytics", broker=REDIS_URL, backend=REDIS_URL)
 
@@ -26,6 +25,10 @@ celery_app.conf.beat_schedule = {
     "check-signals-every-30-min": {
         "task": "app.celery_worker.check_signal_outcomes",
         "schedule": 1800,  # 30 minutes
+    },
+    "recalculate-canonical-outcomes-hourly": {
+        "task": "app.celery_worker.recalculate_canonical_signal_outcomes",
+        "schedule": 3600,
     },
 }
 celery_app.conf.timezone = "UTC"
@@ -72,6 +75,53 @@ def collect_all_signals():
         finally:
             db.close()
             loop.close()
+
+
+@celery_app.task(name="app.celery_worker.recalculate_canonical_signal_outcomes")
+def recalculate_canonical_signal_outcomes():
+    """Пересчёт PENDING signal_outcomes по свечам (канонический контур)."""
+    os.environ.setdefault("USE_SQLITE", "true")
+    if not os.getenv("SECRET_KEY"):
+        raise RuntimeError("SECRET_KEY must be set for Celery tasks (see env.example)")
+
+    from app.core.redis_task_lock import celery_task_lock
+
+    with celery_task_lock(
+        REDIS_URL,
+        "celery:lock:recalculate_canonical_signal_outcomes",
+        _OUTCOME_RECALC_LOCK_TTL,
+    ) as acquired:
+        if not acquired:
+            return {"skipped": True, "reason": "lock_held"}
+
+        from app.core.config import get_settings
+        from app.core.database import SessionLocal
+        from app.services.outcome_recalc_service import process_pending_signal_outcomes
+
+        settings = get_settings()
+        if not settings.OUTCOME_RECALC_ENABLED:
+            return {"skipped": True, "reason": "OUTCOME_RECALC_ENABLED=false"}
+
+        db = SessionLocal()
+        try:
+            stats = process_pending_signal_outcomes(
+                db,
+                limit=settings.OUTCOME_RECALC_BATCH_LIMIT,
+                lookahead_days=settings.OUTCOME_RECALC_LOOKAHEAD_DAYS,
+                timeframe=settings.OUTCOME_RECALC_TIMEFRAME,
+            )
+            logger.info(
+                "Canonical outcome recalc: processed=%s ok=%s failed=%s",
+                stats.get("processed"),
+                stats.get("ok"),
+                stats.get("failed"),
+            )
+            return stats
+        except Exception as e:
+            logger.error("Canonical outcome recalc error: %s", e)
+            return {"error": str(e)}
+        finally:
+            db.close()
 
 
 @celery_app.task(name="app.celery_worker.check_signal_outcomes")

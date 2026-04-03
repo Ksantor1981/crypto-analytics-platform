@@ -45,6 +45,12 @@ from .custom_alert import CustomAlert
 from .feedback import Feedback
 from .raw_ingestion import MessageVersion, RawEvent
 from .review_label import ReviewLabel
+from .extraction import Extraction
+from .extraction_decision import ExtractionDecision
+from .normalized_signal import NormalizedSignal
+from .signal_relation import SignalRelation
+from .execution_model import ExecutionModel
+from .signal_outcome import SignalOutcome
 
 # Экспортируем все модели для удобного импорта
 __all__ = [
@@ -100,4 +106,10 @@ __all__ = [
     "RawEvent",
     "MessageVersion",
     "ReviewLabel",
+    "Extraction",
+    "ExtractionDecision",
+    "NormalizedSignal",
+    "SignalRelation",
+    "ExecutionModel",
+    "SignalOutcome",
 ]

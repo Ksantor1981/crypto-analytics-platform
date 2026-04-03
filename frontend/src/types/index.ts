@@ -48,6 +48,7 @@ export interface APIUser {
   subscription_plan?: string;
   role?: string;
   is_premium?: boolean;
+  is_admin?: boolean;
   created_at?: string;
 }
 

@@ -277,11 +277,20 @@ async def telethon_collect(
     if not telethon_ready():
         return {"error": "Telethon not authenticated", "how_to": "Run: python -m app.services.telethon_collector --auth"}
 
-    signals = await collect_channel_history(channel_username, days_back=days)
+    signals, telethon_shadow_posts = await collect_channel_history(channel_username, days_back=days)
 
     channel = db.query(Channel).filter(Channel.username == channel_username).first()
     if not channel:
         return {"error": f"Channel @{channel_username} not in database"}
+
+    shadow_stats = persist_shadow_telegram_posts_if_enabled(
+        db,
+        channel,
+        telethon_shadow_posts,
+        web_username=channel_username,
+        source_type="telegram_telethon",
+        payload_scraper="telethon",
+    )
 
     saved = 0
     for sig in signals:
@@ -299,7 +308,13 @@ async def telethon_collect(
     channel.signals_count = db.query(Signal).filter(Signal.channel_id == channel.id).count()
     db.commit()
 
-    return {"channel": channel_username, "signals_found": len(signals), "new_saved": saved, "total": channel.signals_count}
+    return {
+        "channel": channel_username,
+        "signals_found": len(signals),
+        "new_saved": saved,
+        "total": channel.signals_count,
+        "shadow_raw": shadow_stats,
+    }
 
 
 @router.get("/bot-status")

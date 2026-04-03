@@ -11,7 +11,6 @@ import os
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.channel import Channel
@@ -53,6 +52,7 @@ try:
         SIGNALS_SKIPPED,
         SHADOW_RAW_EVENTS_WRITTEN,
         SHADOW_RAW_EVENTS_DEDUP,
+        SHADOW_MESSAGE_VERSIONS_ADDED,
     )
 
     _METRICS = True
@@ -60,6 +60,7 @@ except ImportError:
     _METRICS = False
     SHADOW_RAW_EVENTS_WRITTEN = None  # type: ignore[assignment,misc]
     SHADOW_RAW_EVENTS_DEDUP = None  # type: ignore[assignment,misc]
+    SHADOW_MESSAGE_VERSIONS_ADDED = None  # type: ignore[assignment,misc]
 
 
 def persist_shadow_telegram_posts_if_enabled(
@@ -68,24 +69,27 @@ def persist_shadow_telegram_posts_if_enabled(
     posts: List["ChannelPost"],
     *,
     web_username: str,
+    source_type: str = "telegram_web",
+    payload_scraper: str = "telegram_web_tme_s",
 ) -> Dict[str, int]:
     """
-    Фаза 3 data plane: dual-write всех постов t.me/s в raw_events + message_versions.
-    Дубликат (channel_id, platform_message_id) → счётчик dedup, без прерывания цикла.
+    Фаза 3 data plane: dual-write постов (t.me/s или Telethon) в raw_events + message_versions.
+    Повтор с тем же текстом → dedup; смена текста → новая MessageVersion (versioned).
     """
     from app.core.config import get_settings
-    from app.services.raw_ingestion_service import persist_raw_event_from_payload
+    from app.services.raw_ingestion_service import upsert_shadow_raw_event
 
     if not get_settings().SHADOW_PIPELINE_ENABLED or not posts:
-        return {"shadow_written": 0, "shadow_dedup": 0}
+        return {"shadow_written": 0, "shadow_versioned": 0, "shadow_dedup": 0}
 
     written = 0
+    versioned = 0
     dedup = 0
     owner_id = getattr(channel, "owner_id", None)
 
     for post in posts:
         payload: Dict[str, Any] = {
-            "scraper": "telegram_web_tme_s",
+            "scraper": payload_scraper,
             "channel_username": web_username,
             "telegram_message_id": post.message_id,
             "views": post.views,
@@ -93,39 +97,47 @@ def persist_shadow_telegram_posts_if_enabled(
             "post_date": post.date.isoformat() if post.date else None,
         }
         pmid = str(post.message_id) if post.message_id else None
-        try:
-            with db.begin_nested():
-                ev = persist_raw_event_from_payload(
-                    db,
-                    source_type="telegram_web",
-                    raw_payload=payload,
-                    channel_id=channel.id,
-                    author_id=owner_id,
-                    platform_message_id=pmid,
-                    raw_text=post.text or None,
-                    media_refs=list(post.image_urls) if post.image_urls else None,
-                    source_observed_at=post.date,
-                )
-                if ev:
-                    written += 1
-        except IntegrityError:
-            dedup += 1
-            if _METRICS and SHADOW_RAW_EVENTS_DEDUP is not None:
-                SHADOW_RAW_EVENTS_DEDUP.inc()
+        with db.begin_nested():
+            _ev, action = upsert_shadow_raw_event(
+                db,
+                source_type=source_type,
+                raw_payload=payload,
+                channel_id=channel.id,
+                author_id=owner_id,
+                platform_message_id=pmid,
+                raw_text=post.text or None,
+                media_refs=list(post.image_urls) if post.image_urls else None,
+                source_observed_at=post.date,
+            )
+            if action == "created":
+                written += 1
+            elif action == "versioned":
+                versioned += 1
+                if _METRICS and SHADOW_MESSAGE_VERSIONS_ADDED is not None:
+                    SHADOW_MESSAGE_VERSIONS_ADDED.inc()
+            elif action == "unchanged":
+                dedup += 1
+                if _METRICS and SHADOW_RAW_EVENTS_DEDUP is not None:
+                    SHADOW_RAW_EVENTS_DEDUP.inc()
 
     if written and _METRICS and SHADOW_RAW_EVENTS_WRITTEN is not None:
         SHADOW_RAW_EVENTS_WRITTEN.inc(written)
 
-    if written or dedup:
+    if written or dedup or versioned:
         logger.info(
-            "shadow_raw channel_id=%s username=%s written=%s dedup=%s",
+            "shadow_raw channel_id=%s username=%s written=%s versioned=%s dedup=%s",
             channel.id,
             web_username,
             written,
+            versioned,
             dedup,
         )
 
-    return {"shadow_written": written, "shadow_dedup": dedup}
+    return {
+        "shadow_written": written,
+        "shadow_versioned": versioned,
+        "shadow_dedup": dedup,
+    }
 
 
 def _reddit_platform_message_id(post: Dict[str, Any]) -> str:
@@ -151,12 +163,13 @@ def persist_shadow_reddit_posts_if_enabled(
     Dual-write постов Reddit (RSS или JSON window) в raw_events.
     """
     from app.core.config import get_settings
-    from app.services.raw_ingestion_service import persist_raw_event_from_payload
+    from app.services.raw_ingestion_service import upsert_shadow_raw_event
 
     if not get_settings().SHADOW_PIPELINE_ENABLED or not posts:
-        return {"shadow_written": 0, "shadow_dedup": 0}
+        return {"shadow_written": 0, "shadow_versioned": 0, "shadow_dedup": 0}
 
     written = 0
+    versioned = 0
     dedup = 0
     owner_id = getattr(channel, "owner_id", None)
 
@@ -176,39 +189,47 @@ def persist_shadow_reddit_posts_if_enabled(
         if not raw_txt:
             raw_txt = f"{post.get('title', '')}\n{post.get('body', '')}".strip()
 
-        try:
-            with db.begin_nested():
-                ev = persist_raw_event_from_payload(
-                    db,
-                    source_type=f"reddit_{scrape_mode}",
-                    raw_payload=payload,
-                    channel_id=channel.id,
-                    author_id=owner_id,
-                    platform_message_id=pmid or None,
-                    raw_text=raw_txt or None,
-                    source_observed_at=post.get("created"),
-                )
-                if ev:
-                    written += 1
-        except IntegrityError:
-            dedup += 1
-            if _METRICS and SHADOW_RAW_EVENTS_DEDUP is not None:
-                SHADOW_RAW_EVENTS_DEDUP.inc()
+        with db.begin_nested():
+            _ev, action = upsert_shadow_raw_event(
+                db,
+                source_type=f"reddit_{scrape_mode}",
+                raw_payload=payload,
+                channel_id=channel.id,
+                author_id=owner_id,
+                platform_message_id=pmid or None,
+                raw_text=raw_txt or None,
+                source_observed_at=post.get("created"),
+            )
+            if action == "created":
+                written += 1
+            elif action == "versioned":
+                versioned += 1
+                if _METRICS and SHADOW_MESSAGE_VERSIONS_ADDED is not None:
+                    SHADOW_MESSAGE_VERSIONS_ADDED.inc()
+            elif action == "unchanged":
+                dedup += 1
+                if _METRICS and SHADOW_RAW_EVENTS_DEDUP is not None:
+                    SHADOW_RAW_EVENTS_DEDUP.inc()
 
     if written and _METRICS and SHADOW_RAW_EVENTS_WRITTEN is not None:
         SHADOW_RAW_EVENTS_WRITTEN.inc(written)
 
-    if written or dedup:
+    if written or dedup or versioned:
         logger.info(
-            "shadow_raw_reddit channel_id=%s sub=%s mode=%s written=%s dedup=%s",
+            "shadow_raw_reddit channel_id=%s sub=%s mode=%s written=%s versioned=%s dedup=%s",
             channel.id,
             subreddit,
             scrape_mode,
             written,
+            versioned,
             dedup,
         )
 
-    return {"shadow_written": written, "shadow_dedup": dedup}
+    return {
+        "shadow_written": written,
+        "shadow_versioned": versioned,
+        "shadow_dedup": dedup,
+    }
 
 
 def telegram_fetch_limit(channel: Channel, settings: Any) -> int:

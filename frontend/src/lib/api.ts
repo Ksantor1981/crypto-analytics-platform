@@ -220,6 +220,102 @@ export const apiClient = {
     a.remove();
     window.URL.revokeObjectURL(url);
   },
+
+  /** Admin: очередь Review Console (raw_events без меток и др.). */
+  async getReviewQueue(params?: {
+    limit?: number;
+    offset?: number;
+    unlabeled_only?: boolean;
+    edited_only?: boolean;
+    channel_id?: number;
+  }) {
+    const { data } = await api.get('/api/v1/admin/review-labels/queue', {
+      params,
+    });
+    return data as {
+      items: Array<{
+        raw_event_id: number;
+        source_type: string;
+        channel_id: number | null;
+        channel_username: string | null;
+        platform_message_id: string | null;
+        raw_text_preview: string | null;
+        first_seen_at: string | null;
+        version_count: number;
+        labels_count: number;
+      }>;
+      total: number;
+      limit: number;
+      offset: number;
+    };
+  },
+
+  async getRawEventDetail(rawEventId: number) {
+    const { data } = await api.get(
+      `/api/v1/admin/review-labels/raw-events/${rawEventId}`
+    );
+    return data as {
+      raw_event: Record<string, unknown>;
+      message_versions: Array<Record<string, unknown>>;
+      review_labels: Array<Record<string, unknown>>;
+      channel: { id: number; username: string | null; name: string } | null;
+      extractions?: Array<Record<string, unknown>>;
+      normalized_signals?: Array<Record<string, unknown>>;
+      signal_relations?: Array<Record<string, unknown>>;
+      signal_outcomes?: Array<Record<string, unknown>>;
+    };
+  },
+
+  async postReviewLabel(body: {
+    raw_event_id: number;
+    label_type: string;
+    notes?: string;
+    linked_signal_id?: number;
+    corrected_fields?: Record<string, unknown>;
+  }) {
+    const { data } = await api.post('/api/v1/admin/review-labels/', body);
+    return data;
+  },
+
+  /** Admin: создать PENDING signal_outcomes для всех normalized этого raw_event. */
+  async ensureSignalOutcomesForRawEvent(rawEventId: number) {
+    const { data } = await api.post(
+      `/api/v1/admin/signal-outcomes/ensure-for-raw-event/${rawEventId}`
+    );
+    return data as {
+      raw_event_id: number;
+      normalized_signal_count: number;
+      created_total: number;
+    };
+  },
+
+  /** Admin: заглушка пересчёта outcome (DATA_INCOMPLETE + error_detail). */
+  async postSignalOutcomeStubRecalculate(signalOutcomeId: number) {
+    const { data } = await api.post(
+      `/api/v1/admin/signal-outcomes/${signalOutcomeId}/stub-recalculate`
+    );
+    return data as Record<string, unknown>;
+  },
+
+  /** Admin: пересчёт по свечам (нужен OUTCOME_RECALC_ENABLED на backend). */
+  async postSignalOutcomeRecalculate(signalOutcomeId: number, force = false) {
+    const { data } = await api.post(
+      `/api/v1/admin/signal-outcomes/${signalOutcomeId}/recalculate`,
+      null,
+      { params: { force } }
+    );
+    return data as Record<string, unknown>;
+  },
+
+  /** Admin: пакетный пересчёт PENDING outcomes. */
+  async postSignalOutcomesProcessPendingRecalc(limit = 50) {
+    const { data } = await api.post(
+      '/api/v1/admin/signal-outcomes/process-pending-recalc',
+      null,
+      { params: { limit } }
+    );
+    return data as { processed: number; ok: number; failed: number; errors: string[] };
+  },
 };
 
 export default apiClient;

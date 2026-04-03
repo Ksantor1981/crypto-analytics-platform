@@ -34,6 +34,11 @@ const mapAPIUserToUser = (apiUser: APIUser): User => {
   if (plan === 'Free' && apiUser.is_premium) {
     plan = 'Premium';
   }
+  const isAdmin =
+    apiUser.is_admin === true ||
+    apiUser.role === 'ADMIN' ||
+    apiUser.role === 'admin';
+
   return {
     id: apiUser.id.toString(),
     name: apiUser.full_name || apiUser.name || apiUser.email,
@@ -43,7 +48,7 @@ const mapAPIUserToUser = (apiUser: APIUser): User => {
     joinDate:
       (apiUser as { created_at?: string }).created_at?.split('T')[0] ||
       new Date().toISOString().split('T')[0],
-    role: 'user',
+    role: isAdmin ? 'admin' : 'user',
     subscription: {
       plan,
       status: 'active',

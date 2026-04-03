@@ -92,6 +92,8 @@ class ParsedSignal:
     direction: str
     entry_price: Optional[float] = None
     take_profit: Optional[float] = None
+    # Все TP (нумерация / targets-строка); в extraction → take_profits при len>=2
+    take_profits: List[float] = field(default_factory=list)
     stop_loss: Optional[float] = None
     confidence: float = 0.5
     original_text: str = ""
@@ -383,6 +385,58 @@ def _price_in_million_context(text: str, price: float) -> bool:
     return bool(re.search(pat, text, re.I))
 
 
+def _merge_unique_prices(values: List[Optional[float]]) -> List[float]:
+    seen: set[float] = set()
+    out: List[float] = []
+    for v in values:
+        if v is None:
+            continue
+        if v not in seen:
+            seen.add(v)
+            out.append(v)
+    return out
+
+
+def _parse_numbered_take_profits(text: str, asset: str) -> List[float]:
+    """TP1 / TP2 / Target 3: … — порядок по номеру в тексте."""
+    tagged: List[Tuple[int, float]] = []
+    for m in re.finditer(
+        r"(?:tp|target|цель)\s*(\d)\s*[:\s=]+\s*\$?([\d\s]+[,.]?\d*k?)",
+        text,
+        re.I,
+    ):
+        idx = int(m.group(1))
+        val = _normalize_price_token(m.group(2))
+        if val is not None and _validate_price(val, asset):
+            tagged.append((idx, val))
+    tagged.sort(key=lambda t: t[0])
+    return [v for _, v in tagged]
+
+
+def _parse_take_profit_list_line(text: str, asset: str) -> List[float]:
+    """Строка targets: 1.1, 1.2 / TPs: … (до перевода строки или SL)."""
+    m = re.search(
+        r"(?:targets?|tps?|take\s*profits?|цели)\s*[:\s]+(.+?)(?:\n|$)",
+        text,
+        re.I | re.M,
+    )
+    if not m:
+        return []
+    chunk = m.group(1).strip()
+    chunk = re.split(r"\n|(?=\b(?:sl|stop)\b)", chunk, maxsplit=1, flags=re.I)[0]
+    out: List[float] = []
+    for part in re.split(r"[,;/|•]+", chunk):
+        part = part.strip()
+        if not part:
+            continue
+        part = re.sub(r"^\$\s*", "", part)
+        part = re.sub(r"^(?:tp|target|цель)\s*\d\s*[:\s]*", "", part, flags=re.I)
+        val = _normalize_price_token(part)
+        if val is not None and _validate_price(val, asset):
+            out.append(val)
+    return out
+
+
 def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
     """Extract trading signal from message text."""
     if _is_news_or_digest(text):
@@ -475,6 +529,11 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
     if not take_profit and len(valid_prices) >= 2:
         take_profit = valid_prices[1]
 
+    numbered_tp = _parse_numbered_take_profits(text, asset)
+    list_tp = _parse_take_profit_list_line(text, asset)
+    take_profits_merged = _merge_unique_prices([take_profit] + numbered_tp + list_tp)
+    take_profit = take_profits_merged[0] if take_profits_merged else None
+
     # DeFi/news filter: long text with news-like keywords but no TP/SL = not a signal
     if entry_price and not take_profit and not stop_loss:
         if len(text.strip()) >= MIN_TEXT_LEN_FOR_STRICT_SIGNAL and DEFI_NEWS_LIKE.search(text):
@@ -495,6 +554,7 @@ def parse_signal_from_text(text: str) -> Optional[ParsedSignal]:
         direction=direction,
         entry_price=entry_price,
         take_profit=take_profit,
+        take_profits=take_profits_merged,
         stop_loss=stop_loss,
         confidence=confidence,
         original_text=sanitize_signal_text(text[:500]),

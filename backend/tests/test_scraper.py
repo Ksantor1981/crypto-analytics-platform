@@ -102,6 +102,23 @@ class TestSignalParsing:
         assert abs(sig.entry_zone_low - 0.42) < 1e-9
         assert abs(sig.entry_zone_high - 0.44) < 1e-9
 
+    def test_multi_tp_numbered(self):
+        text = "#BTC LONG entry $65000 TP1: $70000 TP2: $72000 TP3: $75000 SL $63000"
+        sig = parse_signal_from_text(text)
+        assert sig is not None
+        assert sig.take_profit == 70000.0
+        assert sig.take_profits == [70000.0, 72000.0, 75000.0]
+
+    def test_multi_tp_targets_line(self):
+        text = (
+            "#BTC LONG entry $65000\n"
+            "targets: $70000, $71500, $73000\n"
+            "SL $63000"
+        )
+        sig = parse_signal_from_text(text)
+        assert sig is not None
+        assert sig.take_profits == [70000.0, 71500.0, 73000.0]
+
 
 class TestSignalParsingCorpus:
     """Small corpus-based tests using real-world-like examples."""

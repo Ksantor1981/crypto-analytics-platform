@@ -46,7 +46,114 @@ def test_persist_shadow_reddit_skips_when_flag_off():
     with patch("app.core.config.get_settings") as gs:
         gs.return_value = MagicMock(SHADOW_PIPELINE_ENABLED=False)
         out = persist_shadow_reddit_posts_if_enabled(db, ch, posts, subreddit="test", scrape_mode="rss")
-    assert out == {"shadow_written": 0, "shadow_dedup": 0}
+    assert out == {"shadow_written": 0, "shadow_versioned": 0, "shadow_dedup": 0}
+
+
+def test_upsert_shadow_created_when_no_existing_row():
+    from app.services.raw_ingestion_service import upsert_shadow_raw_event
+
+    with patch("app.services.raw_ingestion_service.get_settings") as gs:
+        gs.return_value = MagicMock(SHADOW_PIPELINE_ENABLED=True)
+        db = MagicMock()
+        raw_q = MagicMock()
+        raw_q.filter.return_value.one_or_none.return_value = None
+        db.query.return_value = raw_q
+        fake_ev = MagicMock()
+        with patch(
+            "app.services.raw_ingestion_service._insert_raw_event_and_initial_version",
+            return_value=fake_ev,
+        ) as ins:
+            ev, action = upsert_shadow_raw_event(
+                db,
+                source_type="telegram_web",
+                raw_payload={"a": 1},
+                channel_id=1,
+                platform_message_id="42",
+                raw_text="x",
+            )
+        assert action == "created"
+        assert ev is fake_ev
+        ins.assert_called_once()
+
+
+def test_upsert_shadow_unchanged_when_same_text():
+    from app.services.raw_ingestion_service import upsert_shadow_raw_event
+
+    with patch("app.services.raw_ingestion_service.get_settings") as gs:
+        gs.return_value = MagicMock(SHADOW_PIPELINE_ENABLED=True)
+        db = MagicMock()
+        existing = MagicMock()
+        existing.id = 10
+        raw_q = MagicMock()
+        raw_q.filter.return_value.one_or_none.return_value = existing
+        latest = MagicMock()
+        latest.version_no = 1
+        latest.text_snapshot = "hello"
+        latest.content_hash = "hh"
+        mv_q = MagicMock()
+        mv_q.filter.return_value.order_by.return_value.first.return_value = latest
+
+        def _query(model):
+            if model is RawEvent:
+                return raw_q
+            if model is MessageVersion:
+                return mv_q
+            return MagicMock()
+
+        db.query.side_effect = _query
+        ev, action = upsert_shadow_raw_event(
+            db,
+            source_type="telegram_web",
+            raw_payload={"k": 2},
+            channel_id=1,
+            platform_message_id="42",
+            raw_text="hello",
+        )
+        assert action == "unchanged"
+        assert ev is existing
+        db.add.assert_not_called()
+
+
+def test_upsert_shadow_versioned_when_text_changes():
+    from app.services.raw_ingestion_service import upsert_shadow_raw_event
+
+    with patch("app.services.raw_ingestion_service.get_settings") as gs:
+        gs.return_value = MagicMock(SHADOW_PIPELINE_ENABLED=True)
+        db = MagicMock()
+        existing = MagicMock()
+        existing.id = 10
+        raw_q = MagicMock()
+        raw_q.filter.return_value.one_or_none.return_value = existing
+        latest = MagicMock()
+        latest.version_no = 1
+        latest.text_snapshot = "hello"
+        latest.content_hash = "hh"
+        mv_q = MagicMock()
+        mv_q.filter.return_value.order_by.return_value.first.return_value = latest
+
+        def _query(model):
+            if model is RawEvent:
+                return raw_q
+            if model is MessageVersion:
+                return mv_q
+            return MagicMock()
+
+        db.query.side_effect = _query
+        ev, action = upsert_shadow_raw_event(
+            db,
+            source_type="telegram_web",
+            raw_payload={"k": 2},
+            channel_id=1,
+            platform_message_id="42",
+            raw_text="hello edited",
+        )
+        assert action == "versioned"
+        assert ev is existing
+        db.add.assert_called_once()
+        added = db.add.call_args[0][0]
+        assert isinstance(added, MessageVersion)
+        assert added.version_no == 2
+        assert added.version_reason == "rescanned"
 
 
 def test_persist_shadow_pipeline_skips_when_flag_off():
@@ -62,4 +169,4 @@ def test_persist_shadow_pipeline_skips_when_flag_off():
     with patch("app.core.config.get_settings") as gs:
         gs.return_value = MagicMock(SHADOW_PIPELINE_ENABLED=False)
         out = persist_shadow_telegram_posts_if_enabled(db, ch, posts, web_username="x")
-    assert out == {"shadow_written": 0, "shadow_dedup": 0}
+    assert out == {"shadow_written": 0, "shadow_versioned": 0, "shadow_dedup": 0}

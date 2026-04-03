@@ -30,6 +30,9 @@ export function AppNavbar() {
     { href: '/channels', label: 'Каналы' },
     { href: '/signals', label: 'Сигналы' },
     { href: '/ratings', label: 'Рейтинги' },
+    ...(user?.role === 'admin'
+      ? [{ href: '/admin/review', label: 'Review' as const }]
+      : []),
   ];
 
   return (

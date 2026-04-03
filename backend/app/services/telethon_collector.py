@@ -10,8 +10,9 @@ import sys
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import List, Optional
-from app.services.telegram_scraper import ParsedSignal, parse_signal_from_text
+from typing import List, Optional, Tuple
+
+from app.services.telegram_scraper import ChannelPost, ParsedSignal, parse_signal_from_text
 
 logger = logging.getLogger(__name__)
 
@@ -57,24 +58,29 @@ def is_authenticated() -> bool:
 
 async def collect_channel_history(
     username: str, days_back: int = 90, limit: int = 500
-) -> List[ParsedSignal]:
-    """Collect messages from a channel using Telethon."""
+) -> Tuple[List[ParsedSignal], List[ChannelPost]]:
+    """
+    Collect messages from a channel using Telethon.
+
+    Returns (parsed_signals, all_text_posts) — второй список для shadow raw_events
+    (см. persist_shadow_telegram_posts_if_enabled, scraper=telethon).
+    """
     if not is_authenticated():
         logger.warning("Telethon not authenticated. Run: python -m app.services.telethon_collector --auth")
-        return []
+        return [], []
 
     client = _get_client()
     if not client:
-        return []
+        return [], []
 
-    signals = []
+    signals: List[ParsedSignal] = []
+    shadow_posts: List[ChannelPost] = []
     try:
         await client.connect()
         if not await client.is_user_authorized():
             logger.warning("Session expired. Re-run auth.")
-            return []
+            return [], []
 
-        from telethon.tl.functions.messages import GetHistoryRequest
         entity = await client.get_entity(username)
         since = datetime.utcnow() - timedelta(days=days_back)
 
@@ -84,20 +90,37 @@ async def collect_channel_history(
             if not message.text:
                 continue
 
+            msg_dt = message.date.replace(tzinfo=None) if message.date else None
+            views = getattr(message, "views", None)
+            shadow_posts.append(
+                ChannelPost(
+                    text=message.text,
+                    date=msg_dt,
+                    message_id=str(message.id) if message.id is not None else None,
+                    views=int(views) if views is not None else None,
+                )
+            )
+
             sig = parse_signal_from_text(message.text)
             if sig and sig.entry_price:
-                sig.timestamp = message.date.replace(tzinfo=None)
+                sig.timestamp = msg_dt
                 sig.original_text = message.text[:500]
                 signals.append(sig)
 
-        logger.info(f"Telethon @{username}: {len(signals)} signals (last {days_back} days)")
+        logger.info(
+            "Telethon @%s: %s signals, %s text posts (last %s days)",
+            username,
+            len(signals),
+            len(shadow_posts),
+            days_back,
+        )
 
     except Exception as e:
         logger.error(f"Telethon @{username}: {e}")
     finally:
         await client.disconnect()
 
-    return signals
+    return signals, shadow_posts
 
 
 async def collect_all_channels(usernames: List[str], days_back: int = 90) -> dict:
@@ -105,7 +128,7 @@ async def collect_all_channels(usernames: List[str], days_back: int = 90) -> dic
     results = {}
     total = 0
     for uname in usernames:
-        sigs = await collect_channel_history(uname, days_back)
+        sigs, _posts = await collect_channel_history(uname, days_back)
         results[uname] = len(sigs)
         total += len(sigs)
     return {"channels": len(usernames), "total_signals": total, "per_channel": results}

@@ -59,7 +59,11 @@ SHADOW_RAW_EVENTS_WRITTEN = Counter(
 )
 SHADOW_RAW_EVENTS_DEDUP = Counter(
     "shadow_raw_events_dedup_total",
-    "Skipped raw_events insert due to unique (channel_id, platform_message_id)",
+    "Shadow re-scrape skipped: same text (and same payload hash if text empty)",
+)
+SHADOW_MESSAGE_VERSIONS_ADDED = Counter(
+    "shadow_message_versions_added_total",
+    "New message_versions rows from re-scrape with changed text (or payload if no text)",
 )
 
 

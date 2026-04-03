@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
@@ -74,12 +74,25 @@ export function MobileMenu({
   onOpenNotifications,
 }: MobileMenuProps) {
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [activeSection, setActiveSection] = useState<'main' | 'actions'>(
     'main'
   );
   const { state } = useNotifications();
+
+  const mainNavigationItems = useMemo(() => {
+    if (user?.role !== 'admin') return navigationItems;
+    return [
+      ...navigationItems,
+      {
+        name: 'Review (admin)',
+        href: '/admin/review',
+        icon: Shield,
+        description: 'Разметка raw_events',
+      },
+    ];
+  }, [user?.role]);
   const { isConnected } = useRealTimeNotifications();
-  const { user, logout } = useAuth();
 
   const quickActions = [
     {
@@ -291,7 +304,7 @@ export function MobileMenu({
             {activeSection === 'main' ? (
               /* Main Navigation */
               <div className="p-4 space-y-2">
-                {navigationItems.map(item => {
+                {mainNavigationItems.map(item => {
                   const IconComponent = item.icon;
                   const isActive = router.pathname === item.href;
 
