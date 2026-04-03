@@ -311,3 +311,17 @@ class TestHistoricalValidator:
         from app.services.historical_validator import validate_all_signals, validate_signal_historically
         assert callable(validate_all_signals)
         assert callable(validate_signal_historically)
+
+
+class TestReadinessAndTracing:
+    def test_ready_includes_checks(self, client):
+        r = client.get("/ready")
+        assert r.status_code in (200, 503)
+        data = r.json()
+        assert "checks" in data
+        assert "database" in data["checks"]
+
+    def test_health_returns_x_request_id(self, client):
+        r = client.get("/health")
+        assert r.status_code == 200
+        assert r.headers.get("x-request-id") or r.headers.get("X-Request-ID")

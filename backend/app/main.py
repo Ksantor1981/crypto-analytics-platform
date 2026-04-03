@@ -220,22 +220,25 @@ async def lifespan(app: FastAPI):
                     from app.core.config import get_settings
                     from app.services.collection_pipeline import run_full_collection_async
                     from app.services.metrics_calculator import recalculate_all_channels
+
                     db = SessionLocal()
-                    st = get_settings()
-                    result = await run_full_collection_async(db, st)
-                    tg = result.get("telegram") or {}
-                    rd = result.get("reddit") or {}
-                    total = (tg.get("saved") or 0) + (rd.get("saved") or 0)
-                    db.commit()
-                    recalculate_all_channels(db)
-                    db.close()
-                    logger.info(
-                        "Startup collection: saved=%s tg_posts=%s tg_channels=%s reddit_saved=%s",
-                        total,
-                        tg.get("posts_fetched"),
-                        tg.get("channels"),
-                        rd.get("saved"),
-                    )
+                    try:
+                        st = get_settings()
+                        result = await run_full_collection_async(db, st)
+                        tg = result.get("telegram") or {}
+                        rd = result.get("reddit") or {}
+                        total = (tg.get("saved") or 0) + (rd.get("saved") or 0)
+                        db.commit()
+                        recalculate_all_channels(db)
+                        logger.info(
+                            "Startup collection: saved=%s tg_posts=%s tg_channels=%s reddit_saved=%s",
+                            total,
+                            tg.get("posts_fetched"),
+                            tg.get("channels"),
+                            rd.get("saved"),
+                        )
+                    finally:
+                        db.close()
                 except Exception as e:
                     logger.warning("Startup collection failed: %s", e)
             t1 = asyncio.create_task(_auto_collect())
@@ -355,13 +358,24 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 app.add_middleware(SecurityHeadersMiddleware)
+_CORS_ALLOW_HEADERS = [
+    "Authorization",
+    "Content-Type",
+    "Accept",
+    "Accept-Language",
+    "Origin",
+    "X-Requested-With",
+    "X-Request-ID",
+    "X-CSRF-Token",
+    "X-ML-Model-Version",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["*"],
-    expose_headers=["*"]
+    allow_headers=_CORS_ALLOW_HEADERS,
+    expose_headers=["X-Request-ID"],
 )
 
 # Доверенные хосты в production (имена из CORS URL + TRUSTED_HOSTS)
@@ -390,6 +404,14 @@ try:
     logger.info("RateLimitMiddleware enabled")
 except Exception as e:
     logger.warning("RateLimitMiddleware not loaded: %s", e)
+
+try:
+    from app.middleware.request_id_middleware import RequestIDMiddleware
+
+    app.add_middleware(RequestIDMiddleware)
+    logger.info("RequestIDMiddleware enabled")
+except Exception as e:
+    logger.warning("RequestIDMiddleware not loaded: %s", e)
 
 # Middleware для обработки ошибок
 @app.exception_handler(Exception)
@@ -471,16 +493,55 @@ async def root():
 
 @app.get("/ready")
 async def readiness_check():
-    """Readiness probe — checks if app can serve requests."""
-    if engine:
-        try:
-            from sqlalchemy import text
-            with engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
-            return {"ready": True}
-        except Exception:
-            return JSONResponse(status_code=503, content={"ready": False, "reason": "database"})
-    return JSONResponse(status_code=503, content={"ready": False, "reason": "no_engine"})
+    """Readiness probe — БД обязательна; Redis/ML опционально (см. READINESS_REQUIRE_*)."""
+    from sqlalchemy import text
+
+    from app.core.service_probes import probe_ml_service, probe_redis_sync
+
+    checks: dict = {"database": False, "redis": None, "ml_service": None}
+
+    if not engine:
+        return JSONResponse(
+            status_code=503,
+            content={"ready": False, "reason": "no_engine", "checks": checks},
+        )
+
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        checks["database"] = True
+    except Exception as e:
+        checks["database"] = False
+        checks["database_error"] = str(e)
+        return JSONResponse(
+            status_code=503,
+            content={"ready": False, "reason": "database", "checks": checks},
+        )
+
+    r_ok, r_err = probe_redis_sync(settings.REDIS_URL)
+    checks["redis"] = r_ok
+    if not r_ok:
+        checks["redis_error"] = r_err
+
+    ml_ok, ml_err = await probe_ml_service(settings.ML_SERVICE_URL, timeout=2.5)
+    checks["ml_service"] = ml_ok
+    if not ml_ok:
+        checks["ml_service_error"] = ml_err
+
+    req_redis = bool(getattr(settings, "READINESS_REQUIRE_REDIS", False))
+    req_ml = bool(getattr(settings, "READINESS_REQUIRE_ML", False))
+    if req_redis and not r_ok:
+        return JSONResponse(
+            status_code=503,
+            content={"ready": False, "reason": "redis_required", "checks": checks},
+        )
+    if req_ml and not ml_ok:
+        return JSONResponse(
+            status_code=503,
+            content={"ready": False, "reason": "ml_required", "checks": checks},
+        )
+
+    return {"ready": True, "checks": checks}
 
 
 @app.get("/health")
@@ -519,6 +580,12 @@ async def health_check():
 
         ml_ok, ml_err = await probe_ml_service(settings.ML_SERVICE_URL, timeout=2.5)
         health_data["services"]["ml_service"] = "up" if ml_ok else f"down: {ml_err}"
+        try:
+            from app.services.ml_gateway import circuit_status
+
+            health_data["services"]["ml_circuit"] = circuit_status()
+        except Exception:
+            health_data["services"]["ml_circuit"] = "unknown"
     except Exception as e:
         health_data["services"]["redis"] = f"check_error: {e}"
         health_data["services"]["ml_service"] = f"check_error: {e}"

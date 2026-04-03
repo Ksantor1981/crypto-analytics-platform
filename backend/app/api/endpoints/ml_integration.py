@@ -6,11 +6,13 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
-import httpx
 import logging
 from datetime import datetime
 
+import httpx
+
 from ...core.database import get_db
+from ...services.ml_gateway import ml_http_request, MLCircuitOpenError
 from ...models.signal import Signal
 from ...models.user import User
 from ...core.auth import get_current_user, require_feature
@@ -86,33 +88,39 @@ async def predict_signal(
         headers = {}
         if getattr(settings, "ML_MODEL_VERSION", None):
             headers["X-ML-Model-Version"] = settings.ML_MODEL_VERSION
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
+        try:
+            response = await ml_http_request(
+                "post",
                 f"{base_url}/api/v1/predictions/signal",
+                timeout=30.0,
                 json=ml_request_data,
                 headers=headers or None,
             )
-            
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"ML service error: {response.status_code}"
-                )
-            
-            ml_prediction = response.json()
-            
-            # Convert to our response format
-            return MLPredictionResponse(
-                signal_id=request.signal_id,
-                success_probability=ml_prediction["success_probability"],
-                confidence=ml_prediction["confidence"],
-                recommendation=ml_prediction["recommendation"],
-                risk_score=ml_prediction["risk_score"],
-                features_importance=ml_prediction["features_importance"],
-                model_version=ml_prediction["model_version"],
-                prediction_timestamp=ml_prediction["prediction_timestamp"]
+        except MLCircuitOpenError:
+            raise HTTPException(
+                status_code=503,
+                detail="ML service temporarily unavailable (circuit open)",
+            ) from None
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=500,
+                detail=f"ML service error: {response.status_code}",
             )
-            
+
+        ml_prediction = response.json()
+
+        return MLPredictionResponse(
+            signal_id=request.signal_id,
+            success_probability=ml_prediction["success_probability"],
+            confidence=ml_prediction["confidence"],
+            recommendation=ml_prediction["recommendation"],
+            risk_score=ml_prediction["risk_score"],
+            features_importance=ml_prediction["features_importance"],
+            model_version=ml_prediction["model_version"],
+            prediction_timestamp=ml_prediction["prediction_timestamp"],
+        )
+
     except httpx.RequestError as e:
         logger.error(f"ML service request error: {str(e)}")
         raise HTTPException(
@@ -164,25 +172,33 @@ async def predict_batch_signals(
         headers = {}
         if getattr(settings, "ML_MODEL_VERSION", None):
             headers["X-ML-Model-Version"] = settings.ML_MODEL_VERSION
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
+        try:
+            response = await ml_http_request(
+                "post",
                 f"{base_url}/api/v1/predictions/batch",
-                json=batch_request_data
+                timeout=60.0,
+                json=batch_request_data,
+                headers=headers or None,
             )
-            
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"ML service error: {response.status_code}"
-                )
-            
-            ml_batch_result = response.json()
-            
-            # Convert to our response format
-            predictions = []
-            for i, ml_prediction in enumerate(ml_batch_result["predictions"]):
-                signal_id = signals[i].id
-                predictions.append(MLPredictionResponse(
+        except MLCircuitOpenError:
+            raise HTTPException(
+                status_code=503,
+                detail="ML service temporarily unavailable (circuit open)",
+            ) from None
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=500,
+                detail=f"ML service error: {response.status_code}",
+            )
+
+        ml_batch_result = response.json()
+
+        predictions = []
+        for i, ml_prediction in enumerate(ml_batch_result["predictions"]):
+            signal_id = signals[i].id
+            predictions.append(
+                MLPredictionResponse(
                     signal_id=signal_id,
                     success_probability=ml_prediction["success_probability"],
                     confidence=ml_prediction["confidence"],
@@ -190,15 +206,16 @@ async def predict_batch_signals(
                     risk_score=ml_prediction["risk_score"],
                     features_importance=ml_prediction["features_importance"],
                     model_version=ml_prediction["model_version"],
-                    prediction_timestamp=ml_prediction["prediction_timestamp"]
-                ))
-            
-            return BatchMLPredictionResponse(
-                predictions=predictions,
-                total_processed=len(predictions),
-                failed_predictions=[]
+                    prediction_timestamp=ml_prediction["prediction_timestamp"],
+                )
             )
-            
+
+        return BatchMLPredictionResponse(
+            predictions=predictions,
+            total_processed=len(predictions),
+            failed_predictions=[],
+        )
+
     except httpx.RequestError as e:
         logger.error(f"ML service request error: {str(e)}")
         raise HTTPException(
@@ -233,24 +250,30 @@ async def direct_ml_predict(
         # Убираем None значения
         ml_payload = {k: v for k, v in ml_payload.items() if v is not None}
         
-        # Call ML service directly
         settings = get_settings()
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
+        try:
+            response = await ml_http_request(
+                "post",
                 f"{settings.ML_SERVICE_URL}/api/v1/predictions/predict",
-                json=ml_payload
+                timeout=30.0,
+                json=ml_payload,
             )
-            
-            if response.status_code != 200:
-                error_detail = response.text
-                logger.error(f"ML service error {response.status_code}: {error_detail}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"ML service error: {response.status_code} - {error_detail}"
-                )
-            
-            return response.json()
-            
+        except MLCircuitOpenError:
+            raise HTTPException(
+                status_code=503,
+                detail="ML service temporarily unavailable (circuit open)",
+            ) from None
+
+        if response.status_code != 200:
+            error_detail = response.text
+            logger.error("ML service error %s: %s", response.status_code, error_detail)
+            raise HTTPException(
+                status_code=500,
+                detail=f"ML service error: {response.status_code} - {error_detail}",
+            )
+
+        return response.json()
+
     except httpx.RequestError as e:
         logger.error(f"ML service request error: {str(e)}")
         raise HTTPException(

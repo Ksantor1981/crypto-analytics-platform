@@ -134,6 +134,13 @@ class Settings(BaseSettings):
     # ML Service (A6: опциональная версия модели для A/B — передаётся в заголовке в ML service)
     ML_SERVICE_URL: str = "http://localhost:8001"
     ML_MODEL_VERSION: Optional[str] = None
+    # Устойчивость вызовов ML (backend → ml-service)
+    ML_HTTP_RETRIES: int = 2
+    ML_CIRCUIT_FAILURE_THRESHOLD: int = 5
+    ML_CIRCUIT_OPEN_SECONDS: int = 60
+    # Readiness: по умолчанию достаточно БД; для K8s можно потребовать Redis/ML
+    READINESS_REQUIRE_REDIS: bool = False
+    READINESS_REQUIRE_ML: bool = False
     
     # Stripe
     STRIPE_PUBLISHABLE_KEY: Optional[str] = None

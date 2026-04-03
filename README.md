@@ -18,6 +18,7 @@
 - [ADR: источники цен](./docs/ADR_PRICE_DATA_SOURCES.md) — CoinGecko vs формулировка ТЗ (Binance/Bybit)
 - [Жизненный цикл сигнала](./docs/SIGNAL_LIFECYCLE_ROADMAP.md) — план «truth layer» / метрики
 - [CI и качество: следующие шаги](./docs/CI_AND_QUALITY_NEXT.md) — coverage, E2E gate, k6
+- [План устранения PROD-гэпов](./docs/PROD_REMEDIATION_PLAN.md) — фазы A–D, что закрыто в коде vs процесс
 - [Техдолг Custom Alerts (Pro)](./docs/CUSTOM_ALERTS_TECH_DEBT.md) — выравнивание модели и сервиса до REST
 - [Security audit runbook](./docs/SECURITY_AUDIT_RUNBOOK.md) — pre-commit + секреты
 - [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production  

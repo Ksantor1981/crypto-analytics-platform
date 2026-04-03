@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.models.base import Base
@@ -26,4 +28,14 @@ def get_db():
     try:
         yield db
     finally:
-        db.close() 
+        db.close()
+
+
+@contextmanager
+def session_scope():
+    """Синхронный контекст: сессия всегда закрывается (фоновые задачи, скрипты)."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
