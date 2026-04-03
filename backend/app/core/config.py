@@ -120,6 +120,9 @@ class Settings(BaseSettings):
     SHADOW_PIPELINE_ENABLED: bool = False
     # Telethon shadow: вкладывать в raw_payload полный снимок MTProto (to_dict + bytes→base64)
     SHADOW_TELETHON_FULL_MTPROTO: bool = True
+    # Celery beat: периодический Telethon collect-all (нужны session + worker с telethon)
+    CELERY_TELETHON_COLLECT_ENABLED: bool = False
+    TELETHON_COLLECT_DAYS_BACK: int = 7
     # Запись в extractions + admin run (legacy_text экстрактор); без флага POST /admin/extractions/... → 503
     EXTRACTION_PIPELINE_ENABLED: bool = False
     # После materialize → normalized_signal автоматически создавать PENDING signal_outcomes для активных execution_models

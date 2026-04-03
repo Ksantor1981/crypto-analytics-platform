@@ -138,7 +138,7 @@ class TestCollectAPI:
 
         with patch("app.api.endpoints.collect.telethon_ready", return_value=True):
             with patch(
-                "app.api.endpoints.collect.collect_channel_history",
+                "app.services.telethon_collector.collect_channel_history",
                 new=AsyncMock(side_effect=_empty),
             ):
                 r = client.post(

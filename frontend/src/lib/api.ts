@@ -316,6 +316,25 @@ export const apiClient = {
     );
     return data as { processed: number; ok: number; failed: number; errors: string[] };
   },
+
+  /** Статус Telethon-сессии на backend (для MTProto collect). */
+  async getTelethonCollectStatus() {
+    const { data } = await api.get('/api/v1/collect/telethon-status');
+    return data as { authenticated: boolean; how_to_auth?: string };
+  },
+
+  /**
+   * Premium: Telethon collect по всем активным Telegram-каналам (shadow + legacy).
+   * Нужна авторизация Telethon на сервере (`telethon_collector --auth`).
+   */
+  async telethonCollectAll(days = 7) {
+    const { data } = await api.post(
+      '/api/v1/collect/telethon-collect-all',
+      null,
+      { params: { days } }
+    );
+    return data as Record<string, unknown>;
+  },
 };
 
 export default apiClient;

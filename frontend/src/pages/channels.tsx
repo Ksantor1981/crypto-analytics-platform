@@ -23,6 +23,7 @@ import { ChannelActions } from '@/components/channels/ChannelActions';
 import { StatusBadge } from '@/components/channels/StatusBadge';
 import { ChannelView } from '@/types/view';
 import { Channel } from '@/types';
+import apiClient from '@/lib/api';
 
 const categories = [
   { value: 'all', label: 'Все каналы' },
@@ -51,6 +52,8 @@ const ChannelsPage: React.FC = () => {
   const [activeCategory, setActiveCategory] = React.useState('all');
   const [searchTerm, setSearchTerm] = React.useState('');
   const [sortOption, setSortOption] = React.useState('rating');
+  const [telethonBusy, setTelethonBusy] = React.useState(false);
+  const [telethonNote, setTelethonNote] = React.useState<string | null>(null);
 
   const channels = apiChannels as ChannelView[];
 
@@ -80,6 +83,29 @@ const ChannelsPage: React.FC = () => {
       }
     });
   }, [channels, activeCategory, searchTerm, sortOption]);
+
+  const runTelethonCollectAll = async () => {
+    setTelethonBusy(true);
+    setTelethonNote(null);
+    try {
+      const r = await apiClient.telethonCollectAll(7);
+      if (typeof r.error === 'string' && r.error) {
+        const how = typeof r.how_to === 'string' ? r.how_to : '';
+        setTelethonNote(how ? `${r.error} — ${how}` : r.error);
+        return;
+      }
+      const n = typeof r.channels_processed === 'number' ? r.channels_processed : 0;
+      setTelethonNote(
+        `Telethon: обработано записей каналов: ${n}. Детали в ответе API / логах backend.`
+      );
+    } catch (e) {
+      setTelethonNote(
+        e instanceof Error ? e.message : 'Не удалось запустить Telethon collect'
+      );
+    } finally {
+      setTelethonBusy(false);
+    }
+  };
 
   const handleAddChannel = async (data: ChannelFormData) => {
     const newChannelData = {
@@ -111,11 +137,27 @@ const ChannelsPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Каналы
           </h1>
-          <Button onClick={() => setIsModalOpen(true)} className="mt-4 sm:mt-0">
-            <Plus className="mr-2 h-4 w-4" />
-            Добавить канал
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            {apiClient.isAuthenticated() && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={telethonBusy}
+                onClick={() => void runTelethonCollectAll()}
+                className="sm:mt-0"
+              >
+                {telethonBusy ? 'Telethon…' : 'Сбор Telethon (все каналы)'}
+              </Button>
+            )}
+            <Button onClick={() => setIsModalOpen(true)} className="mt-0">
+              <Plus className="mr-2 h-4 w-4" />
+              Добавить канал
+            </Button>
+          </div>
         </div>
+        {telethonNote && (
+          <p className="text-sm text-gray-600 mb-4 -mt-4 max-w-3xl">{telethonNote}</p>
+        )}
 
         <AddChannelModal
           isOpen={isModalOpen}

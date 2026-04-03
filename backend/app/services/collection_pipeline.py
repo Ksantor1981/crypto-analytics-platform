@@ -142,6 +142,98 @@ def persist_shadow_telegram_posts_if_enabled(
     }
 
 
+async def telethon_collect_channel_core(
+    db: Session,
+    channel: Channel,
+    days: int,
+) -> Dict[str, Any]:
+    """
+    Telethon: shadow raw + legacy Signal для одного канала. Без commit.
+    """
+    from app.services.telethon_collector import collect_channel_history
+
+    username = channel.username
+    if not username and channel.url:
+        username = channel.url.rstrip("/").split("/")[-1]
+    if not username:
+        return {"error": "Channel has no username or URL", "channel_name": channel.name}
+
+    signals, telethon_shadow_posts = await collect_channel_history(username, days_back=days)
+    shadow_stats = persist_shadow_telegram_posts_if_enabled(
+        db,
+        channel,
+        telethon_shadow_posts,
+        web_username=username,
+        source_type="telegram_telethon",
+        payload_scraper="telethon",
+    )
+
+    saved = 0
+    for sig in signals:
+        if (
+            db.query(Signal)
+            .filter(Signal.channel_id == channel.id, Signal.original_text == sig.original_text[:500])
+            .first()
+        ):
+            continue
+        db.add(
+            Signal(
+                channel_id=channel.id,
+                asset=sig.asset,
+                symbol=sig.asset.replace("/", ""),
+                direction=sig.direction,
+                entry_price=sig.entry_price,
+                tp1_price=sig.take_profit,
+                stop_loss=sig.stop_loss,
+                confidence_score=sig.confidence,
+                original_text=sig.original_text,
+                status="PENDING",
+                message_timestamp=sig.timestamp,
+            )
+        )
+        saved += 1
+
+    channel.signals_count = db.query(Signal).filter(Signal.channel_id == channel.id).count()
+    return {
+        "channel": username,
+        "channel_label": channel.name,
+        "signals_found": len(signals),
+        "new_saved": saved,
+        "total": channel.signals_count,
+        "shadow_raw": shadow_stats,
+    }
+
+
+async def run_telethon_collect_all_channels(db: Session, days: int) -> Dict[str, Any]:
+    """Все активные Telegram-каналы через Telethon. Без commit."""
+    channels = (
+        db.query(Channel)
+        .filter(Channel.is_active == True, Channel.platform == "telegram")
+        .all()
+    )
+    results: List[Dict[str, Any]] = []
+    for channel in channels:
+        try:
+            body = await telethon_collect_channel_core(db, channel, days)
+            if body.get("error"):
+                results.append({"channel_name": channel.name, "error": body["error"]})
+                continue
+            results.append(
+                {
+                    "channel_name": body["channel_label"],
+                    "username": body["channel"],
+                    "signals_found": body["signals_found"],
+                    "new_saved": body["new_saved"],
+                    "total_signals": body["total"],
+                    "shadow_raw": body["shadow_raw"],
+                }
+            )
+        except Exception as e:
+            logger.error("run_telethon_collect_all_channels %s: %s", channel.name, e)
+            results.append({"channel_name": channel.name, "error": str(e)})
+    return {"channels_processed": len(results), "results": results}
+
+
 def _reddit_platform_message_id(post: Dict[str, Any]) -> str:
     fn = (post.get("reddit_fullname") or "").strip()
     if fn:
