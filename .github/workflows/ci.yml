@@ -33,6 +33,8 @@ jobs:
             --cov=app \
             --cov-report=term-missing \
             --cov-fail-under=55
+      - name: ML data pipeline (dry-run)
+        run: python scripts/run_ml_data_pipeline.py --dry-run --skip-train
 
   frontend-build:
     runs-on: ubuntu-latest
