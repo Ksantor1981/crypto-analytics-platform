@@ -1,0 +1,47 @@
+# Pre-commit: локальные проверки перед коммитом.
+# Установка: pip install -r requirements-dev.txt && pre-commit install
+# См. docs/SECURITY_AUDIT_RUNBOOK.md
+
+default_language_version:
+  python: python3
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: detect-private-key
+      - id: check-merge-conflict
+      # end-of-file-fixer / trailing-whitespace намеренно не включены — дают массовый дифф;
+      # при желании добавьте локально или включите editorconfig.
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args:
+          - --baseline
+          - .secrets.baseline
+        # Alembic revision id = hex noise; workers/*.json и html — фикстуры; .env.dev — локал (не в prod);
+        # values.ci.yaml — плейсхолдеры для CI (см. SECURITY_AUDIT_RUNBOOK.md).
+        exclude: |
+          (?x)^(
+              package-lock\.json|
+              .*\.lock$|
+              .*\.min\.js$|
+              .*\.pkl$|
+              .*\.png$|
+              .*\.jpg$|
+              backend/alembic/versions/.*\.py$|
+              workers/.*\.json$|
+              workers/test_channel_raw\.html$|
+              backend/\.env\.dev$|
+              helm/values\.ci\.yaml$
+          )$
+
+  # Опционально: полный скан истории (медленнее, нужен binary trufflehog).
+  # Раскомментируй после: pip install trufflehog or choco install trufflehog
+  # - repo: https://github.com/trufflesecurity/trufflehog
+  #   rev: v3.88.12
+  #   hooks:
+  #     - id: trufflehog
+  #       args: [--only-verified, --no-update]

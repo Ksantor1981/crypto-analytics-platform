@@ -37,3 +37,7 @@
 ## Bind-mount в dev
 
 `docker-compose.yml` с `./backend:/app` предназначен **только для разработки**. Для сервера используйте `docker-compose.production.yml` или `docker-compose.deploy.yml` без монтирования исходников.
+
+## Процесс аудита и pre-commit
+
+Структура фаз, команды TruffleHog / detect-secrets, baseline и CI: **[SECURITY_AUDIT_RUNBOOK.md](./SECURITY_AUDIT_RUNBOOK.md)**.
