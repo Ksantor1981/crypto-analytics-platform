@@ -54,8 +54,45 @@ const ChannelsPage: React.FC = () => {
   const [sortOption, setSortOption] = React.useState('rating');
   const [telethonBusy, setTelethonBusy] = React.useState(false);
   const [telethonNote, setTelethonNote] = React.useState<string | null>(null);
+  const [telethonStatus, setTelethonStatus] = React.useState<{
+    loading: boolean;
+    authenticated: boolean | null;
+    hint?: string;
+  }>({ loading: false, authenticated: null });
 
   const channels = apiChannels as ChannelView[];
+
+  React.useEffect(() => {
+    if (!apiClient.isAuthenticated()) {
+      setTelethonStatus({ loading: false, authenticated: null });
+      return;
+    }
+    let cancelled = false;
+    setTelethonStatus({ loading: true, authenticated: null });
+    void (async () => {
+      try {
+        const s = await apiClient.getTelethonCollectStatus();
+        if (!cancelled) {
+          setTelethonStatus({
+            loading: false,
+            authenticated: !!s.authenticated,
+            hint: s.how_to_auth,
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setTelethonStatus({
+            loading: false,
+            authenticated: false,
+            hint: undefined,
+          });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredAndSortedChannels = useMemo(() => {
     const filtered = channels.filter(channel => {
@@ -142,11 +179,25 @@ const ChannelsPage: React.FC = () => {
               <Button
                 type="button"
                 variant="outline"
-                disabled={telethonBusy}
+                disabled={
+                  telethonBusy ||
+                  telethonStatus.loading ||
+                  telethonStatus.authenticated === false
+                }
+                title={
+                  telethonStatus.authenticated === false
+                    ? telethonStatus.hint ||
+                      'На backend нет Telethon session — см. документацию'
+                    : undefined
+                }
                 onClick={() => void runTelethonCollectAll()}
                 className="sm:mt-0"
               >
-                {telethonBusy ? 'Telethon…' : 'Сбор Telethon (все каналы)'}
+                {telethonBusy
+                  ? 'Telethon…'
+                  : telethonStatus.loading
+                    ? 'Telethon…'
+                    : 'Сбор Telethon (все каналы)'}
               </Button>
             )}
             <Button onClick={() => setIsModalOpen(true)} className="mt-0">
@@ -155,6 +206,14 @@ const ChannelsPage: React.FC = () => {
             </Button>
           </div>
         </div>
+        {apiClient.isAuthenticated() &&
+          telethonStatus.authenticated === false &&
+          !telethonStatus.loading && (
+            <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4 -mt-2 max-w-3xl">
+              Telethon на сервере не готов: без сессии глубокий сбор недоступен.
+              {telethonStatus.hint ? ` ${telethonStatus.hint}` : ''}
+            </p>
+          )}
         {telethonNote && (
           <p className="text-sm text-gray-600 mb-4 -mt-4 max-w-3xl">{telethonNote}</p>
         )}
