@@ -4,7 +4,7 @@
 
 **Статус:** MVP. Локальная разработка и демо — готовы. Production требует настройки секретов и подключения реальных источников данных.
 
-**Последнее обновление:** 2026-04-04 — shadow dual-write Telegram→raw_events (ветка `main`; см. [SPEC_COMPLIANCE_2026_02_25.md](./SPEC_COMPLIANCE_2026_02_25.md), [docs/TZ_TO_CODE_STATUS_MAP.md](./docs/TZ_TO_CODE_STATUS_MAP.md), [docs/DATA_INTEGRITY_FIX.md](./docs/DATA_INTEGRITY_FIX.md), [docs/SINGLE_NODE_SLA.md](./docs/SINGLE_NODE_SLA.md), [docs/DATA_PLANE_MIGRATION.md](./docs/DATA_PLANE_MIGRATION.md))
+**Последнее обновление:** 2026-04-04 — shadow Reddit + review_labels admin API (ветка `main`; см. [SPEC_COMPLIANCE_2026_02_25.md](./SPEC_COMPLIANCE_2026_02_25.md), [docs/TZ_TO_CODE_STATUS_MAP.md](./docs/TZ_TO_CODE_STATUS_MAP.md), [docs/DATA_INTEGRITY_FIX.md](./docs/DATA_INTEGRITY_FIX.md), [docs/SINGLE_NODE_SLA.md](./docs/SINGLE_NODE_SLA.md), [docs/DATA_PLANE_MIGRATION.md](./docs/DATA_PLANE_MIGRATION.md))
 
 **Публичный репозиторий:** считайте все когда-либо попавшие в git секреты скомпрометированными — см. [docs/SECURITY_PUBLIC_REPO.md](./docs/SECURITY_PUBLIC_REPO.md).
 

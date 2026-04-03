@@ -46,7 +46,7 @@ try:
         payments, ml_integration, telegram_integration,
         trading, ml_predictions, backtesting, dashboard,
         user_sources, feedback, analytics, collect, export_signals, export as export_endpoints,
-        stripe_checkout, custom_alerts,
+        stripe_checkout, custom_alerts, review_labels,
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -59,7 +59,7 @@ except ImportError as e:
         from api.endpoints import (
             channels, users, signals, subscriptions,
             payments, ml_integration, telegram_integration,
-            trading, ml_predictions, backtesting, dashboard
+            trading, ml_predictions, backtesting, dashboard, review_labels,
         )
         from core.middleware import SubscriptionLimitMiddleware
         from core.scheduler import TradingScheduler
@@ -446,6 +446,7 @@ routers_config = [
     ("export_endpoints", "/api/v1", "export"),
     ("stripe_checkout", "/api/v1/stripe", "stripe"),
     ("custom_alerts", "/api/v1/alerts", "alerts"),
+    ("review_labels", "/api/v1/admin/review-labels", "review-labels"),
 ]
 
 # Подключаем роутеры с обработкой ошибок

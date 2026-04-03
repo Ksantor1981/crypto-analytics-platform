@@ -34,6 +34,21 @@ def test_channel_scrape_result_includes_posts_list():
     assert len(r2.posts) == 1
 
 
+def test_persist_shadow_reddit_skips_when_flag_off():
+    from app.services.collection_pipeline import persist_shadow_reddit_posts_if_enabled
+    from unittest.mock import patch
+
+    db = MagicMock()
+    ch = MagicMock()
+    ch.id = 1
+    ch.owner_id = None
+    posts = [{"title": "x", "text": "y", "created": None, "url": "https://reddit.com/a"}]
+    with patch("app.core.config.get_settings") as gs:
+        gs.return_value = MagicMock(SHADOW_PIPELINE_ENABLED=False)
+        out = persist_shadow_reddit_posts_if_enabled(db, ch, posts, subreddit="test", scrape_mode="rss")
+    assert out == {"shadow_written": 0, "shadow_dedup": 0}
+
+
 def test_persist_shadow_pipeline_skips_when_flag_off():
     from app.services.collection_pipeline import persist_shadow_telegram_posts_if_enabled
     from app.services.telegram_scraper import ChannelPost

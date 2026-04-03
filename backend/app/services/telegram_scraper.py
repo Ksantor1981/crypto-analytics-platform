@@ -9,7 +9,7 @@ import httpx
 import os
 from bs4 import BeautifulSoup
 from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
 # Ротация User-Agent снижает риск блокировок при массовом сборе
@@ -118,6 +118,8 @@ class ChannelScrapeResult:
     signals: List[ParsedSignal] = field(default_factory=list)
     # Все посты со страницы t.me/s (для shadow raw layer, см. docs/DATA_PLANE_MIGRATION.md)
     posts: List[ChannelPost] = field(default_factory=list)
+    # Посты Reddit (dict из RSS/JSON) — shadow raw layer
+    reddit_posts: List[Dict[str, Any]] = field(default_factory=list)
 
 
 def _extract_telegram_message_id(msg_block) -> Optional[str]:

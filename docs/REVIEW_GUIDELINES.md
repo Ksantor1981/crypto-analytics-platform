@@ -28,7 +28,7 @@
 | `notes` | text | Свободный комментарий |
 | `created_at` | timestamptz | |
 
-*Реализация Alembic — в фазе 4.*
+*Реализация:* миграция `g1a2b3c4d5e6`, модель `ReviewLabel`. **Admin API:** `POST /api/v1/admin/review-labels/`, `GET /api/v1/admin/review-labels/?raw_event_id=…` (только `UserRole.ADMIN`).
 
 ## Очередь ревью (приоритет)
 

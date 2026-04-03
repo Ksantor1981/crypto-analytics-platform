@@ -35,8 +35,8 @@ Legacy parser → Signal (текущая модель) → текущие мет
 |---|------|-----------------|--------|
 | 1 | Документы + глоссарий + policy + review guidelines | 2–4 д | **Done** (документы); код — флаг + таблицы v0 |
 | 2 | Таблицы `raw_events`, `message_versions`, индексы | 4–6 d | **Done** (Alembic `f8e9a0b1c2d3` + модели + `raw_ingestion_service`) |
-| 3 | Shadow ingestion (`SHADOW_PIPELINE_ENABLED`), dual-write, метрики | 3–5 d | **In progress** — dual-write для **Telegram web** (`t.me/s`) в `raw_events`; Reddit / Telethon — позже |
-| 4 | Review console v0.1 + `review_labels` | 4–7 d | Planned |
+| 3 | Shadow ingestion (`SHADOW_PIPELINE_ENABLED`), dual-write, метрики | 3–5 d | **In progress** — Telegram web + **Reddit** (RSS + JSON backfill); Telethon — позже |
+| 4 | Review console v0.1 + `review_labels` | 4–7 d | **In progress** — таблица + admin REST; UI очереди — позже |
 | 5 | Extraction слой | 5–8 d | Planned |
 | 6 | ExtractionDecision | 2–4 d | Planned |
 | 7 | Association engine + `signal_relations` | 6–10 d | Planned |
@@ -55,9 +55,10 @@ Legacy parser → Signal (текущая модель) → текущие мет
 2. [x] Добавить `SHADOW_PIPELINE_ENABLED` в настройки + `env.example`.
 3. [x] Миграция + модели `raw_events`, `message_versions`.
 4. [x] Dual-write **Telegram web**: `collect_signals_from_channel` → `ChannelScrapeResult.posts` → `persist_shadow_telegram_posts_if_enabled` (scheduler, Celery, `POST /collect/...`). Включать `SHADOW_PIPELINE_ENABLED=true` только после `alembic upgrade head`.
-5. [ ] Dual-write Reddit / Telethon (отдельные payload-политики).
-6. [x] Базовые метрики Prometheus: `shadow_raw_events_written_total`, `shadow_raw_events_dedup_total`; edits / lag — далее.
-7. [ ] Таблица `review_labels` + минимальный internal API.
+5. [x] Dual-write **Reddit** (`run_reddit_collection_cycle` + `backfill_reddit_window` JSON).
+6. [ ] Dual-write **Telethon** (полный MTProto payload).
+7. [x] Базовые метрики Prometheus: `shadow_raw_events_written_total`, `shadow_raw_events_dedup_total`; edits / lag — далее.
+8. [x] Таблица `review_labels` + **admin** API `POST/GET /api/v1/admin/review-labels` (UI позже).
 
 ## Критерии switch-over (все обязательны)
 

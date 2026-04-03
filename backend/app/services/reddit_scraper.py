@@ -82,7 +82,11 @@ async def collect_reddit_signals(
             signals.append(sig)
 
     logger.info(f"r/{subreddit}: {len(posts)} posts, {len(signals)} signals")
-    return ChannelScrapeResult(posts_fetched=len(posts), signals=signals)
+    return ChannelScrapeResult(
+        posts_fetched=len(posts),
+        signals=signals,
+        reddit_posts=posts,
+    )
 
 
 async def fetch_subreddit_new_json_pages(
@@ -152,11 +156,24 @@ async def fetch_subreddit_new_json_pages(
                 title = (d.get("title") or "").strip()
                 body = (d.get("selftext") or "").strip()
                 link = (d.get("url") or "").strip()
+                permalink = (d.get("permalink") or "").strip()
+                fullname = (d.get("name") or "").strip()
+                full_url = (
+                    f"https://www.reddit.com{permalink}"
+                    if permalink.startswith("/")
+                    else (link or permalink or "")
+                )
                 full_text = f"{title}\n{body}\n{link}".strip()
                 collected.append(
                     {
                         "title": title,
                         "text": full_text,
+                        "body": body,
+                        "link": link,
+                        "url": full_url,
+                        "reddit_fullname": fullname,
+                        "permalink": permalink,
+                        "author": (d.get("author") or "").strip(),
                         "created": created,
                     }
                 )
@@ -201,7 +218,11 @@ async def collect_reddit_signals_in_window(
         len(posts),
         len(signals),
     )
-    return ChannelScrapeResult(posts_fetched=len(posts), signals=signals)
+    return ChannelScrapeResult(
+        posts_fetched=len(posts),
+        signals=signals,
+        reddit_posts=posts,
+    )
 
 
 async def collect_all_reddit_signals() -> dict:

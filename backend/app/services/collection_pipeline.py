@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import os
 from decimal import Decimal
@@ -120,6 +121,89 @@ def persist_shadow_telegram_posts_if_enabled(
             "shadow_raw channel_id=%s username=%s written=%s dedup=%s",
             channel.id,
             web_username,
+            written,
+            dedup,
+        )
+
+    return {"shadow_written": written, "shadow_dedup": dedup}
+
+
+def _reddit_platform_message_id(post: Dict[str, Any]) -> str:
+    fn = (post.get("reddit_fullname") or "").strip()
+    if fn:
+        return fn[:128]
+    u = (post.get("url") or "").strip()
+    if u:
+        return u[:128]
+    key = f"{post.get('title', '')}|{post.get('created')}"
+    return hashlib.sha256(key.encode("utf-8", errors="replace")).hexdigest()[:64]
+
+
+def persist_shadow_reddit_posts_if_enabled(
+    db: Session,
+    channel: Channel,
+    posts: List[Dict[str, Any]],
+    *,
+    subreddit: str,
+    scrape_mode: str = "rss",
+) -> Dict[str, int]:
+    """
+    Dual-write постов Reddit (RSS или JSON window) в raw_events.
+    """
+    from app.core.config import get_settings
+    from app.services.raw_ingestion_service import persist_raw_event_from_payload
+
+    if not get_settings().SHADOW_PIPELINE_ENABLED or not posts:
+        return {"shadow_written": 0, "shadow_dedup": 0}
+
+    written = 0
+    dedup = 0
+    owner_id = getattr(channel, "owner_id", None)
+
+    for post in posts:
+        payload: Dict[str, Any] = {
+            "scraper": f"reddit_{scrape_mode}",
+            "subreddit": subreddit,
+            "title": post.get("title"),
+            "url": post.get("url"),
+            "reddit_fullname": post.get("reddit_fullname"),
+            "permalink": post.get("permalink"),
+            "author": post.get("author"),
+            "link": post.get("link"),
+        }
+        pmid = _reddit_platform_message_id(post)
+        raw_txt = (post.get("text") or "").strip()
+        if not raw_txt:
+            raw_txt = f"{post.get('title', '')}\n{post.get('body', '')}".strip()
+
+        try:
+            with db.begin_nested():
+                ev = persist_raw_event_from_payload(
+                    db,
+                    source_type=f"reddit_{scrape_mode}",
+                    raw_payload=payload,
+                    channel_id=channel.id,
+                    author_id=owner_id,
+                    platform_message_id=pmid or None,
+                    raw_text=raw_txt or None,
+                    source_observed_at=post.get("created"),
+                )
+                if ev:
+                    written += 1
+        except IntegrityError:
+            dedup += 1
+            if _METRICS and SHADOW_RAW_EVENTS_DEDUP is not None:
+                SHADOW_RAW_EVENTS_DEDUP.inc()
+
+    if written and _METRICS and SHADOW_RAW_EVENTS_WRITTEN is not None:
+        SHADOW_RAW_EVENTS_WRITTEN.inc(written)
+
+    if written or dedup:
+        logger.info(
+            "shadow_raw_reddit channel_id=%s sub=%s mode=%s written=%s dedup=%s",
+            channel.id,
+            subreddit,
+            scrape_mode,
             written,
             dedup,
         )
@@ -362,6 +446,9 @@ async def run_reddit_collection_cycle(db: Session, settings: Any) -> Dict[str, A
                 db.add(channel)
                 db.flush()
 
+            persist_shadow_reddit_posts_if_enabled(
+                db, channel, res.reddit_posts, subreddit=sub, scrape_mode="rss"
+            )
             st = persist_parsed_signals_for_channel(
                 db,
                 channel,

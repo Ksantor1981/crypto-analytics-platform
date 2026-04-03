@@ -13,7 +13,11 @@ from typing import Any, Dict, List
 from sqlalchemy.orm import Session
 
 from app.models.channel import Channel
-from app.services.collection_pipeline import persist_parsed_signals_for_channel, aggregate_stats
+from app.services.collection_pipeline import (
+    aggregate_stats,
+    persist_parsed_signals_for_channel,
+    persist_shadow_reddit_posts_if_enabled,
+)
 from app.services.deep_collector import fetch_all_posts
 from app.services.reddit_scraper import CRYPTO_SUBREDDITS, collect_reddit_signals_in_window
 from app.services.telegram_scraper import parse_signal_from_text, ParsedSignal
@@ -136,6 +140,9 @@ async def backfill_reddit_window(
             db.add(channel)
             db.flush()
 
+        persist_shadow_reddit_posts_if_enabled(
+            db, channel, res.reddit_posts, subreddit=sub, scrape_mode="json"
+        )
         st = persist_parsed_signals_for_channel(
             db,
             channel,
