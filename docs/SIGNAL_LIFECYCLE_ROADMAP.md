@@ -18,6 +18,7 @@
 
 ## Связанные документы
 
+- `docs/DATA_PLANE_MIGRATION.md` — канонический контур (raw → versions → extraction → outcome).
 - `docs/TZ_TO_CODE_STATUS_MAP.md` — соответствие ТЗ и статусы.
 - `docs/TZ_GAPS_REMEDIATION.md` — ML, нагрузка, покрытие.
 - `docs/ML_DATA_INTEGRITY_ROADMAP.md` — данные для модели.

@@ -43,6 +43,7 @@ from .performance_metric import PerformanceMetric
 from .api_key import APIKey
 from .custom_alert import CustomAlert
 from .feedback import Feedback
+from .raw_ingestion import MessageVersion, RawEvent
 
 # Экспортируем все модели для удобного импорта
 __all__ = [
@@ -94,5 +95,7 @@ __all__ = [
     "Feedback",
     "Payment",
     "PaymentStatus",
-    "PaymentMethod"
+    "PaymentMethod",
+    "RawEvent",
+    "MessageVersion",
 ]

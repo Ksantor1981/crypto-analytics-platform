@@ -116,6 +116,9 @@ class Settings(BaseSettings):
     # При False — не вызывать _seed_demo_data при старте (Docker / только реальные каналы из БД)
     AUTO_SEED_DEMO_CHANNELS: bool = True
 
+    # Канонический data plane: dual-write raw_events + message_versions (см. docs/DATA_PLANE_MIGRATION.md)
+    SHADOW_PIPELINE_ENABLED: bool = False
+
     # C1: сбор без Telegram — при False периодический сбор только Reddit/seed
     COLLECT_TELEGRAM: bool = True
     # Scheduler mode:
