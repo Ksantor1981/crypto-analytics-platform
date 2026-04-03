@@ -1,4 +1,4 @@
-.PHONY: up down build rebuild logs ps backend-shell db-shell frontend-shell test
+.PHONY: up down build rebuild logs ps backend-shell db-shell frontend-shell test ml-data-pipeline
 
 # Docker Compose v2 (Plugin). Старая команда docker-compose (v1) снята с поддержки.
 DOCKER_COMPOSE ?= docker compose
@@ -57,3 +57,7 @@ backend-dev:
 # Запуск только фронтенда для разработки
 frontend-dev:
 	cd frontend && npm run dev
+
+# Фаза C: свечи → индикаторы → real_signals → train (нужен DATABASE_URL в env)
+ml-data-pipeline:
+	cd backend && python scripts/run_ml_data_pipeline.py

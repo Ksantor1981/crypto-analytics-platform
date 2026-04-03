@@ -26,7 +26,7 @@
 - [Оценка статуса](./docs/ARCHITECT_STATUS_EVALUATION.md) — технический архитектор (текущее состояние)
 - [ML Pipeline](./ml-service/README.md) — train-скрипт, воспроизводимость  
 - [Целостность данных ML](./docs/ML_DATA_INTEGRITY_ROADMAP.md) — план: свечи, индикаторы, честные метрики
-- [Чеклист исполнения ML/данных](./docs/ML_DATA_EXECUTION_CHECKLIST.md) — порядок работ к KPI
+- [Чеклист исполнения ML/данных](./docs/ML_DATA_EXECUTION_CHECKLIST.md) — порядок работ к KPI; оркестратор `backend/scripts/run_ml_data_pipeline.py`, `make ml-data-pipeline`
 
 ---
 

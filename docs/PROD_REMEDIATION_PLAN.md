@@ -8,7 +8,8 @@
 2. **Фаза A (процесс):** k6 + строки в `LOAD_TEST_RESULTS.md` ([scripts/load-test/README.md](../scripts/load-test/README.md)); синхронизация доков CI.
 3. **Фаза A (безопасность):** ротация секретов по [SECURITY_PUBLIC_REPO.md](./SECURITY_PUBLIC_REPO.md) — вручную.
 4. **Фаза B:** Stripe идемпотентность webhook — `stripe_webhook_dedup.py`; сверка подписок — `backend/scripts/stripe_reconcile_subscriptions.py`; SLO-алерты — `monitoring/alert_rules.yml` (p95, 5xx); полный k6 — процесс.
-5. **Фазы C–D:** данные/ML roadmap, HA/Celery lock — по мере приоритета.
+5. **Фаза C:** данные/ML — оркестратор `backend/scripts/run_ml_data_pipeline.py`, чеклист `ML_DATA_EXECUTION_CHECKLIST.md`, `make ml-data-pipeline`.
+6. **Фаза D:** HA/Celery lock — см. `SINGLE_NODE_SLA.md` (уже в коде).
 
 ## Фаза A — уже заложено или частично есть
 
@@ -23,7 +24,7 @@
 | Метрики Prometheus | Уже есть `/metrics` | есть |
 | k6 / нагрузка | Скрипты + заполнение `LOAD_TEST_RESULTS.md` на стенде | процесс |
 | Секреты в истории Git | `SECURITY_PUBLIC_REPO.md` + ротация ключей | процесс |
-| Покрытие тестами | Постепенное повышение `--cov-fail-under` в CI (**сейчас 50**) | CI |
+| Покрытие тестами | Постепенное повышение `--cov-fail-under` в CI (**сейчас 55**) | CI |
 
 ## Фаза B — 1–2 недели (операционка)
 
@@ -35,7 +36,8 @@
 ## Фаза C — данные и ML (ядро продукта)
 
 - Roadmap: `ML_DATA_INTEGRITY_ROADMAP.md`, `ML_DATA_EXECUTION_CHECKLIST.md`.
-- Минимальный объём размеченных сигналов, OOS/backtest как артефакт релиза.
+- Запуск по шагам одной командой: `python scripts/run_ml_data_pipeline.py` (из `backend`) или `make ml-data-pipeline`.
+- Минимальный объём размеченных сигналов, OOS/backtest как артефакт релиза; после train — строка в `ML_METRIC_LATEST.md`.
 
 ## Фаза D — инфраструктура
 
@@ -44,4 +46,4 @@
 
 ---
 
-**Версия:** 2026-04-04 (фаза D: Celery Redis lock, single-node SLA doc, CI 50%). Обновлять при закрытии крупных пунктов.
+**Версия:** 2026-04-04 (фаза C: ML pipeline script + Makefile; CI 55%). Обновлять при закрытии крупных пунктов.
