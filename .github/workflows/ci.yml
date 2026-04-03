@@ -32,7 +32,7 @@ jobs:
           python -m pytest tests/ --ignore=tests/test_z_production_integration.py -v --tb=short \
             --cov=app \
             --cov-report=term-missing \
-            --cov-fail-under=55
+            --cov-fail-under=60
       - name: ML data pipeline (dry-run)
         run: python scripts/run_ml_data_pipeline.py --dry-run --skip-train
 

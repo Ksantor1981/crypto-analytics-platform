@@ -6,9 +6,10 @@
 
 ## 1. Покрытие тестами
 
-- **Факт:** в `.github/workflows/ci.yml` для backend задано `--cov-fail-under=55` (цель ТЗ — выше).
-- **План:** стабильно поднимать порог (например 55 → 60 → 65) только после того, как локально `pytest --cov=app` стабильно выше нового значения.
-- **Документ:** актуальный порог всегда дублировать в `docs/TZ_GAPS_REMEDIATION.md`.
+- **Факт (2026-04):** в `.github/workflows/ci.yml` для backend задано `--cov-fail-under=60`. Локально: `cd backend && set USE_SQLITE=true` (или экспорт) и `pytest tests/ --ignore=tests/test_z_production_integration.py --cov=app --cov-fail-under=60`.
+- **Сделано для 60%:** юнит-тесты `trusted_hosts`, `ml_gateway`, `notification_service`, `email_tasks` (`.run()`), `dedup`/`stripe_webhook_dedup`, `service_probes`, `user_service` (моки `Session`).
+- **План:** дальше поднимать порог (60 → 65 → …) только когда локально `pytest --cov=app` стабильно выше нового значения (запас ~0.3 п.п. к лучшему).
+- **Документ:** актуальный порог дублировать в `docs/TZ_GAPS_REMEDIATION.md` § про покрытие.
 
 ## 2. E2E как gate
 
