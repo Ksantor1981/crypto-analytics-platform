@@ -36,12 +36,16 @@ class CustomAlert(BaseModel):
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     alert_type = Column(String(50), nullable=False)  # Один из AlertType
-    status = Column(String(20), default=AlertStatus.ACTIVE, nullable=False)
+    status = Column(String(20), default=AlertStatus.ACTIVE.value, nullable=False)
     
-    # Параметры уведомления
-    symbol = Column(String(50), nullable=False)  # Торговая пара, например 'BTC/USDT'
-    condition = Column(JSON, nullable=False)  # Условие срабатывания
-    
+    # Параметры уведомления (symbol/condition — legacy; для Pro API используются conditions + notification_methods)
+    symbol = Column(String(50), nullable=True)
+    condition = Column(JSON, nullable=True)
+    conditions = Column(JSON, nullable=True)
+    notification_methods = Column(JSON, nullable=True)
+    webhook_url = Column(String(512), nullable=True)
+    triggered_count = Column(Integer, default=0, nullable=False)
+
     # Настройки уведомлений
     is_active = Column(Boolean, default=True)
     is_recurring = Column(Boolean, default=False)  # Повторяющееся уведомление
@@ -71,4 +75,9 @@ class CustomAlert(BaseModel):
     @property
     def can_trigger(self) -> bool:
         """Можно ли сработать уведомлению"""
-        return self.is_active and self.status == AlertStatus.ACTIVE and not self.is_expired
+        st = self.status
+        if isinstance(st, AlertStatus):
+            st_ok = st == AlertStatus.ACTIVE
+        else:
+            st_ok = st == AlertStatus.ACTIVE.value
+        return self.is_active and st_ok and not self.is_expired

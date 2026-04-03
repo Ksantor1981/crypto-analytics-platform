@@ -140,6 +140,7 @@ async def async_client():
     import app.models.signal  # noqa: F401
     import app.models.channel  # noqa: F401
     import app.models.user  # noqa: F401
+    import app.models.custom_alert  # noqa: F401
     
     # Ensure tables exist for auth/integration tests
     Base.metadata.create_all(bind=engine)

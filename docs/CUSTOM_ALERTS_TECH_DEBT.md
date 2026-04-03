@@ -1,17 +1,18 @@
-# Custom Alerts (Pro): техдолг перед REST-слоем
+# Custom Alerts (Pro): статус реализации
 
-**Статус:** публичный API для CRUD алертов **не подключён** к `main.py` намеренно до выравнивания слоёв.
+**Обновлено:** 2026-04-03
 
-## Проблема
+## Сделано
 
-- Модель `app/models/custom_alert.py` описывает поля `name`, `symbol`, `condition` (JSON), `status`, …
-- Сервис `app/services/custom_alerts_service.py` ожидает другую схему: `conditions`, `notification_methods`, `webhook_url`, `triggered_count`, … и создаёт `CustomAlert(...)` с несуществующими колонками относительно текущей модели.
-- В `_execute_alert_actions` используются `db` и `CustomAlert` без гарантированного импорта/скоупа — риск ошибок времени выполнения.
+- Модель `CustomAlert` расширена: `conditions`, `notification_methods`, `webhook_url`, `triggered_count`; `symbol` и `condition` допускают `NULL` для новых записей.
+- Alembic: `e5f6a7b8c9d0_custom_alerts_pro_columns.py` (PostgreSQL).
+- Сервис `custom_alerts_service.py` согласован с моделью; исправлены импорты, `db` в `_execute_alert_actions`, сопоставление символов и сравнение confidence.
+- REST: `GET/POST/PATCH/DELETE /api/v1/alerts/custom/...`, шаблоны `GET /api/v1/alerts/custom/templates`; роутер подключён в `main.py`.
+- RBAC: в `feature_map` добавлен префикс `/api/v1/alerts/custom` **до** общего `/api/`, чтобы не требовать `api_access` вместо `custom_alerts`.
+- Тесты: `backend/tests/test_custom_alerts_api.py`.
 
-## Рекомендуемый порядок исправления
+## Остаётся (эксплуатация)
 
-1. **Один источник правды:** либо привести SQLAlchemy-модель к схеме сервиса (миграция Alembic), либо переписать сервис под актуальную модель.
-2. **Тесты** на создание/триггер алерта с SQLite/Postgres в CI.
-3. **Роутер** `GET/POST/PUT/DELETE /api/v1/alerts/custom` + RBAC Pro — после п.1–2.
-
-До этого REST для Pro-алертов в документации не позиционировать как готовый.
+- Прогнать `alembic upgrade head` на **боевой** PostgreSQL.
+- Вызов `trigger_alert_check` при сохранении нового сигнала (если ещё не подключён в пайплайне).
+- UI страницы настроек алертов под новые эндпоинты.

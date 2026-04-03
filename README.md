@@ -24,6 +24,7 @@
 - [Оценка статуса](./docs/ARCHITECT_STATUS_EVALUATION.md) — технический архитектор (текущее состояние)
 - [ML Pipeline](./ml-service/README.md) — train-скрипт, воспроизводимость  
 - [Целостность данных ML](./docs/ML_DATA_INTEGRITY_ROADMAP.md) — план: свечи, индикаторы, честные метрики
+- [Чеклист исполнения ML/данных](./docs/ML_DATA_EXECUTION_CHECKLIST.md) — порядок работ к KPI
 
 ---
 
@@ -86,6 +87,7 @@ cd frontend && npm install --legacy-peer-deps && npm run dev
 - `POST /api/v1/stripe/create-checkout` — Stripe checkout session
 - `GET /api/v1/export/signals.csv` — экспорт в CSV
 - `POST /api/v1/predictions/ml-predict` — ML предсказание
+- `GET/POST/PATCH/DELETE /api/v1/alerts/custom/...` — кастомные алерты (Pro), шаблоны: `GET /api/v1/alerts/custom/templates`
 
 Swagger: http://localhost:8000/docs
 

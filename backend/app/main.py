@@ -46,7 +46,7 @@ try:
         payments, ml_integration, telegram_integration,
         trading, ml_predictions, backtesting, dashboard,
         user_sources, feedback, analytics, collect, export_signals, export as export_endpoints,
-        stripe_checkout
+        stripe_checkout, custom_alerts,
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -423,6 +423,7 @@ routers_config = [
     ("export_signals", "/api/v1", "export-csv"),
     ("export_endpoints", "/api/v1", "export"),
     ("stripe_checkout", "/api/v1/stripe", "stripe"),
+    ("custom_alerts", "/api/v1/alerts", "alerts"),
 ]
 
 # Подключаем роутеры с обработкой ошибок

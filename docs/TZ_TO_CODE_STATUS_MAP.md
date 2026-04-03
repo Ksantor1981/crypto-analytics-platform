@@ -68,7 +68,7 @@
 |------------|------------|--------|
 | **Binance / Bybit** (формулировка ТЗ) | Факт: `backend/app/services/price_validator.py` (**CoinGecko**) | ⚠️ | Либо клиенты бирж, либо правка ТЗ (см. `TZ_GAPS_REMEDIATION` §5). |
 | **Telegram + Reddit** | `collection_pipeline`, `reddit_scraper`, `workers/telegram/` | ✅ код | Риски ToS/лимитов — эксплуатация. |
-| **Кастомные алерты Pro** | `backend/app/models/custom_alert.py`, `services/custom_alerts_service.py` | ⚠️ | Сервис есть; стабильный REST под Pro — см. `TZ_GAPS_REMEDIATION` §7. |
+| **Кастомные алерты Pro** | `models/custom_alert.py`, `services/custom_alerts_service.py`, `api/endpoints/custom_alerts.py`, хук в `collection_pipeline.py` | ✅ API + миграция; на PostgreSQL выполнить `alembic upgrade head` |
 | **Google Analytics** | `frontend/src/components/analytics/GoogleAnalytics.tsx` | ✅ по env | `NEXT_PUBLIC_GA_MEASUREMENT_ID`. |
 
 ---

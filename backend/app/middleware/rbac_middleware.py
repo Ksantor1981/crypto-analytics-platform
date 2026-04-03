@@ -132,12 +132,14 @@ class RBACMiddleware:
     
     def _get_required_feature(self, path: str) -> Optional[str]:
         """Get the feature required for accessing this path"""
+        # Более специфичные префиксы раньше общего /api/
         feature_map = {
             "/export": "export_data",
             "/ml/predictions": "ml_predictions",
-            "/api/": "api_access",
+            "/api/v1/alerts/custom": "custom_alerts",
             "/alerts/custom": "custom_alerts",
             "/support/priority": "priority_support",
+            "/api/": "api_access",
         }
         
         for path_prefix, feature in feature_map.items():

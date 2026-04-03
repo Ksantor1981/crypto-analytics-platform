@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from decimal import Decimal
@@ -19,6 +20,27 @@ if TYPE_CHECKING:
     from app.services.telegram_scraper import ParsedSignal
 
 logger = logging.getLogger(__name__)
+
+
+def _fire_custom_alerts_for_new_signals(signals_batch: List[Signal], db: Session) -> None:
+    """Pro custom alerts: вне активного event loop (типичный sync collect) — asyncio.run."""
+    if not signals_batch:
+        return
+    try:
+        asyncio.get_running_loop()
+        return
+    except RuntimeError:
+        pass
+    try:
+        from app.services.custom_alerts_service import custom_alerts_service
+    except ImportError:
+        return
+    for s in signals_batch:
+        try:
+            asyncio.run(custom_alerts_service.trigger_alert_check(s, db))
+        except Exception as e:
+            logger.debug("custom_alerts hook skipped: %s", e)
+
 
 try:
     from app.core.metrics import (
@@ -65,6 +87,7 @@ def persist_parsed_signals_for_channel(
     skipped_duplicate = 0
     raw_skipped_duplicate = 0
     parsed_with_entry = 0
+    new_signals_batch: List[Signal] = []
 
     store_raw = str(getattr(channel, "platform", "")).lower() == "telegram" and (
         os.getenv("STORE_RAW_TELEGRAM_SIGNALS", "true").lower() in ("1", "true", "yes")
@@ -139,11 +162,19 @@ def persist_parsed_signals_for_channel(
             db_signal.entry_price_high = Decimal(str(sig.entry_zone_high))
 
         db.add(db_signal)
+        new_signals_batch.append(db_signal)
         if use_message_time_for_created_at and getattr(sig, "timestamp", None) is not None:
             ts = sig.timestamp
             db_signal.created_at = ts
             db_signal.updated_at = ts
         saved += 1
+
+    if new_signals_batch:
+        try:
+            db.flush()
+        except Exception as e:
+            logger.warning("flush before custom_alerts hook: %s", e)
+        _fire_custom_alerts_for_new_signals(new_signals_batch, db)
 
     if saved > 0:
         channel.signals_count = (channel.signals_count or 0) + saved

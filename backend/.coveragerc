@@ -14,7 +14,6 @@ omit =
     app/services/reddit_service.py
     app/services/trading_pair_validator.py
     app/services/api_key_service.py
-    app/services/custom_alerts_service.py
     app/services/signal_notification_service.py
     app/services/price_tracking_service.py
     app/services/exchange_service.py

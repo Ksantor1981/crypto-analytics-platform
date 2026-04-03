@@ -32,7 +32,7 @@ jobs:
           python -m pytest tests/ --ignore=tests/test_z_production_integration.py -v --tb=short \
             --cov=app \
             --cov-report=term-missing \
-            --cov-fail-under=30
+            --cov-fail-under=35
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -104,10 +104,10 @@ jobs:
       - name: Docs sync guard
         run: python scripts/validate_docs_sync.py
 
-  # E2E: continue-on-error — Playwright может флакать (таймауты, сеть); стабилизировать при необходимости
+  # E2E обязателен для main: при флаках стабилизировать тесты/тайминги, не отключать gate без причины
   e2e:
     runs-on: ubuntu-latest
-    continue-on-error: true
+    continue-on-error: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
