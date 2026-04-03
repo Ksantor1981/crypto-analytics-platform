@@ -6,6 +6,7 @@
 2. [Список задач для достижения цели](#список-задач-для-достижения-цели)
 3. [Этапы реализации](#этапы-реализации)
 4. [Критерии успеха](#критерии-успеха)
+5. [Дополнение к ТЗ: канонический data plane (2026+)](#дополнение-к-тз-канонический-data-plane-2026)
 
 ---
 
@@ -465,4 +466,31 @@
 - Конверсия Free → Premium: 15-20%
 - Monthly Recurring Revenue (MRR): $50K к концу Q1
 - Retention Rate: >90%
-- Положительные отзывы пользователей (NPS >8) 
+- Положительные отзывы пользователей (NPS >8)
+
+---
+
+# ДОПОЛНЕНИЕ К ТЗ: КАНОНИЧЕСКИЙ DATA PLANE (2026+)
+
+Базовое ТЗ выше описывает продукт вокруг **legacy `Signal`** и смежных сервисов. Параллельно вводится **канонический контур данных** (raw-first, review, extraction, normalized, relations, outcomes), не ломая legacy до явного switch-over.
+
+## Нормативные документы (расширение scope)
+
+| Документ | Назначение |
+|----------|------------|
+| [`docs/DATA_PLANE_MIGRATION.md`](docs/DATA_PLANE_MIGRATION.md) | Фазы, pipeline, критерии switch-over |
+| [`docs/MARKET_OUTCOME_POLICY.md`](docs/MARKET_OUTCOME_POLICY.md) | Семантика market outcome / execution models |
+| [`docs/DOMAIN_GLOSSARY_CANONICAL.md`](docs/DOMAIN_GLOSSARY_CANONICAL.md) | Сущности и оси состояния |
+| [`docs/REVIEW_GUIDELINES.md`](docs/REVIEW_GUIDELINES.md) | Очередь review и приоритеты |
+| [`docs/PROD_REMEDIATION_PLAN.md`](docs/PROD_REMEDIATION_PLAN.md) | Прод-готовность, CI, ремедиация |
+
+## Приёмка и полная сверка с ТЗ
+
+Чек-лист готовности контура (тесты, БД, процессы): **[`docs/TZ_APPENDIX_DATA_PLANE_ACCEPTANCE.md`](docs/TZ_APPENDIX_DATA_PLANE_ACCEPTANCE.md)**
+
+- При аудите соответствия ТЗ пункты **базового** ТЗ и **дополнения** проверяются **вместе**.
+- Документ-приложение **временный**: после закрытия всех обязательных пунктов приёмки он **удаляется**, итог фиксируется в актуальном `SPEC_COMPLIANCE_*.md` и при необходимости краткой пометке в этом разделе.
+
+## Суть pipeline (кратко)
+
+`Raw ingestion → MessageVersion → Extraction → ExtractionDecision → NormalizedSignal → SignalRelation → ExecutionModel → SignalOutcome → (SourceScore / ML)` — параллельно legacy-контуру; переключение scoring/UI — только по критериям в `DATA_PLANE_MIGRATION.md`.
