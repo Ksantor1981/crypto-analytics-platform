@@ -62,7 +62,7 @@ Legacy parser → Signal (текущая модель) → текущие мет
 3. [x] Миграция + модели `raw_events`, `message_versions`.
 4. [x] Dual-write **Telegram web**: `collect_signals_from_channel` → `ChannelScrapeResult.posts` → `persist_shadow_telegram_posts_if_enabled` (scheduler, Celery, `POST /collect/...`). Включать `SHADOW_PIPELINE_ENABLED=true` только после `alembic upgrade head`.
 5. [x] Dual-write **Reddit** (`run_reddit_collection_cycle` + `backfill_reddit_window` JSON).
-6. [ ] Dual-write **Telethon** (полный MTProto payload).
+6. [x] Dual-write **Telethon** — shadow `raw_events` через `POST .../telethon-collect/...` + `raw_payload.mtproto` (TL `to_dict`, bytes → base64); выкл. `SHADOW_TELETHON_FULL_MTPROTO=false`.
 7. [x] Базовые метрики Prometheus: `shadow_raw_events_written_total`, `shadow_raw_events_dedup_total`; edits / lag — далее.
 8. [x] Таблица `review_labels` + **admin** API + UI Review Console (`/admin/review`).
 9. [x] Каталог **`execution_models`** (Alembic `l6f7a8b9c0d1`) + сид `market_on_publish` / `first_touch_limit` / `midpoint_entry` + **admin** `GET /api/v1/admin/execution-models` (и `/by-key/{model_key}`).

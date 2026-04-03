@@ -170,3 +170,37 @@ def test_persist_shadow_pipeline_skips_when_flag_off():
         gs.return_value = MagicMock(SHADOW_PIPELINE_ENABLED=False)
         out = persist_shadow_telegram_posts_if_enabled(db, ch, posts, web_username="x")
     assert out == {"shadow_written": 0, "shadow_versioned": 0, "shadow_dedup": 0}
+
+
+def test_persist_shadow_telegram_includes_mtproto_in_payload():
+    from contextlib import nullcontext
+
+    from app.services.collection_pipeline import persist_shadow_telegram_posts_if_enabled
+    from app.services.telegram_scraper import ChannelPost
+
+    seen = []
+
+    def capture_upsert(_db, **kwargs):
+        seen.append(kwargs.get("raw_payload") or {})
+        ev = MagicMock()
+        return ev, "created"
+
+    db = MagicMock()
+    db.begin_nested = lambda: nullcontext()
+    ch = MagicMock()
+    ch.id = 1
+    ch.owner_id = None
+    mt = {"_": "Message", "id": 99}
+    posts = [ChannelPost(text="hi", message_id="10", mtproto=mt)]
+    with patch("app.core.config.get_settings") as gs:
+        gs.return_value = MagicMock(SHADOW_PIPELINE_ENABLED=True)
+        with patch(
+            "app.services.raw_ingestion_service.upsert_shadow_raw_event",
+            side_effect=capture_upsert,
+        ):
+            out = persist_shadow_telegram_posts_if_enabled(
+                db, ch, posts, web_username="chan", payload_scraper="telethon"
+            )
+    assert out["shadow_written"] == 1
+    assert seen[0].get("mtproto") == mt
+    assert seen[0].get("scraper") == "telethon"

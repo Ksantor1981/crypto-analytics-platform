@@ -273,7 +273,11 @@ async def telethon_collect(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_premium),
 ):
-    """Collect deep history from a channel via Telethon (requires auth)."""
+    """Collect deep history from a channel via Telethon (requires auth).
+
+    При `SHADOW_PIPELINE_ENABLED` и `SHADOW_TELETHON_FULL_MTPROTO` в shadow пишется
+    `raw_payload.mtproto` — JSON-safe снимок TL (Message/MessageService).
+    """
     if not telethon_ready():
         return {"error": "Telethon not authenticated", "how_to": "Run: python -m app.services.telethon_collector --auth"}
 

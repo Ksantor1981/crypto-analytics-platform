@@ -110,6 +110,8 @@ class ChannelPost:
     views: Optional[int] = None
     message_id: Optional[str] = None
     image_urls: List[str] = field(default_factory=list)
+    # Telethon: JSON-safe снимок TL (Message / MessageService) в raw_payload.mtproto
+    mtproto: Optional[Dict[str, Any]] = None
 
 
 @dataclass

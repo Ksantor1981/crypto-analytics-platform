@@ -96,6 +96,8 @@ def persist_shadow_telegram_posts_if_enabled(
             "image_urls": list(post.image_urls) if post.image_urls else [],
             "post_date": post.date.isoformat() if post.date else None,
         }
+        if getattr(post, "mtproto", None) is not None:
+            payload["mtproto"] = post.mtproto
         pmid = str(post.message_id) if post.message_id else None
         with db.begin_nested():
             _ev, action = upsert_shadow_raw_event(

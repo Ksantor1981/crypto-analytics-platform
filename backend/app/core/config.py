@@ -118,6 +118,8 @@ class Settings(BaseSettings):
 
     # Канонический data plane: dual-write raw_events + message_versions (см. docs/DATA_PLANE_MIGRATION.md)
     SHADOW_PIPELINE_ENABLED: bool = False
+    # Telethon shadow: вкладывать в raw_payload полный снимок MTProto (to_dict + bytes→base64)
+    SHADOW_TELETHON_FULL_MTPROTO: bool = True
     # Запись в extractions + admin run (legacy_text экстрактор); без флага POST /admin/extractions/... → 503
     EXTRACTION_PIPELINE_ENABLED: bool = False
     # После materialize → normalized_signal автоматически создавать PENDING signal_outcomes для активных execution_models
