@@ -92,7 +92,7 @@ class UserService:
                 )
 
         # Update user fields
-        update_data = user_data.dict(exclude_unset=True)
+        update_data = user_data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(user, field, value)
 
