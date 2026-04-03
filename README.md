@@ -4,7 +4,7 @@
 
 **Статус:** MVP. Локальная разработка и демо — готовы. Production требует настройки секретов и подключения реальных источников данных.
 
-**Последнее обновление документации:** 2026-04-03 (актуальность коммитов — ветка `main` на GitHub; см. [SPEC_COMPLIANCE_2026_02_25.md](./SPEC_COMPLIANCE_2026_02_25.md), [docs/TZ_TO_CODE_STATUS_MAP.md](./docs/TZ_TO_CODE_STATUS_MAP.md), [docs/DATA_INTEGRITY_FIX.md](./docs/DATA_INTEGRITY_FIX.md))
+**Последнее обновление:** 2026-04-04 — документация и коммиты (ветка `main` на GitHub; см. [SPEC_COMPLIANCE_2026_02_25.md](./SPEC_COMPLIANCE_2026_02_25.md), [docs/TZ_TO_CODE_STATUS_MAP.md](./docs/TZ_TO_CODE_STATUS_MAP.md), [docs/DATA_INTEGRITY_FIX.md](./docs/DATA_INTEGRITY_FIX.md))
 
 **Публичный репозиторий:** считайте все когда-либо попавшие в git секреты скомпрометированными — см. [docs/SECURITY_PUBLIC_REPO.md](./docs/SECURITY_PUBLIC_REPO.md).
 

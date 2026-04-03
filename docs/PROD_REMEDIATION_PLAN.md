@@ -7,7 +7,7 @@
 1. **Фаза A (код):** readiness, ML gateway, CORS, request ID, `session_scope`, CI coverage — см. таблицу ниже.
 2. **Фаза A (процесс):** k6 + строки в `LOAD_TEST_RESULTS.md` ([scripts/load-test/README.md](../scripts/load-test/README.md)); синхронизация доков CI.
 3. **Фаза A (безопасность):** ротация секретов по [SECURITY_PUBLIC_REPO.md](./SECURITY_PUBLIC_REPO.md) — вручную.
-4. **Фаза B:** Stripe идемпотентность webhook (Redis + память) — `stripe_webhook_dedup.py`; далее SLO/алерты, полный k6.
+4. **Фаза B:** Stripe идемпотентность webhook — `stripe_webhook_dedup.py`; сверка подписок — `backend/scripts/stripe_reconcile_subscriptions.py`; SLO-алерты — `monitoring/alert_rules.yml` (p95, 5xx); полный k6 — процесс.
 5. **Фазы C–D:** данные/ML roadmap, HA/Celery lock — по мере приоритета.
 
 ## Фаза A — уже заложено или частично есть
@@ -23,14 +23,14 @@
 | Метрики Prometheus | Уже есть `/metrics` | есть |
 | k6 / нагрузка | Скрипты + заполнение `LOAD_TEST_RESULTS.md` на стенде | процесс |
 | Секреты в истории Git | `SECURITY_PUBLIC_REPO.md` + ротация ключей | процесс |
-| Покрытие тестами | Постепенное повышение `--cov-fail-under` в CI | CI |
+| Покрытие тестами | Постепенное повышение `--cov-fail-under` в CI (**сейчас 45**) | CI |
 
 ## Фаза B — 1–2 недели (операционка)
 
 - Ротация всех секретов; секреты только из manager (Vault / cloud), не в compose в открытом виде.
 - Полноценный прогон k6 (steady + spike), артефакты в `LOAD_TEST_RESULTS.md`.
-- SLO: доступность API, успех Stripe webhook, lag очередей — алерты в Prometheus/Grafana.
-- Stripe: тесты idempotency webhook, reconciliation job.
+- SLO: правила в `monitoring/alert_rules.yml` (backend down, 5xx, p95>2s, ml-service); подключить Alertmanager и дашборды Grafana.
+- Stripe: идемпотентность webhook (код); сверка БД↔Stripe — `backend/scripts/stripe_reconcile_subscriptions.py` (опц. `--apply`).
 
 ## Фаза C — данные и ML (ядро продукта)
 
@@ -44,4 +44,4 @@
 
 ---
 
-**Версия:** 2026-04-04. Обновлять при закрытии крупных пунктов.
+**Версия:** 2026-04-04 (фаза B: алерты, reconcile, CI 45%). Обновлять при закрытии крупных пунктов.

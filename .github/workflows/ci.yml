@@ -32,7 +32,7 @@ jobs:
           python -m pytest tests/ --ignore=tests/test_z_production_integration.py -v --tb=short \
             --cov=app \
             --cov-report=term-missing \
-            --cov-fail-under=40
+            --cov-fail-under=45
 
   frontend-build:
     runs-on: ubuntu-latest

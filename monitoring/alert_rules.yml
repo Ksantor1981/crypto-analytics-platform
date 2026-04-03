@@ -1,3 +1,6 @@
+# Правила для Prometheus (подключить в prometheus.yml через rule_files).
+# Метрики backend: см. app/core/metrics.py (http_requests_total, http_request_duration_seconds).
+# job "redis" в scrape_configs должен указывать на redis_exporter (:9121), иначе up{job="redis"} не отражает Redis.
 groups:
   - name: crypto-analytics-platform
     rules:
@@ -11,13 +14,24 @@ groups:
           description: "FastAPI backend has not been reachable for 5 minutes."
 
       - alert: High5xxRate
-        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) > 0.05
         for: 10m
         labels:
           severity: warning
         annotations:
           summary: "High 5xx error rate"
-          description: "Backend 5xx rate is above 5% for 10 minutes."
+          description: "Backend 5xx request rate is above 0.05/s aggregate (tune threshold to your RPS)."
+
+      - alert: HighHttpLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP p95 latency high"
+          description: "Global p95 of http_request_duration_seconds above 2s for 10m (SLO-style; tune bucket/threshold)."
 
       - alert: MlServiceDown
         expr: up{job="ml-service"} == 0
@@ -34,5 +48,5 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Redis is down"
-          description: "Redis endpoint has not been reachable for 5 minutes."
+          summary: "Redis target down"
+          description: "Configured redis scrape target is down (use redis_exporter for real health)."
