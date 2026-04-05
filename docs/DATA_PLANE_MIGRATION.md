@@ -2,7 +2,7 @@
 
 **Статус:** в работе (фазы 1–10 по мере готовности; см. таблицу)  
 **Дата:** 2026-04-04  
-**Связано:** `docs/DOMAIN_GLOSSARY_CANONICAL.md`, `docs/MARKET_OUTCOME_POLICY.md`, `docs/REVIEW_GUIDELINES.md`, `docs/PROD_REMEDIATION_PLAN.md` (ремедиация API/CI — отдельный трек), `docs/PIPELINE_INGESTION_AND_PARSING.md`, `docs/ADR_RT_TELETHON_LLM_EVALUATION.md`, `docs/OFFLINE_LLM_PILOT_PLAN.md`.  
+**Связано:** `docs/DOMAIN_GLOSSARY_CANONICAL.md`, `docs/MARKET_OUTCOME_POLICY.md`, `docs/REVIEW_GUIDELINES.md`, `docs/PROD_REMEDIATION_PLAN.md` (ремедиация API/CI — отдельный трек), `docs/PIPELINE_INGESTION_AND_PARSING.md`, `docs/ADR_RT_TELETHON_LLM_EVALUATION.md`, `docs/OFFLINE_LLM_PILOT_PLAN.md`, `docs/DATA_PLANE_NEXT_SPRINT.md` (текущий спринт: feedback loop).  
 **Приёмка по ТЗ:** чек-лист `docs/TZ_APPENDIX_DATA_PLANE_ACCEPTANCE.md` (временный; после закрытия — удалить, см. `SPEC.md` дополнение).
 
 ## Цель

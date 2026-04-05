@@ -51,6 +51,7 @@ try:
         signal_relations,
         execution_models,
         signal_outcomes,
+        shadow_divergence,
     )
     from .core.middleware import SubscriptionLimitMiddleware
     from .core.scheduler import TradingScheduler
@@ -459,6 +460,7 @@ routers_config = [
     ("signal_relations", "/api/v1/admin/signal-relations", "signal-relations"),
     ("execution_models", "/api/v1/admin/execution-models", "execution-models"),
     ("signal_outcomes", "/api/v1/admin/signal-outcomes", "signal-outcomes"),
+    ("shadow_divergence", "/api/v1/admin/shadow", "shadow-divergence"),
 ]
 
 # Подключаем роутеры с обработкой ошибок

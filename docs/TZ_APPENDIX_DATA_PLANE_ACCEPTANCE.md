@@ -51,7 +51,7 @@
 | C2 | Dual-write **Reddit** (как в пайплайне) | [ ] | |
 | C3 | Dual-write **Telethon** (`raw_payload.mtproto` при включённом флаге — по политике) | [ ] | |
 | C4 | Дедуп/версионирование текста: повторный скан не плодит лишние `message_versions` при неизменном тексте | [ ] | |
-| C5 | **Feedback loop (рекомендовано):** метрика или отчёт расхождения legacy `Signal` vs канонический слой (хотя бы выборка N сообщений) | [ ] | |
+| C5 | **Feedback loop (рекомендовано):** метрика или отчёт расхождения legacy `Signal` vs канонический слой (хотя бы выборка N сообщений) | [ ] | `GET /api/v1/admin/shadow/divergence-report` (admin), Prometheus `shadow_legacy_divergence_*` — см. `docs/DATA_PLANE_NEXT_SPRINT.md` |
 
 ---
 

@@ -66,6 +66,21 @@ SHADOW_MESSAGE_VERSIONS_ADDED = Counter(
     "New message_versions rows from re-scrape with changed text (or payload if no text)",
 )
 
+# Legacy vs canonical (NormalizedSignal с legacy_signal_id) — см. shadow_divergence report
+SHADOW_LEGACY_DIVERGENCE_SCORE = Histogram(
+    "shadow_legacy_divergence_score",
+    "Match score 0..1 between legacy Signal and NormalizedSignal (per pair)",
+    buckets=(0.0, 0.25, 0.5, 0.65, 0.8, 0.9, 0.95, 1.0),
+)
+SHADOW_LEGACY_DIVERGENCE_REPORTS = Counter(
+    "shadow_legacy_divergence_reports_total",
+    "Admin divergence-report runs",
+)
+SHADOW_LEGACY_DIVERGENCE_LOW = Counter(
+    "shadow_legacy_divergence_low_match_total",
+    "Pairs with match_score < 0.5 in a report run",
+)
+
 
 def get_metrics() -> bytes:
     """Return Prometheus metrics in text format."""
