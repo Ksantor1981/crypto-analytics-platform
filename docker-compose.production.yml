@@ -47,6 +47,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - ENVIRONMENT=production
+      - OPENAPI_DOCS_ENABLED=false
       - SCHEDULER_MODE=celery
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/crypto_analytics
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0

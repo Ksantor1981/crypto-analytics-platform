@@ -100,6 +100,8 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+    # В production рекомендуется false — скрывает /docs и /redoc (меньше поверхность разведки)
+    OPENAPI_DOCS_ENABLED: bool = True
     
     # Monitoring
     SENTRY_DSN: str = ""

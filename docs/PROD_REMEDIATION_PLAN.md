@@ -47,3 +47,5 @@
 ---
 
 **Версия:** 2026-04-04 (фаза C: ML pipeline script + Makefile; CI 60% coverage gate). Обновлять при закрытии крупных пунктов.
+
+**Быстрый чеклист перед продом:** [`PROD_LAUNCH_SECURITY_CHECKLIST.md`](./PROD_LAUNCH_SECURITY_CHECKLIST.md) (секреты, TLS, отключение OpenAPI в проде).

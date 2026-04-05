@@ -91,6 +91,11 @@ except ImportError:
 settings = get_settings()
 trading_scheduler = None
 
+# OpenAPI UI: в проде можно отключить через OPENAPI_DOCS_ENABLED=false
+_OPENAPI_DOCS = bool(getattr(settings, "OPENAPI_DOCS_ENABLED", True))
+_OPENAPI_DOCS_URL = "/docs" if _OPENAPI_DOCS else None
+_OPENAPI_REDOC_URL = "/redoc" if _OPENAPI_DOCS else None
+
 
 def _scheduler_mode() -> str:
     mode = str(getattr(settings, "SCHEDULER_MODE", "asyncio") or "asyncio").strip().lower()
@@ -318,8 +323,8 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="Crypto Analytics Platform API - Advanced crypto signals analysis with ML",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=_OPENAPI_DOCS_URL,
+    redoc_url=_OPENAPI_REDOC_URL,
     lifespan=lifespan,
     debug=getattr(settings, 'DEBUG', False)
 )
@@ -499,11 +504,18 @@ async def root():
             "trading_scheduler": trading_scheduler is not None,
             "cors_enabled": True,
         },
-        "endpoints": {
-            "docs": "/docs",
-            "health": "/health",
-            "api": "/api/v1",
-        },
+        "endpoints": (
+            {
+                "docs": "/docs",
+                "health": "/health",
+                "api": "/api/v1",
+            }
+            if _OPENAPI_DOCS
+            else {
+                "health": "/health",
+                "api": "/api/v1",
+            }
+        ),
     }
 
 @app.get("/ready")
