@@ -12,6 +12,7 @@
 - [ТЗ (спецификация)](./SPEC.md) — полные требования, этапы, критерии успеха
 - [Соответствие ТЗ](./SPEC_COMPLIANCE_2026_02_25.md) — актуальный статус реализации
 - [План ~99% готовности](./docs/PLAN_99_READINESS.md) — фазы A–D, регрессия
+- [Чеклист: окружение готово к работе](./docs/WORK_READINESS_CHECKLIST.md) — Docker, миграции, smoke, регрессия
 - [Stripe test checkout (smoke)](./docs/STRIPE_TEST_CHECKOUT.md) — проверка оплаты в test mode
 - [Закрытие разрывов с ТЗ](./docs/TZ_GAPS_REMEDIATION.md) — ML, coverage, RPS, GA, алерты Pro
 - [Карта ТЗ → код](./docs/TZ_TO_CODE_STATUS_MAP.md) — статусы требований и файлов

@@ -52,7 +52,7 @@
 - [x] Пустое состояние `/ratings` (топ) — подсказка + ссылки на каналы/сигналы
 - [x] **AlertSystem / `/alerts`:** явный баннер: данные из API сигналов; push-центр по ТЗ (Pro) — не реализован, ожидания зафиксированы в UI
 - [x] **Stripe:** документ smoke-теста test checkout — [`docs/STRIPE_TEST_CHECKOUT.md`](./STRIPE_TEST_CHECKOUT.md)
-- [x] **E2E:** job `e2e` в [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Playwright в `e2e/`, `continue-on-error: true` из-за возможной флак-природы)
+- [x] **E2E:** job `e2e` в [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Playwright в `e2e/`, `continue-on-error: false` — gate для main)
 
 **Разрывы с формальным ТЗ (ML 87.2%, 80% coverage, 1000 RPS, 99.9%):** пошагово — [`TZ_GAPS_REMEDIATION.md`](./TZ_GAPS_REMEDIATION.md).
 

@@ -18,7 +18,7 @@
 | **p95 &lt; 200 ms** | k6 + API под нагрузкой | ⚠️ частично | В compliance фигурирует оценка без нагрузки; под целевой RPS не подтверждено. |
 | **99.9% uptime** | `docker-compose*`, `helm/`, `monitoring/`, `docs/DISASTER_RECOVERY.md` | ❌ не доказано | Нужны прод/стейджинг и SLO; репо содержит заготовки. |
 | **ML ≥ 87.2%** (out-of-sample, без синтетики) | `ml-service/train_from_db.py`, `ml-service/models/`, `docs/ML_ACCURACY_DISCREPANCY.md`, `docs/ML_DATA_INTEGRITY_ROADMAP.md` | ⚠️ цель не достигнута | Фактические метрики и разрыв с CV — в compliance и ML-доках; закрытие через данные и методику. |
-| **Покрытие тестами &gt; 80%** | `backend/tests/`, `.github/workflows/ci.yml` | ⚠️ далеко от ТЗ | Порог CI: **30%**; отчёт coverage ~29% в compliance — наращивать по `TZ_GAPS_REMEDIATION.md`. |
+| **Покрытие тестами &gt; 80%** | `backend/tests/`, `.github/workflows/ci.yml` | ⚠️ далеко от ТЗ | **Порог CI: 60%** (`--cov-fail-under=60`); цель ТЗ 80% — наращивать по `TZ_GAPS_REMEDIATION.md`. |
 | **OpenAPI** | FastAPI `/docs`, `backend/app/main.py` и роутеры | ✅ | Swagger доступен. |
 | **Stripe** | `backend/app/api/endpoints/payments.py`, webhooks, frontend checkout | ✅ | Боевой режим зависит от секретов и окружения. |
 
@@ -48,7 +48,7 @@
 
 | Подпункт | Где | Статус |
 |----------|-----|--------|
-| **4.1 Интеграционные + E2E** | `backend/tests/`, `e2e/`, `.github/workflows/ci.yml` | ⚠️ | Job `e2e` с `continue-on-error: true` — не блокирует merge. |
+| **4.1 Интеграционные + E2E** | `backend/tests/`, `e2e/`, `.github/workflows/ci.yml` | ⚠️ | Job `e2e` с `continue-on-error: false` — блокирует merge при падении. |
 | **4.2 Нагрузочное** | `scripts/load-test/` | ⚠️ | Нужен зафиксированный отчёт под критерии ТЗ. |
 | **4.3 Безопасность** | `docs/SECURITY_PUBLIC_REPO.md`, `.pre-commit-config.yaml`, job `security` в CI | ⚠️ | Сканирование зависимостей и паттерны; полный pen-test как в ТЗ — отдельный этап. |
 

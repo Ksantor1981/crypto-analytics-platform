@@ -1,4 +1,4 @@
-.PHONY: up down build rebuild logs ps backend-shell db-shell frontend-shell test ml-data-pipeline
+.PHONY: up down build rebuild logs ps backend-shell db-shell frontend-shell test ml-data-pipeline smoke-local
 
 # Docker Compose v2 (Plugin). Старая команда docker-compose (v1) снята с поддержки.
 DOCKER_COMPOSE ?= docker compose
@@ -61,3 +61,7 @@ frontend-dev:
 # Фаза C: свечи → индикаторы → real_signals → train (нужен DATABASE_URL в env)
 ml-data-pipeline:
 	cd backend && python scripts/run_ml_data_pipeline.py
+
+# Smoke API на хосте (backend должен слушать 8000)
+smoke-local:
+	cd backend && python scripts/smoke_real_services.py --base-url http://127.0.0.1:8000
