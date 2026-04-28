@@ -50,7 +50,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
         body: JSON.stringify({
           amount: planPrice * 100, // Stripe expects cents

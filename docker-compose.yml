@@ -17,7 +17,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"  # Настраиваемый порт
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"  # local-only dev DBA access
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -130,6 +130,7 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
       - MODEL_CACHE_ENABLED=${MODEL_CACHE_ENABLED:-true}
       - BACKEND_URL=http://backend:8000
+      - OPENAPI_DOCS_ENABLED=${ML_OPENAPI_DOCS_ENABLED:-true}
     ports:
       - "${ML_SERVICE_PORT:-8001}:8001"
     depends_on:
@@ -182,7 +183,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
       - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
-      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef}
+      - TRADING_ENCRYPTION_KEY=${TRADING_ENCRYPTION_KEY:?Set TRADING_ENCRYPTION_KEY in .env}
     depends_on:
       postgres:
         condition: service_healthy
@@ -287,9 +288,8 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.enable-lifecycle'
     ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
     networks:
       - crypto_analytics_network
     restart: unless-stopped
@@ -301,7 +301,7 @@ services:
     container_name: crypto-analytics-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-grafana_admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env for monitoring profile}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3001}
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
@@ -310,7 +310,7 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana-dashboards:/var/lib/grafana/dashboards:ro
     ports:
-      - "${GRAFANA_PORT:-3001}:3000"
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
     depends_on:
       - prometheus
     networks:

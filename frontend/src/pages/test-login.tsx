@@ -21,7 +21,9 @@ export default function TestLoginPage() {
       <div className="flex min-h-screen items-center justify-center bg-gray-900 text-gray-100">
         <div className="text-center">
           <h1 className="text-2xl font-semibold">404</h1>
-          <p className="mt-2 text-gray-400">This page is not available in production.</p>
+          <p className="mt-2 text-gray-400">
+            This page is not available in production.
+          </p>
         </div>
       </div>
     );

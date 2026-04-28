@@ -13,7 +13,6 @@ export interface TableProps<TData> {
 }
 
 export function Table<TData>({ data, columns }: TableProps<TData>) {
-  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table
   const table = useReactTable<TData>({
     data,
     columns,

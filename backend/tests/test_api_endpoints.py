@@ -36,8 +36,14 @@ class TestChannelsAPI:
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
-    def test_get_channels_dashboard(self, client):
+    def test_get_channels_dashboard_requires_auth(self, client):
         r = client.get("/api/v1/channels/dashboard/")
+        assert r.status_code in (401, 403)
+
+    def test_get_channels_dashboard_with_auth(self, client, auth_headers):
+        if not auth_headers:
+            pytest.skip("Auth not available")
+        r = client.get("/api/v1/channels/dashboard/", headers=auth_headers)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
@@ -120,7 +126,7 @@ class TestSignalsAPI:
 
     def test_get_signals_stats_channel(self, client):
         r = client.get("/api/v1/signals/stats/channel/1")
-        assert r.status_code in (200, 404)
+        assert r.status_code in (401, 403)
 
 
 class TestSubscriptionsAPI:
@@ -140,6 +146,14 @@ class TestCollectAPI:
     def test_recalculate_requires_auth(self, client):
         r = client.post("/api/v1/collect/recalculate-metrics")
         assert r.status_code in (401, 403, 422)
+
+    def test_ocr_parse_requires_auth(self, client):
+        """Regression: OCR URL parsing must not be public (SSRF/DoS risk)."""
+        r = client.post(
+            "/api/v1/collect/ocr-parse",
+            params={"image_url": "https://example.com/image.png"},
+        )
+        assert r.status_code in (401, 403)
 
     def test_telethon_status(self, client):
         r = client.get("/api/v1/collect/telethon-status")
@@ -205,6 +219,28 @@ class TestDashboardAPI:
         r = client.get("/api/v1/dashboard/signals?skip=0&limit=10", headers=auth_headers)
         assert r.status_code == 200
         assert len(r.json()) <= 10
+
+    def test_legacy_test_signals_requires_admin_auth(self, client):
+        """Regression: direct /test-signals endpoint must not leak signals."""
+        r = client.get("/api/v1/test-signals")
+        assert r.status_code in (401, 403)
+
+    def test_predictions_test_requires_admin_auth(self, client):
+        """Regression: ML test proxy must not be callable anonymously."""
+        r = client.post("/api/v1/predictions/test")
+        assert r.status_code in (401, 403)
+
+    def test_shadow_ab_report_requires_admin_auth(self, client):
+        """A/B legacy↔canonical report is an admin-only readiness surface."""
+        r = client.get("/api/v1/admin/shadow/ab-report")
+        assert r.status_code in (401, 403)
+
+    def test_user_source_mutations_require_auth(self, client):
+        """Regression: user source reanalyze/remove must not be anonymous."""
+        r1 = client.post("/api/v1/reanalyze/999999")
+        r2 = client.delete("/api/v1/remove/999999")
+        assert r1.status_code in (401, 403)
+        assert r2.status_code in (401, 403)
 
 
 class TestExportSignalsAPI:

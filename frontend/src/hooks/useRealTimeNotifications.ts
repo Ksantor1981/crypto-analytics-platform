@@ -145,7 +145,7 @@ export function useRealTimeNotifications() {
       const wsUrl =
         process.env.NEXT_PUBLIC_WS_URL ||
         'ws://localhost:8000/ws/notifications';
-      const token = localStorage.getItem('auth_token'); // JWT token for authentication
+      const token = localStorage.getItem('access_token'); // JWT token for authentication
 
       wsRef.current = new WebSocket(`${wsUrl}?token=${token}`);
 
@@ -200,7 +200,7 @@ export function useRealTimeNotifications() {
       try {
         const response = await fetch('/api/notifications/poll', {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           },
         });
 
@@ -254,7 +254,7 @@ export function useRealTimeNotifications() {
     try {
       const response = await fetch('/api/notifications/check', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
 

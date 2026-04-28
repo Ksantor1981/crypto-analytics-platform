@@ -1,4 +1,4 @@
-.PHONY: up down build rebuild logs ps backend-shell db-shell frontend-shell test ml-data-pipeline smoke-local
+.PHONY: up down build rebuild logs ps backend-shell db-shell frontend-shell test ml-data-pipeline smoke-local k6-smoke k6-staging k6-stress
 
 # Docker Compose v2 (Plugin). Старая команда docker-compose (v1) снята с поддержки.
 DOCKER_COMPOSE ?= docker compose
@@ -65,3 +65,13 @@ ml-data-pipeline:
 # Smoke API на хосте (backend должен слушать 8000)
 smoke-local:
 	cd backend && python scripts/smoke_real_services.py --base-url http://127.0.0.1:8000
+
+# k6 smoke/staging proof. Override BASE_URL/TARGET_RPS/DURATION as needed.
+k6-smoke:
+	k6 run --vus 10 --duration 30s scripts/load-test/k6-load.js
+
+k6-staging:
+	k6 run scripts/load-test/k6-staging-proof.js
+
+k6-stress:
+	k6 run scripts/load-test/k6-stress.js

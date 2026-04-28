@@ -233,8 +233,13 @@ async def collect_reddit(
 @router.post("/ocr-parse")
 async def ocr_parse_signal(
     image_url: str,
+    current_user: User = Depends(require_premium),
 ):
-    """Extract trading signal from image URL via OCR."""
+    """Extract trading signal from image URL via OCR (premium-only).
+
+    This endpoint downloads user-provided URLs, so it must not be public.
+    `parse_signal_from_image_url` also blocks localhost/private network URLs.
+    """
     sig = await parse_signal_from_image_url(image_url)
     if sig:
         return {

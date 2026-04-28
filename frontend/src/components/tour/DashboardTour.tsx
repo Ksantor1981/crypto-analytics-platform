@@ -1,5 +1,6 @@
 import React from 'react';
-import Joyride, { Step, CallBackProps } from 'react-joyride';
+import { Joyride } from 'react-joyride';
+import type { EventData, Step } from 'react-joyride';
 
 interface DashboardTourProps {
   run: boolean;
@@ -39,7 +40,7 @@ const DashboardTour: React.FC<DashboardTourProps> = ({ run, setRun }) => {
     },
   ];
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
+  const handleJoyrideEvent = (data: EventData) => {
     const { status } = data;
     const finishedStatuses: string[] = ['finished', 'skipped'];
 
@@ -55,24 +56,13 @@ const DashboardTour: React.FC<DashboardTourProps> = ({ run, setRun }) => {
       steps={steps}
       run={run}
       continuous
-      showProgress
-      showSkipButton
-      callback={handleJoyrideCallback}
+      onEvent={handleJoyrideEvent}
       locale={{
         back: 'Назад',
         close: 'Закрыть',
         last: 'Завершить',
         next: 'Далее',
         skip: 'Пропустить',
-      }}
-      styles={{
-        options: {
-          arrowColor: '#fff',
-          backgroundColor: '#fff',
-          primaryColor: '#007bff',
-          textColor: '#333',
-          zIndex: 1000,
-        },
       }}
     />
   );

@@ -8,9 +8,12 @@ import httpx
 import os
 import time
 import asyncio
+import ipaddress
+import socket
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Optional, Dict, List, Any
+from urllib.parse import urlparse
 from app.services.telegram_scraper import ParsedSignal, parse_signal_from_text
 
 logger = logging.getLogger(__name__)
@@ -260,6 +263,42 @@ async def _get_http_client() -> httpx.AsyncClient:
         return _http_client
 
 
+def _is_safe_public_image_url(image_url: str) -> bool:
+    """Reject localhost/private-network URLs before OCR download.
+
+    The OCR endpoint accepts user-controlled URLs. Without this guard it can be
+    abused as SSRF against metadata services, localhost, Docker networks, etc.
+    """
+    try:
+        parsed = urlparse(image_url)
+        if parsed.scheme not in {"http", "https"}:
+            return False
+        host = parsed.hostname
+        if not host:
+            return False
+        if host.lower() in {"localhost", "localhost.localdomain"}:
+            return False
+
+        addresses = {item[4][0] for item in socket.getaddrinfo(host, None)}
+        if not addresses:
+            return False
+        for address in addresses:
+            ip = ipaddress.ip_address(address)
+            if (
+                ip.is_private
+                or ip.is_loopback
+                or ip.is_link_local
+                or ip.is_multicast
+                or ip.is_reserved
+                or ip.is_unspecified
+            ):
+                return False
+        return True
+    except Exception as e:
+        logger.warning("OCR URL rejected by SSRF guard: %s (%s)", image_url, e)
+        return False
+
+
 async def _run_singleflight(image_url: str, coro):
     """
     Ensure only one OCR/download per URL concurrently.
@@ -285,6 +324,10 @@ async def _run_singleflight(image_url: str, coro):
 
 async def extract_text_from_url(image_url: str) -> str:
     """Download image and extract text."""
+    if not _is_safe_public_image_url(image_url):
+        logger.warning("OCR URL blocked by SSRF guard: %s", image_url)
+        return ""
+
     cached = await _cache_get(image_url)
     if cached is not None:
         logger.debug("OCR cache hit for url=%s len=%s", image_url, len(cached))

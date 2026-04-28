@@ -206,9 +206,10 @@ def discover_channels(
 def get_channels_dashboard(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user),
 ):
-    """Get channels without complex JOIN - simple version for dashboard. Must be before /{channel_id}."""
+    """Get channel dashboard data (authenticated-only). Must be before /{channel_id}."""
     query = db.query(Channel)
     total = query.count()
     channels = query.order_by(Channel.created_at.desc()).offset(skip).limit(limit).all()
@@ -303,9 +304,13 @@ def get_channel_signals(
 
 
 @router.get("/{channel_id}/statistics")
-def get_channel_statistics(channel_id: int, db: Session = Depends(get_db)):
+def get_channel_statistics(
+    channel_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user),
+):
     """
-    Get detailed statistics for a specific channel.
+    Get detailed statistics for a specific channel (authenticated-only).
     """
     from app.services.signal_service import SignalService
     from app.schemas.signal import SignalFilterParams

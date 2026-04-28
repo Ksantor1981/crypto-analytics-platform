@@ -28,7 +28,6 @@ export function LanguageProvider({
   // После гидрации читаем localStorage / navigator (на SSR всегда 'ru').
   useEffect(() => {
     const detectedLang = detectLanguage();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- синхронизация с браузером после mount
     setLanguageState(detectedLang);
     localStorage.setItem('language', detectedLang);
   }, []);

@@ -222,8 +222,9 @@ def get_general_stats(db: Session = Depends(get_db)):
 def get_channel_stats(
     channel_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_premium),
 ):
-    """Get signal statistics for a specific channel."""
+    """Get signal statistics for a specific channel (premium-only)."""
     signal_service = SignalService(db)
     stats = signal_service.get_channel_stats(channel_id=channel_id)
     if not stats:

@@ -1,6 +1,6 @@
 # FastAPI main application
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -90,11 +90,27 @@ except ImportError:
 
 settings = get_settings()
 trading_scheduler = None
+try:
+    from app.core.auth import require_admin
+except ImportError:
+    from core.auth import require_admin
+
+
+def _assert_production_secret_key() -> None:
+    """Fail fast if production starts without a real JWT secret."""
+    env = (getattr(settings, "ENVIRONMENT", "development") or "development").lower()
+    secret = (getattr(settings, "SECRET_KEY", "") or "").strip()
+    if env == "production" and len(secret) < 32:
+        raise RuntimeError("SECRET_KEY must be set to at least 32 characters in production")
+
+
+_assert_production_secret_key()
 
 # OpenAPI UI: в проде можно отключить через OPENAPI_DOCS_ENABLED=false
 _OPENAPI_DOCS = bool(getattr(settings, "OPENAPI_DOCS_ENABLED", True))
 _OPENAPI_DOCS_URL = "/docs" if _OPENAPI_DOCS else None
 _OPENAPI_REDOC_URL = "/redoc" if _OPENAPI_DOCS else None
+_OPENAPI_JSON_URL = "/openapi.json" if _OPENAPI_DOCS else None
 
 
 def _scheduler_mode() -> str:
@@ -270,18 +286,22 @@ async def lifespan(app: FastAPI):
         else:
             logger.warning("Database engine not available - running in limited mode")
 
-        # Запускаем планировщик торговли (если доступен)
-        if TradingScheduler:
+        mode = _scheduler_mode()
+
+        # Запускаем in-process планировщики только в asyncio mode.
+        # В celery mode API-процесс не должен дублировать Celery beat/worker.
+        if mode == "asyncio" and TradingScheduler:
             try:
                 trading_scheduler = TradingScheduler()
                 trading_scheduler.start()
                 logger.info("Trading scheduler started")
             except Exception as scheduler_error:
                 logger.error(f"Trading scheduler failed to start: {scheduler_error}")
-        else:
+        elif mode == "asyncio":
             logger.warning("Trading scheduler not available")
+        else:
+            logger.info("Trading scheduler disabled (SCHEDULER_MODE=%s)", mode)
 
-        mode = _scheduler_mode()
         if mode == "asyncio":
             # Auto-collect signals from Telegram channels on startup
             import asyncio
@@ -385,6 +405,7 @@ app = FastAPI(
     description="Crypto Analytics Platform API - Advanced crypto signals analysis with ML",
     docs_url=_OPENAPI_DOCS_URL,
     redoc_url=_OPENAPI_REDOC_URL,
+    openapi_url=_OPENAPI_JSON_URL,
     lifespan=lifespan,
     debug=getattr(settings, 'DEBUG', False),
     redirect_slashes=False,
@@ -731,8 +752,8 @@ async def test_simple():
 
 # Простой эндпоинт для дашборда
 @app.get("/api/v1/test-signals")
-async def test_signals():
-    """Простой эндпоинт для получения сигналов для дашборда"""
+async def test_signals(_: object = Depends(require_admin)):
+    """DEV/admin-only endpoint for manually inspecting recent signals."""
     try:
         from sqlalchemy.orm import Session
         from app.core.database import get_db
@@ -770,8 +791,8 @@ async def test_signals():
         return {"error": str(e), "message": "Failed to get signals"}
 
 @app.get("/api/v1/dashboard/channels")
-async def dashboard_channels():
-    """Простой эндпоинт для получения каналов для дашборда"""
+async def dashboard_channels(_: object = Depends(require_admin)):
+    """DEV/admin-only fallback endpoint for manually inspecting channels."""
     try:
         from sqlalchemy.orm import Session
         from app.core.database import get_db
@@ -810,8 +831,8 @@ async def dashboard_channels():
         return {"error": str(e), "message": "Failed to get channels"}
 
 @app.post("/api/v1/predictions/test")
-async def test_prediction():
-    """Прокси к ML-сервису; без фейковых ответов при недоступности."""
+async def test_prediction(_: object = Depends(require_admin)):
+    """DEV/admin-only proxy to ML service; no fake fallback."""
     import httpx
 
     url = f"{settings.ML_SERVICE_URL.rstrip('/')}/api/v1/predictions/ml-predict"

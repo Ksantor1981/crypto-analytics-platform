@@ -22,12 +22,9 @@ ENV PYTHONPATH="${PYTHONPATH}:/app"
 # Create logs directory
 RUN mkdir -p /app/logs
 
-# Expose port (if needed for monitoring)
-EXPOSE 8000
-
-# Health check
+# Health check for Celery worker (not an HTTP service)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+    CMD celery -A tasks inspect ping --timeout=5 || exit 1
 
 # Default command
 CMD ["celery", "-A", "tasks", "worker", "--loglevel=info"] 

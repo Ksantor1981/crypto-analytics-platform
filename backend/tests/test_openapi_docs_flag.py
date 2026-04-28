@@ -37,15 +37,14 @@ def test_openapi_docs_enabled_default_true(monkeypatch: pytest.MonkeyPatch):
 
 
 def test_openapi_docs_disabled_returns_404(monkeypatch: pytest.MonkeyPatch):
-    """Прод-режим: /docs и /redoc недоступны при OPENAPI_DOCS_ENABLED=false."""
+    """Прод-режим: /docs, /redoc и /openapi.json недоступны при флаге false."""
     _set_minimal_env(monkeypatch)
     monkeypatch.setenv("OPENAPI_DOCS_ENABLED", "false")
     app = _reload_app()
     with TestClient(app) as client:
         assert client.get("/docs").status_code == 404
         assert client.get("/redoc").status_code == 404
-        # /openapi.json — отдельный эндпоинт FastAPI, проверим что в нём нет Swagger UI.
-        # FastAPI всё равно отдаёт openapi.json; для полной защиты — закрыть на уровне reverse proxy.
+        assert client.get("/openapi.json").status_code == 404
 
         # Корневой "/" не должен светить ссылку на docs
         root = client.get("/").json()

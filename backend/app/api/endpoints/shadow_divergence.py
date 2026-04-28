@@ -14,7 +14,7 @@ from app.core.metrics import (
     SHADOW_LEGACY_DIVERGENCE_SCORE,
 )
 from app.models.user import User
-from app.services.shadow_divergence import build_divergence_report
+from app.services.shadow_divergence import build_ab_report, build_divergence_report
 
 router = APIRouter()
 
@@ -30,6 +30,27 @@ def get_divergence_report(
     Обновляет Prometheus-гистограмму `shadow_legacy_divergence_score`.
     """
     report = build_divergence_report(db, limit=limit)
+    SHADOW_LEGACY_DIVERGENCE_REPORTS.inc()
+    for s in report.get("samples") or []:
+        if "match_score" in s and "error" not in s:
+            sc = float(s["match_score"])
+            SHADOW_LEGACY_DIVERGENCE_SCORE.observe(sc)
+            if sc < 0.5:
+                SHADOW_LEGACY_DIVERGENCE_LOW.inc()
+    return report
+
+
+@router.get("/ab-report")
+def get_ab_report(
+    limit: int = Query(100, ge=1, le=500),
+    min_sample_size: int = Query(100, ge=1, le=10000),
+    _: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    A/B dashboard legacy↔canonical: readiness, buckets и примеры расхождений.
+    """
+    report = build_ab_report(db, limit=limit, min_sample_size=min_sample_size)
     SHADOW_LEGACY_DIVERGENCE_REPORTS.inc()
     for s in report.get("samples") or []:
         if "match_score" in s and "error" not in s:

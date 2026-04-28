@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta
 from ...core.database import get_db
 from ...core.auth import get_current_active_user, require_admin
 from ...models.channel import Channel
-from ...models.user import User
+from ...models.user import User, UserRole
 from ...models.signal import Signal
 from ...models.performance_metric import PerformanceMetric
 try:
@@ -599,13 +599,16 @@ async def get_user_sources(
 @router.post("/reanalyze/{channel_id}")
 async def reanalyze_source(
     channel_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Повторно анализирует источник"""
     try:
         channel = db.query(Channel).filter(Channel.id == channel_id).first()
         if not channel:
             raise HTTPException(status_code=404, detail="Источник не найден")
+        if channel.owner_id != current_user.id and current_user.role != UserRole.ADMIN:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
         
         # Строим URL для анализа
         if channel.platform == "telegram":
@@ -635,6 +638,8 @@ async def reanalyze_source(
             "recommendation": get_quality_recommendation(analysis_result)
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Ошибка повторного анализа: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -642,13 +647,16 @@ async def reanalyze_source(
 @router.delete("/remove/{channel_id}")
 async def remove_user_source(
     channel_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Удаляет пользовательский источник"""
     try:
         channel = db.query(Channel).filter(Channel.id == channel_id).first()
         if not channel:
             raise HTTPException(status_code=404, detail="Источник не найден")
+        if channel.owner_id != current_user.id and current_user.role != UserRole.ADMIN:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
         
         channel_name = channel.name
         db.delete(channel)
@@ -659,6 +667,8 @@ async def remove_user_source(
             "message": f"Источник '{channel_name}' удален"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Ошибка удаления источника: {e}")
         db.rollback()

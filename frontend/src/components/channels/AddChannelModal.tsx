@@ -153,7 +153,6 @@ export const AddChannelModal: React.FC<AddChannelModalProps> = ({
   });
 
   // react-hook-form: watch() намеренно не мемоизируется
-  // eslint-disable-next-line react-hooks/incompatible-library -- RHF watch()
   const watchedType = watch('type');
 
   // Reset form when modal opens or closes

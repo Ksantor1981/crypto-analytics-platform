@@ -280,7 +280,7 @@ pytest -q
 | F10 | 🟠 MED | DB seed | `execution_models` пустая в свежей БД, фаза 10 канона не работала «из коробки» | ✅ закрыто: `_seed_execution_models(engine)` в lifespan startup; live-проверено: `GET /admin/execution-models/` отдаёт 3 модели (`market_on_publish, first_touch_limit, midpoint_entry`) |
 | F11 | 🟠 MED | FastAPI redirect_slashes | потеря Bearer header на 307 redirect | ✅ закрыто: `redirect_slashes=False` в `FastAPI(...)`; `/admin/execution-models` без `/` теперь честный 404 без потери Bearer |
 | F12 | 🟠 MED (после ревизии) | `backend/app/api/endpoints/signals.py:213` | `POST /signals/telegram/webhook` без auth — любой мог писать сигналы в БД | ✅ закрыто: `Depends(verify_integration_token)` + новый `TELEGRAM_INTEGRATION_TOKEN` (без него — 503), `secrets.compare_digest`; `POST /signals/` теперь требует `require_admin` (обычные юзеры не публикуют). 2 регрессионных теста |
-| F13 | 🟡 LOW | `backend/app/services/exchange_service.py` | Bybit/Binance клиенты были «simulated» с честным `INFO`-логом — но возвращали успех, в проде это вводило бы в заблуждение | ✅ закрыто как paper-mode by design: `EXCHANGE_PAPER_MODE=true` (default) → ответы помечены `mode: "paper"`, `order_id: "paper_*"`, лог уровня WARNING; `EXCHANGE_LIVE_TRADING_ENABLED=true` без реальной реализации → `NotImplementedError` (fail-loud). Live-trading зафиксирован как post-MVP |
+| F13 | 🟡 LOW | `backend/app/services/exchange_service.py` | Bybit/Binance клиенты были «simulated» с честным `INFO`-логом — но возвращали успех, в проде это вводило бы в заблуждение | ✅ закрыто: `EXCHANGE_PAPER_MODE=true` (default) → ответы помечены `mode: "paper"`, `order_id: "paper_*"`, лог WARNING; live HTTP-клиенты включаются только при `EXCHANGE_LIVE_TRADING_ENABLED=true` + `EXCHANGE_PAPER_MODE=false` и покрыты transport-level тестами без реальных ключей |
 | F14 | 🟢 OK | `STRIPE_MOCK_MODE`, `TELETHON_AVAILABLE` fallback, `/demo` | контролируемые mocks под флагом | — |
 
 ## Верификация (live, после исправлений)
@@ -319,7 +319,7 @@ pytest -q
 
 ### Спринт 3 (вне scope аудита, но из ТЗ)
 
-10. Bybit/Binance — реальные HTTP-клиенты под флагом `EXCHANGE_LIVE_TRADING_ENABLED=true` (сейчас сервис fail-loud), включая testnet sandbox для CI (F13 → post-MVP).
+10. Bybit/Binance — live HTTP-клиенты добавлены под флагами; следующий шаг — testnet sandbox smoke в CI без реальных прод-ключей.
 11. Association engine auto-link (фаза 7 канона).
 12. A/B dashboard legacy ↔ canonical (фаза 12).
 13. Coverage с 60% → 80% по ТЗ.

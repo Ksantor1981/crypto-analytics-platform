@@ -36,5 +36,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Команда запуска: Alembic + uvicorn (USE_ALEMBIC=true в production)
-CMD alembic upgrade head 2>/dev/null || true && uvicorn app.main:app --host 0.0.0.0 --port 8000
+# Команда запуска: Alembic + uvicorn.
+# Fail-fast: если миграции не применились, контейнер не должен стартовать
+# с несовместимой схемой БД.
+CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000

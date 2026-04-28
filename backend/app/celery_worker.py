@@ -48,7 +48,6 @@ celery_app.conf.timezone = "UTC"
 @celery_app.task(name="app.celery_worker.collect_all_signals")
 def collect_all_signals():
     """Celery task: collect signals from all Telegram channels."""
-    os.environ.setdefault("USE_SQLITE", "true")
     if not os.getenv("SECRET_KEY"):
         raise RuntimeError("SECRET_KEY must be set for Celery tasks (see env.example)")
 
@@ -91,7 +90,6 @@ def collect_all_signals():
 @celery_app.task(name="app.celery_worker.collect_telethon_all_channels")
 def collect_telethon_all_channels():
     """Celery: Telethon deep collect по всем активным Telegram-каналам (shadow + legacy)."""
-    os.environ.setdefault("USE_SQLITE", "true")
     if not os.getenv("SECRET_KEY"):
         raise RuntimeError("SECRET_KEY must be set for Celery tasks (see env.example)")
 
@@ -146,7 +144,6 @@ def collect_telethon_all_channels():
 @celery_app.task(name="app.celery_worker.recalculate_canonical_signal_outcomes")
 def recalculate_canonical_signal_outcomes():
     """Пересчёт PENDING signal_outcomes по свечам (канонический контур)."""
-    os.environ.setdefault("USE_SQLITE", "true")
     if not os.getenv("SECRET_KEY"):
         raise RuntimeError("SECRET_KEY must be set for Celery tasks (see env.example)")
 
@@ -193,7 +190,6 @@ def recalculate_canonical_signal_outcomes():
 @celery_app.task(name="app.celery_worker.check_signal_outcomes")
 def check_signal_outcomes():
     """Celery task: check pending signals against market prices."""
-    os.environ.setdefault("USE_SQLITE", "true")
     if not os.getenv("SECRET_KEY"):
         raise RuntimeError("SECRET_KEY must be set for Celery tasks (see env.example)")
 

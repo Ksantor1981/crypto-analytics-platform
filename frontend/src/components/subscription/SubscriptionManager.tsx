@@ -50,7 +50,7 @@ export const SubscriptionManager: React.FC = () => {
       // Получаем данные подписки
       const subResponse = await fetch('/api/subscriptions/me', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
 
@@ -62,7 +62,7 @@ export const SubscriptionManager: React.FC = () => {
       // Получаем историю платежей
       const invoicesResponse = await fetch('/api/payments/me', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
 
@@ -91,7 +91,7 @@ export const SubscriptionManager: React.FC = () => {
       const response = await fetch('/api/subscriptions/me/cancel', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -124,7 +124,7 @@ export const SubscriptionManager: React.FC = () => {
       const response = await fetch('/api/subscriptions/me/reactivate', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
 

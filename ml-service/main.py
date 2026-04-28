@@ -17,13 +17,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+_OPENAPI_DOCS_ENABLED = os.getenv("OPENAPI_DOCS_ENABLED", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
 # Create FastAPI app
 app = FastAPI(
     title="Crypto Analytics ML Service",
     description="Machine Learning service for crypto signal analysis and predictions",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    docs_url="/docs" if _OPENAPI_DOCS_ENABLED else None,
+    redoc_url="/redoc" if _OPENAPI_DOCS_ENABLED else None,
+    openapi_url="/openapi.json" if _OPENAPI_DOCS_ENABLED else None,
 )
 
 # Configure CORS

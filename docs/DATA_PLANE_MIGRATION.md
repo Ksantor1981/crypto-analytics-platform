@@ -52,7 +52,7 @@ Legacy parser → Signal (текущая модель) → текущие мет
 | 10 | Execution models | 5–7 d | **In progress (v0)** — таблица `execution_models`, сид 3 моделей (`MARKET_OUTCOME_POLICY` §6), admin read-only API `GET /api/v1/admin/execution-models`; связка со строками `signal_outcomes` — фаза 11 |
 | 11 | Market outcome engine + `signal_outcomes` | 6–10 d | **In progress (v0)** — таблица `signal_outcomes` (Alembic `m7b8c9d0e1f2`), уникальность (normalized, execution_model), admin `GET/POST ensure`, сервис слотов `PENDING`; расчёт по свечам **v0.2** (multi-TP из `extracted_fields`, `OUTCOME_MOP_REFERENCE`, `OUTCOME_INTRABAR_SL_BEFORE_TP`, `OUTCOME_RECALC_*`, `POST .../recalculate`, `process-pending-recalc`, Celery hourly) |
 | 12 | Новый scoring контур | 5–8 d | Planned |
-| 13 | A/B legacy vs new | 3–5 d | Planned |
+| 13 | A/B legacy vs new | 3–5 d | **In progress (v0)** — admin `GET /api/v1/admin/shadow/ab-report`: readiness, buckets, counts, samples; пока без UI-графика и без автоматического switch-over |
 | 14 | ML на canonical данных | 1–2 wk | Planned |
 | 15 | Prod hardening (секреты, сеть compose, k6, алерты) | параллельно | Частично (см. `PROD_REMEDIATION_PLAN`, CI 60%, E2E gate) |
 
@@ -68,6 +68,7 @@ Legacy parser → Signal (текущая модель) → текущие мет
 8. [x] Таблица `review_labels` + **admin** API + UI Review Console (`/admin/review`).
 9. [x] Каталог **`execution_models`** (Alembic `l6f7a8b9c0d1`) + сид `market_on_publish` / `first_touch_limit` / `midpoint_entry` + **admin** `GET /api/v1/admin/execution-models` (и `/by-key/{model_key}`).
 10. [x] **`signal_outcomes`** (`m7b8c9d0e1f2`) + `ensure_pending_outcomes_for_normalized` + admin `GET/PATCH /api/v1/admin/signal-outcomes`, `POST .../ensure/{id}`, `POST .../ensure-for-raw-event/{raw_event_id}`, `POST .../{id}/stub-recalculate`; Review карточка отдаёт `signal_outcomes`; опционально `OUTCOME_SLOTS_AUTO_ENSURE` при materialize; опционально `OUTCOME_SLOTS_AUTO_ENSURE_ON_REVIEW_DETAIL` при `GET` карточки review.
+11. [x] A/B readiness report legacy↔canonical: `GET /api/v1/admin/shadow/ab-report` (admin-only), `strong_match / partial_match / divergent / missing_legacy`, sample gate, recommendation.
 
 ## Критерии switch-over (все обязательны)
 

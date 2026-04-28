@@ -133,3 +133,78 @@ def build_divergence_report(
         "mean_match_score": round(mean_score, 4) if mean_score is not None else None,
         "samples": samples,
     }
+
+
+def _classify_sample(sample: dict[str, Any]) -> str:
+    if sample.get("error") == "legacy_signal_not_found":
+        return "missing_legacy"
+    score = float(sample.get("match_score") or 0.0)
+    if score >= 0.9:
+        return "strong_match"
+    if score >= 0.5:
+        return "partial_match"
+    return "divergent"
+
+
+def build_ab_report(
+    db: Session,
+    *,
+    limit: int = 100,
+    min_sample_size: int = 100,
+    go_threshold: float = 0.9,
+    block_threshold: float = 0.5,
+) -> dict[str, Any]:
+    """
+    A/B отчёт legacy↔canonical для dashboard/readiness.
+
+    Это не делает canonical источником истины автоматически. Отчёт отвечает на
+    вопрос: достаточно ли совпадает канонический слой с legacy, чтобы идти к
+    review/switch-over, или нужно разбирать расхождения.
+    """
+    divergence = build_divergence_report(db, limit=limit)
+    samples = divergence.get("samples") or []
+    buckets = {
+        "strong_match": 0,
+        "partial_match": 0,
+        "divergent": 0,
+        "missing_legacy": 0,
+    }
+
+    for sample in samples:
+        buckets[_classify_sample(sample)] += 1
+
+    sample_size = int(divergence.get("sample_size") or 0)
+    mean_score = divergence.get("mean_match_score")
+    legacy_count = db.query(Signal).count()
+    canonical_count = db.query(NormalizedSignal).count()
+    linked_canonical_count = (
+        db.query(NormalizedSignal)
+        .filter(NormalizedSignal.legacy_signal_id.isnot(None))
+        .count()
+    )
+
+    if sample_size < min_sample_size:
+        readiness = "insufficient_sample"
+        recommendation = "continue_shadow_collection"
+    elif mean_score is not None and mean_score >= go_threshold and buckets["divergent"] == 0:
+        readiness = "ready_for_review"
+        recommendation = "review_switch_over_candidates"
+    elif mean_score is not None and mean_score < block_threshold:
+        readiness = "blocked"
+        recommendation = "investigate_extraction_or_mapping"
+    else:
+        readiness = "needs_review"
+        recommendation = "send_divergent_samples_to_review_queue"
+
+    return {
+        "readiness": readiness,
+        "recommendation": recommendation,
+        "sample_size": sample_size,
+        "min_sample_size": min_sample_size,
+        "mean_match_score": mean_score,
+        "legacy_count": legacy_count,
+        "canonical_count": canonical_count,
+        "linked_canonical_count": linked_canonical_count,
+        "buckets": buckets,
+        "samples": samples,
+    }

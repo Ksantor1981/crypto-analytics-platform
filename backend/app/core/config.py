@@ -118,14 +118,15 @@ class Settings(BaseSettings):
     # При False — не вызывать _seed_demo_data при старте (Docker / только реальные каналы из БД)
     AUTO_SEED_DEMO_CHANNELS: bool = True
 
-    # Exchange (Bybit/Binance) — paper trading mode.
-    # MVP запущен в paper-режиме: ExchangeService симулирует ордера и не отправляет
-    # реальных запросов в биржу. Все ответы помечены `mode: "paper"`,
-    # `order_id` имеет префикс `paper_`, в логах WARNING.
-    # Для включения live-trading требуется явный `EXCHANGE_LIVE_TRADING_ENABLED=true`
-    # И реализация реальных HTTP-вызовов в ExchangeService — пока сервис fail-loud.
+    # Exchange (Bybit/Binance). По умолчанию безопасный paper-mode.
+    # Live HTTP-запросы включаются только явной парой флагов:
+    # EXCHANGE_LIVE_TRADING_ENABLED=true и EXCHANGE_PAPER_MODE=false.
     EXCHANGE_PAPER_MODE: bool = True
     EXCHANGE_LIVE_TRADING_ENABLED: bool = False
+    EXCHANGE_HTTP_TIMEOUT_SECONDS: int = 10
+    EXCHANGE_RECV_WINDOW_MS: int = 5000
+    EXCHANGE_BINANCE_BASE_URL: str = "https://api.binance.com"
+    EXCHANGE_BYBIT_BASE_URL: str = "https://api.bybit.com"
 
     # Канонический data plane: dual-write raw_events + message_versions (см. docs/DATA_PLANE_MIGRATION.md)
     SHADOW_PIPELINE_ENABLED: bool = False

@@ -5,6 +5,22 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      staging_url:
+        description: 'Staging/API base URL for k6 proof (for example https://staging.example.com)'
+        required: false
+        type: string
+      target_rps:
+        description: 'Target requests per second for k6 staging proof'
+        required: false
+        default: '100'
+        type: string
+      duration:
+        description: 'k6 duration'
+        required: false
+        default: '2m'
+        type: string
 
 jobs:
   backend-tests:
@@ -53,7 +69,7 @@ jobs:
       - name: Unit tests
         run: npm test
       - name: Lint
-        run: npx next lint --max-warnings 0
+        run: npm run lint
       - name: Build
         run: npx next build
 
@@ -139,3 +155,31 @@ jobs:
           (cd frontend && npm run start) &
           for i in 1 2 3 4 5 6 7 8 9 10; do sleep 3; curl -sf http://localhost:3000 >/dev/null && break; done
           cd e2e && npx playwright install chromium && npx playwright test --reporter=list
+
+  k6-staging-proof:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.staging_url != ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install k6
+        run: |
+          sudo gpg -k || true
+          curl -s https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+      - name: Run k6 staging proof
+        env:
+          BASE_URL: ${{ github.event.inputs.staging_url }}
+          TARGET_RPS: ${{ github.event.inputs.target_rps }}
+          DURATION: ${{ github.event.inputs.duration }}
+          K6_SUMMARY_DIR: load-test-artifacts
+        run: |
+          mkdir -p load-test-artifacts
+          k6 run scripts/load-test/k6-staging-proof.js
+      - name: Upload k6 summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-staging-proof
+          path: load-test-artifacts/
