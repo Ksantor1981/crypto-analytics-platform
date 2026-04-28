@@ -1,13 +1,16 @@
+import logging
 from typing import List
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
 from app.core.auth import get_current_active_user
-from app.models.user import User
-from app.models.signal import Signal
+from app.core.database import get_db
 from app.models.channel import Channel
+from app.models.signal import Signal
+from app.models.user import User
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.get("/signals", response_model=List[dict])
@@ -24,7 +27,7 @@ def get_signals_dashboard(
         if cached is not None:
             return cached
     except Exception:
-        pass
+        logger.warning("dashboard.signals: cache lookup failed; falling back to DB", exc_info=True)
     query = db.query(Signal)
     
     # Get total count
@@ -60,7 +63,7 @@ def get_signals_dashboard(
         from app.core.redis_cache import cache_set, key_dashboard_signals, CACHE_TTL_ANALYTICS
         cache_set(key_dashboard_signals(skip, limit), result, CACHE_TTL_ANALYTICS)
     except Exception:
-        pass
+        logger.warning("dashboard.signals: cache write failed", exc_info=True)
     return result
 
 @router.get("/channels", response_model=List[dict])
@@ -77,7 +80,7 @@ def get_channels_dashboard(
         if cached is not None:
             return cached
     except Exception:
-        pass
+        logger.warning("dashboard.channels: cache lookup failed; falling back to DB", exc_info=True)
     query = db.query(Channel)
     
     # Get total count
@@ -111,5 +114,5 @@ def get_channels_dashboard(
         from app.core.redis_cache import cache_set, key_dashboard_channels, CACHE_TTL_ANALYTICS
         cache_set(key_dashboard_channels(skip, limit), result, CACHE_TTL_ANALYTICS)
     except Exception:
-        pass
+        logger.warning("dashboard.channels: cache write failed", exc_info=True)
     return result

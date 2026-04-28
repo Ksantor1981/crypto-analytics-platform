@@ -8,8 +8,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
+    # Production: НЕ публиковать наружу. Доступ только через crypto-network.
+    # Для локального DBA-доступа используйте ssh-туннель или явный POSTGRES_BIND_HOST=127.0.0.1.
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_BIND_HOST:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     healthcheck:
       test:
         [
@@ -30,8 +32,9 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env.production}
     volumes:
       - redis_data:/data
+    # Production: НЕ публиковать наружу. Доступ только через crypto-network.
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_BIND_HOST:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
       interval: 30s

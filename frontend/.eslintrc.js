@@ -2,11 +2,11 @@ module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
   plugins: [
-    '@typescript-eslint', 
-    'react', 
-    'react-hooks', 
-    'import', 
-    'jsx-a11y', 
+    '@typescript-eslint',
+    'react',
+    'react-hooks',
+    'import',
+    'jsx-a11y',
     'prettier'
   ],
   extends: [
@@ -18,6 +18,9 @@ module.exports = {
     'plugin:jsx-a11y/recommended',
     'plugin:import/recommended',
     'plugin:import/typescript',
+    // next/core-web-vitals намеренно НЕ подключаем здесь до миграции Next 14 -> 16:
+    // на текущей паре next@14 + react@19 даёт "Converting circular structure to JSON".
+    // План — включить вместе с PR Next.js 16 (см. AUDIT_REPORT_2026_04_28.md).
     'prettier'
   ],
   parserOptions: {

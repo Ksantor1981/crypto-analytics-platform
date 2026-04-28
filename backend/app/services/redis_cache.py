@@ -2,6 +2,7 @@
 import json
 import logging
 from typing import Optional
+
 import redis
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,8 @@ def get_redis() -> Optional[redis.Redis]:
         try:
             _client = redis.Redis(host='localhost', port=6379, db=0, socket_connect_timeout=2)
             _client.ping()
-        except Exception:
+        except Exception as exc:
+            logger.warning("redis_cache: connect failed (%s); caching disabled", exc)
             _client = None
     return _client
 
@@ -28,6 +30,7 @@ def cache_get(key: str) -> Optional[dict]:
         data = r.get(f"crypto:{key}")
         return json.loads(data) if data else None
     except Exception:
+        logger.exception("redis_cache.cache_get failed for key=%s", key)
         return None
 
 
@@ -38,7 +41,7 @@ def cache_set(key: str, value: dict, ttl: int = 300):
     try:
         r.setex(f"crypto:{key}", ttl, json.dumps(value))
     except Exception:
-        pass
+        logger.exception("redis_cache.cache_set failed for key=%s", key)
 
 
 def cache_delete(key: str):
@@ -48,4 +51,4 @@ def cache_delete(key: str):
     try:
         r.delete(f"crypto:{key}")
     except Exception:
-        pass
+        logger.exception("redis_cache.cache_delete failed for key=%s", key)

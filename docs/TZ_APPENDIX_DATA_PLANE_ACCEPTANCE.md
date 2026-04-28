@@ -97,7 +97,7 @@
 | G1 | Сид/миграция: три модели (`market_on_publish`, `first_touch_limit`, `midpoint_entry`) в БД | [ ] | |
 | G2 | `signal_outcomes`: ensure/slots PENDING, уникальность (normalized, execution_model) | [ ] | |
 | G3 | Расчёт по свечам v0.x включён флагом; пересчёт batch/hourly задокументирован | [ ] | |
-| G4 | **Тест или отчёт:** разные execution models дают **различимые** исходы на эталонном сценарии (не все одинаковые) | [ ] | |
+| G4 | **Тест или отчёт:** разные execution models дают **различимые** исходы на эталонном сценарии (не все одинаковые) | [x] | `backend/tests/test_execution_models_g4_distinguishable.py` (5 тестов: distinct entry_fill_price, distinct MFE/MAE, MOP игнорирует limit, FTL fails если не касается, ERROR на unknown model) |
 
 ---
 

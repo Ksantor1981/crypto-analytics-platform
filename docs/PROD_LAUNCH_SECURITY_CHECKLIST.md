@@ -21,7 +21,7 @@
 
 | # | Действие | Зачем |
 |---|----------|--------|
-| 2.1 | Postgres/Redis **не** слушать `0.0.0.0` в интернет без firewall; лучше только internal Docker network / managed DB | Прямой доступ к БД |
+| 2.1 | Postgres/Redis **не** слушать `0.0.0.0` в интернет без firewall; лучше только internal Docker network / managed DB. В `docker-compose.production.yml` они уже забиндены на `${POSTGRES_BIND_HOST:-127.0.0.1}` / `${REDIS_BIND_HOST:-127.0.0.1}` — для полного отключения публикации удалите `ports:` блоки. | Прямой доступ к БД |
 | 2.2 | Backend за reverse proxy (nginx/Traefik) с **TLS**, редирект HTTP→HTTPS | Перехват трафика |
 | 2.3 | Ограничить SSH, при необходимости VPN/bastion для админки | Компрометация хоста |
 

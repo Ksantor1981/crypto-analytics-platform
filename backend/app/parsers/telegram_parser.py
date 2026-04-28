@@ -14,7 +14,8 @@ from .base_parser import (
     ParsedSignal, SignalType
 )
 
-# Try to import telethon, fall back to mock if not available
+logger = logging.getLogger(__name__)
+
 try:
     from telethon import TelegramClient, events
     from telethon.tl.types import Channel, Chat, Message
@@ -22,9 +23,7 @@ try:
     TELETHON_AVAILABLE = True
 except ImportError:
     TELETHON_AVAILABLE = False
-    print("Warning: Telethon not available, using mock implementation")
-
-logger = logging.getLogger(__name__)
+    logger.warning("Telethon not available, using mock implementation")
 
 class TelegramParser(BaseChannelParser):
     """
