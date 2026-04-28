@@ -131,7 +131,8 @@ const ChannelsPage: React.FC = () => {
         setTelethonNote(how ? `${r.error} — ${how}` : r.error);
         return;
       }
-      const n = typeof r.channels_processed === 'number' ? r.channels_processed : 0;
+      const n =
+        typeof r.channels_processed === 'number' ? r.channels_processed : 0;
       setTelethonNote(
         `Telethon: обработано записей каналов: ${n}. Детали в ответе API / логах backend.`
       );
@@ -215,7 +216,9 @@ const ChannelsPage: React.FC = () => {
             </p>
           )}
         {telethonNote && (
-          <p className="text-sm text-gray-600 mb-4 -mt-4 max-w-3xl">{telethonNote}</p>
+          <p className="text-sm text-gray-600 mb-4 -mt-4 max-w-3xl">
+            {telethonNote}
+          </p>
         )}
 
         <AddChannelModal

@@ -26,6 +26,7 @@
 - [Техдолг Custom Alerts (Pro)](./docs/CUSTOM_ALERTS_TECH_DEBT.md) — выравнивание модели и сервиса до REST
 - [Security audit runbook](./docs/SECURITY_AUDIT_RUNBOOK.md) — pre-commit + секреты
 - [Прод-запуск и безопасность](./docs/PROD_LAUNCH_SECURITY_CHECKLIST.md) — секреты, сеть, TLS, OPENAPI в проде
+- [Аудит 2026-04-28](./docs/AUDIT_REPORT_2026_04_28.md) — что было сломано, что починено, что дальше
 - [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production  
 - [Оценка статуса](./docs/ARCHITECT_STATUS_EVALUATION.md) — технический архитектор (текущее состояние)
 - [ML Pipeline](./ml-service/README.md) — train-скрипт, воспроизводимость  

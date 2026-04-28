@@ -115,7 +115,8 @@ module.exports = {
     'import/no-named-as-default-member': 'off',
 
     // Prettier integration
-    'prettier/prettier': 'error'
+    // endOfLine: 'auto' — кросс-платформенно: на Windows checkout с CRLF не валится
+    'prettier/prettier': ['error', { endOfLine: 'auto' }]
   },
   overrides: [
     // Остальной UI src — мягче базовых 50/10
@@ -132,6 +133,8 @@ module.exports = {
       rules: {
         'max-lines-per-function': ['warn', 650],
         complexity: ['warn', 28],
+        // Защитные fallback (?? [], != null) часто вызывают false positives на runtime-данных
+        '@typescript-eslint/no-unnecessary-condition': 'off',
       },
     },
     // Компоненты, хуки, контексты — длинные формы и списки

@@ -252,7 +252,8 @@ export default function Demo() {
               Experience the power of AI-driven crypto analysis
             </p>
             <p className="text-sm text-amber-200 bg-amber-900/40 border border-amber-600/50 rounded-lg px-4 py-3 max-w-3xl mx-auto mb-6">
-              Демо: числа и проценты — макет интерфейса, не реальная торговая статистика и не подтверждённая точность ML.
+              Демо: числа и проценты — макет интерфейса, не реальная торговая
+              статистика и не подтверждённая точность ML.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-500/20 text-green-200 border border-green-500/30">
@@ -508,10 +509,10 @@ export default function Demo() {
                     <div className="text-gray-300">Analyzed Signals</div>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center">
-                    <div className="text-3xl font-bold text-white mb-2">
-                      —
+                    <div className="text-3xl font-bold text-white mb-2">—</div>
+                    <div className="text-gray-300">
+                      ML accuracy (not verified in demo)
                     </div>
-                    <div className="text-gray-300">ML accuracy (not verified in demo)</div>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center">
                     <div className="text-3xl font-bold text-white mb-2">

@@ -157,16 +157,22 @@ function ReviewConsoleContent() {
   };
 
   const rawEvent = detail?.raw_event as Record<string, unknown> | undefined;
-  const versions = (detail?.message_versions as Array<Record<string, unknown>>) || [];
-  const labels = (detail?.review_labels as Array<Record<string, unknown>>) || [];
+  const versions =
+    (detail?.message_versions as Array<Record<string, unknown>>) || [];
+  const labels =
+    (detail?.review_labels as Array<Record<string, unknown>>) || [];
   const extractions =
     (detail?.extractions as Array<Record<string, unknown>> | undefined) || [];
   const normalizedSignals =
-    (detail?.normalized_signals as Array<Record<string, unknown>> | undefined) || [];
+    (detail?.normalized_signals as
+      | Array<Record<string, unknown>>
+      | undefined) || [];
   const signalRelations =
-    (detail?.signal_relations as Array<Record<string, unknown>> | undefined) || [];
+    (detail?.signal_relations as Array<Record<string, unknown>> | undefined) ||
+    [];
   const signalOutcomes =
-    (detail?.signal_outcomes as Array<Record<string, unknown>> | undefined) || [];
+    (detail?.signal_outcomes as Array<Record<string, unknown>> | undefined) ||
+    [];
   const channel = detail?.channel as
     | { username: string | null; name: string }
     | null
@@ -178,7 +184,9 @@ function ReviewConsoleContent() {
         <title>Review Console — Admin</title>
       </Head>
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Review Console</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Review Console
+        </h1>
         <p className="text-sm text-gray-600 mb-6">
           Очередь raw_events (ADMIN). См. docs/REVIEW_GUIDELINES.md
         </p>
@@ -206,10 +214,17 @@ function ReviewConsoleContent() {
             />
             Только с правками (версий &gt; 1)
           </label>
-          <Button type="button" variant="outline" size="sm" onClick={() => void loadQueue()}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void loadQueue()}
+          >
             Обновить
           </Button>
-          <span className="text-sm text-gray-500">Всего в выборке: {total}</span>
+          <span className="text-sm text-gray-500">
+            Всего в выборке: {total}
+          </span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -235,14 +250,19 @@ function ReviewConsoleContent() {
                       >
                         <div className="font-mono text-xs text-gray-500">
                           #{row.raw_event_id} · {row.source_type}
-                          {row.channel_username ? ` · @${row.channel_username}` : ''}
-                          {row.platform_message_id ? ` · msg ${row.platform_message_id}` : ''}
+                          {row.channel_username
+                            ? ` · @${row.channel_username}`
+                            : ''}
+                          {row.platform_message_id
+                            ? ` · msg ${row.platform_message_id}`
+                            : ''}
                         </div>
                         <div className="text-gray-800 line-clamp-2 mt-1">
                           {row.raw_text_preview || '—'}
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
-                          версий: {row.version_count} · меток: {row.labels_count}
+                          версий: {row.version_count} · меток:{' '}
+                          {row.labels_count}
                         </div>
                       </button>
                     </li>
@@ -285,7 +305,8 @@ function ReviewConsoleContent() {
                           className="border border-gray-100 rounded p-2 bg-gray-50"
                         >
                           <span className="font-mono text-gray-600">
-                            v{v.version_no as number} · {String(v.version_reason)}
+                            v{v.version_no as number} ·{' '}
+                            {String(v.version_reason)}
                           </span>
                           <div className="mt-1 text-gray-800 whitespace-pre-wrap">
                             {String(v.text_snapshot || '—')}
@@ -304,7 +325,9 @@ function ReviewConsoleContent() {
                       <ul className="text-xs space-y-1">
                         {labels.map(l => (
                           <li key={String(l.id)} className="text-gray-700">
-                            <span className="font-medium">{String(l.label_type)}</span>
+                            <span className="font-medium">
+                              {String(l.label_type)}
+                            </span>
                             {l.notes ? ` — ${String(l.notes)}` : ''}
                           </li>
                         ))}
@@ -336,20 +359,27 @@ function ReviewConsoleContent() {
                           </h3>
                           <ul className="space-y-2 text-xs">
                             {extractions.map(ex => {
-                              const dec = ex.decision as Record<string, unknown> | null | undefined;
+                              const dec = ex.decision as
+                                | Record<string, unknown>
+                                | null
+                                | undefined;
                               return (
                                 <li
                                   key={String(ex.id)}
                                   className="border border-gray-100 rounded p-2 bg-slate-50"
                                 >
                                   <span className="font-mono text-gray-600">
-                                    #{String(ex.id)} · {String(ex.extractor_name)}@
-                                    {String(ex.extractor_version)} · {String(ex.classification_status)}
+                                    #{String(ex.id)} ·{' '}
+                                    {String(ex.extractor_name)}@
+                                    {String(ex.extractor_version)} ·{' '}
+                                    {String(ex.classification_status)}
                                   </span>
                                   {dec && (
                                     <div className="mt-1 text-gray-700">
                                       decision:{' '}
-                                      <span className="font-medium">{String(dec.decision_type)}</span>
+                                      <span className="font-medium">
+                                        {String(dec.decision_type)}
+                                      </span>
                                       {dec.confidence != null
                                         ? ` (${String(dec.confidence)})`
                                         : ''}
@@ -373,18 +403,25 @@ function ReviewConsoleContent() {
                                 className="border border-gray-100 rounded p-2 bg-emerald-50/80"
                               >
                                 <div className="font-mono text-gray-700">
-                                  #{String(ns.id)} · {String(ns.asset)} · {String(ns.direction)}
+                                  #{String(ns.id)} · {String(ns.asset)} ·{' '}
+                                  {String(ns.direction)}
                                 </div>
                                 <div className="text-gray-600 mt-1">
                                   entry {String(ns.entry_price)}
-                                  {ns.take_profit != null ? ` · TP ${String(ns.take_profit)}` : ''}
-                                  {ns.stop_loss != null ? ` · SL ${String(ns.stop_loss)}` : ''}
+                                  {ns.take_profit != null
+                                    ? ` · TP ${String(ns.take_profit)}`
+                                    : ''}
+                                  {ns.stop_loss != null
+                                    ? ` · SL ${String(ns.stop_loss)}`
+                                    : ''}
                                 </div>
-                                {Array.isArray(ns.take_profits) && ns.take_profits.length >= 2 && (
-                                  <div className="text-gray-600 mt-0.5">
-                                    TP ladder: {ns.take_profits.map(String).join(' → ')}
-                                  </div>
-                                )}
+                                {Array.isArray(ns.take_profits) &&
+                                  ns.take_profits.length >= 2 && (
+                                    <div className="text-gray-600 mt-0.5">
+                                      TP ladder:{' '}
+                                      {ns.take_profits.map(String).join(' → ')}
+                                    </div>
+                                  )}
                                 <div className="text-gray-600 mt-1">
                                   lifecycle:{' '}
                                   <span className="font-medium">
@@ -392,7 +429,9 @@ function ReviewConsoleContent() {
                                   </span>
                                   {' · '}
                                   relation:{' '}
-                                  <span className="font-medium">{String(ns.relation_status)}</span>
+                                  <span className="font-medium">
+                                    {String(ns.relation_status)}
+                                  </span>
                                 </div>
                               </li>
                             ))}
@@ -408,7 +447,8 @@ function ReviewConsoleContent() {
                             {signalRelations.map(rel => (
                               <li key={String(rel.id)} className="font-mono">
                                 {String(rel.from_normalized_signal_id)} →{' '}
-                                {String(rel.to_normalized_signal_id)} · {String(rel.relation_type)}
+                                {String(rel.to_normalized_signal_id)} ·{' '}
+                                {String(rel.relation_type)}
                               </li>
                             ))}
                           </ul>
@@ -433,7 +473,9 @@ function ReviewConsoleContent() {
                                     </div>
                                     <div className="text-gray-600 mt-1">
                                       status:{' '}
-                                      <span className="font-medium">{String(oc.outcome_status)}</span>
+                                      <span className="font-medium">
+                                        {String(oc.outcome_status)}
+                                      </span>
                                       {oc.entry_fill_price != null
                                         ? ` · fill ${String(oc.entry_fill_price)}`
                                         : ''}
@@ -458,7 +500,11 @@ function ReviewConsoleContent() {
                                         saving ||
                                         String(oc.outcome_status) === 'COMPLETE'
                                       }
-                                      onClick={() => void handleOutcomeCandleRecalc(Number(oc.id))}
+                                      onClick={() =>
+                                        void handleOutcomeCandleRecalc(
+                                          Number(oc.id)
+                                        )
+                                      }
                                     >
                                       Свечи
                                     </Button>
@@ -472,7 +518,9 @@ function ReviewConsoleContent() {
                                         saving ||
                                         String(oc.outcome_status) === 'COMPLETE'
                                       }
-                                      onClick={() => void handleOutcomeStub(Number(oc.id))}
+                                      onClick={() =>
+                                        void handleOutcomeStub(Number(oc.id))
+                                      }
                                     >
                                       Stub
                                     </Button>

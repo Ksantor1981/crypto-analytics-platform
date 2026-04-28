@@ -314,7 +314,12 @@ export const apiClient = {
       null,
       { params: { limit } }
     );
-    return data as { processed: number; ok: number; failed: number; errors: string[] };
+    return data as {
+      processed: number;
+      ok: number;
+      failed: number;
+      errors: string[];
+    };
   },
 
   /** Статус Telethon-сессии на backend (для MTProto collect). */
