@@ -118,6 +118,15 @@ class Settings(BaseSettings):
     # При False — не вызывать _seed_demo_data при старте (Docker / только реальные каналы из БД)
     AUTO_SEED_DEMO_CHANNELS: bool = True
 
+    # Exchange (Bybit/Binance) — paper trading mode.
+    # MVP запущен в paper-режиме: ExchangeService симулирует ордера и не отправляет
+    # реальных запросов в биржу. Все ответы помечены `mode: "paper"`,
+    # `order_id` имеет префикс `paper_`, в логах WARNING.
+    # Для включения live-trading требуется явный `EXCHANGE_LIVE_TRADING_ENABLED=true`
+    # И реализация реальных HTTP-вызовов в ExchangeService — пока сервис fail-loud.
+    EXCHANGE_PAPER_MODE: bool = True
+    EXCHANGE_LIVE_TRADING_ENABLED: bool = False
+
     # Канонический data plane: dual-write raw_events + message_versions (см. docs/DATA_PLANE_MIGRATION.md)
     SHADOW_PIPELINE_ENABLED: bool = False
     # Telethon shadow: вкладывать в raw_payload полный снимок MTProto (to_dict + bytes→base64)
@@ -171,6 +180,12 @@ class Settings(BaseSettings):
     STRIPE_PUBLISHABLE_KEY: Optional[str] = None
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
+
+    # Telegram integration webhook (signals ingestion)
+    # Закрывает POST /signals/telegram/webhook от анонимного доступа.
+    # Если токен пуст — эндпоинт возвращает 503 (закрыт по умолчанию).
+    # Клиент должен прислать заголовок `X-Integration-Token: <значение>`.
+    TELEGRAM_INTEGRATION_TOKEN: Optional[str] = None
     # Enables a deterministic "fake Stripe" flow for CI/E2E.
     # When enabled, /stripe/create-checkout will return a mock checkout URL
     # that completes the subscription without calling Stripe APIs.

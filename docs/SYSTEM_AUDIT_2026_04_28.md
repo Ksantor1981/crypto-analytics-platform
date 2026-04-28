@@ -276,18 +276,18 @@ pytest -q
 | F6 | 🟠 MED | `backend/alembic/versions/*` + SQLite | `alembic upgrade head` падает на SQLite (`DEFAULT now()`) | ✅ задокументировано в README (`USE_ALEMBIC=false` для dev/SQLite, PostgreSQL для prod) |
 | F7 | 🟠 MED | `frontend/src/pages/test-login.tsx` | dev-страница в проде с тест-кредами | ✅ закрыто (рендерит 404-плейсхолдер при `NODE_ENV === 'production'`) |
 | F8 | 🟠 MED | `backend/app` startup на SQLite | `database is locked` если scheduler+API одновременно | ✅ задокументировано в README (`SCHEDULER_MODE=celery` для local SQLite); реальное решение — PostgreSQL в проде |
-| F9 | 🟠 MED | `ml-service/` | 3 main и `_fixed`-двойники | частично закрыто: `main_simple.py` и `main_fixed.py` теперь `SystemExit` в production. `_fixed.py` API-роутеры — продовый код (импортируются из `main.py`); чистый ренейминг отложен до Sprint 3 |
+| F9 | 🟠 MED | `ml-service/` | 3 main и `_fixed`-двойники | ✅ закрыто полностью: `ml-service/api/{predictions,backtesting,risk_analysis}_fixed.py` переименованы в канонические имена (старые legacy-двойники удалены), `main.py` импортирует канонические `api.predictions / api.backtesting / api.risk_analysis`; мёртвые альтернативные entrypoints `ml-service/main_simple.py` и `ml-service/main_fixed.py` удалены (Dockerfile использует только `main:app`) |
 | F10 | 🟠 MED | DB seed | `execution_models` пустая в свежей БД, фаза 10 канона не работала «из коробки» | ✅ закрыто: `_seed_execution_models(engine)` в lifespan startup; live-проверено: `GET /admin/execution-models/` отдаёт 3 модели (`market_on_publish, first_touch_limit, midpoint_entry`) |
 | F11 | 🟠 MED | FastAPI redirect_slashes | потеря Bearer header на 307 redirect | ✅ закрыто: `redirect_slashes=False` в `FastAPI(...)`; `/admin/execution-models` без `/` теперь честный 404 без потери Bearer |
-| F12 | 🟡 LOW | `backend/app/api/endpoints/signals.py:48,213`, users.py:282, signal_notification_service.py:242, api_key_service.py:286 | мелкие TODO | открыто (техдолг) |
-| F13 | 🟡 LOW | ТЗ §3 интеграции | Bybit/Binance в ТЗ, в коде только CoinGecko | известно (`TZ_GAPS_REMEDIATION.md` §5) |
+| F12 | 🟠 MED (после ревизии) | `backend/app/api/endpoints/signals.py:213` | `POST /signals/telegram/webhook` без auth — любой мог писать сигналы в БД | ✅ закрыто: `Depends(verify_integration_token)` + новый `TELEGRAM_INTEGRATION_TOKEN` (без него — 503), `secrets.compare_digest`; `POST /signals/` теперь требует `require_admin` (обычные юзеры не публикуют). 2 регрессионных теста |
+| F13 | 🟡 LOW | `backend/app/services/exchange_service.py` | Bybit/Binance клиенты были «simulated» с честным `INFO`-логом — но возвращали успех, в проде это вводило бы в заблуждение | ✅ закрыто как paper-mode by design: `EXCHANGE_PAPER_MODE=true` (default) → ответы помечены `mode: "paper"`, `order_id: "paper_*"`, лог уровня WARNING; `EXCHANGE_LIVE_TRADING_ENABLED=true` без реальной реализации → `NotImplementedError` (fail-loud). Live-trading зафиксирован как post-MVP |
 | F14 | 🟢 OK | `STRIPE_MOCK_MODE`, `TELETHON_AVAILABLE` fallback, `/demo` | контролируемые mocks под флагом | — |
 
 ## Верификация (live, после исправлений)
 
 | Проверка | Результат |
 |---|---|
-| `pytest -q` | ✅ 359 passed, 2 skipped (+4 теста F5 hard-fail, +1 регрессия F2) |
+| `pytest -q` | ✅ 365 passed, 2 skipped (+4 F5 hard-fail, +1 F2 регресс, +2 F12 webhook auth, +4 F13 paper-mode) |
 | `next build` | ✅ 22 pages |
 | `GET /signals/dashboard` без токена | ✅ 403 (было 200) |
 | `GET /signals/1` без токена | ✅ 403 (было «Signal not found» — раньше до auth check) |
@@ -319,7 +319,7 @@ pytest -q
 
 ### Спринт 3 (вне scope аудита, но из ТЗ)
 
-10. Bybit/Binance клиенты или явное решение «остаёмся на CoinGecko, ТЗ исправить» (F13).
+10. Bybit/Binance — реальные HTTP-клиенты под флагом `EXCHANGE_LIVE_TRADING_ENABLED=true` (сейчас сервис fail-loud), включая testnet sandbox для CI (F13 → post-MVP).
 11. Association engine auto-link (фаза 7 канона).
 12. A/B dashboard legacy ↔ canonical (фаза 12).
 13. Coverage с 60% → 80% по ТЗ.
@@ -329,4 +329,7 @@ pytest -q
 
 ## Когда удалить этот документ
 
-Когда закрыты F1..F11 (Sprint 1 + Sprint 2), результаты пересняты в `TZ_TO_CODE_STATUS_MAP.md` и `SPEC_COMPLIANCE_2026_*.md`, документ архивируется в `docs/archive/SYSTEM_AUDIT_2026_04_28.md` или удаляется.
+F1..F13 закрыты (Sprint 1 + Sprint 2 + ревизия). Документ можно архивировать
+в `docs/archive/SYSTEM_AUDIT_2026_04_28.md` после того, как соответствующие
+строки перенесены в `TZ_TO_CODE_STATUS_MAP.md` и `SPEC_COMPLIANCE_2026_*.md`.
+Из открытых остался только Sprint 3 — это уже не «дыры аудита», а roadmap.

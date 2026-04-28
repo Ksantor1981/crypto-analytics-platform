@@ -18,11 +18,39 @@ from app.core.config import get_settings
 logger = logging.getLogger(__name__)
 
 class ExchangeService:
-    """Service for interacting with cryptocurrency exchanges"""
-    
+    """Service for interacting with cryptocurrency exchanges.
+
+    F13: MVP работает в **paper-trading mode** (`EXCHANGE_PAPER_MODE=true` по умолчанию).
+    Все методы возвращают помеченные `mode: "paper"` ответы, ордеры получают
+    префикс `paper_`. Реальные HTTP-вызовы в Bybit/Binance ещё не реализованы —
+    при `EXCHANGE_LIVE_TRADING_ENABLED=true` сервис fail-loud (NotImplementedError),
+    чтобы оператор не думал, что ордера действительно уходят в биржу.
+    """
+
     def __init__(self):
         self.settings = get_settings()
         self.session = None
+
+    # --- F13 helpers ---------------------------------------------------------
+
+    def _is_paper_mode(self) -> bool:
+        """True, если работаем в paper-режиме (default для MVP)."""
+        live = bool(getattr(self.settings, "EXCHANGE_LIVE_TRADING_ENABLED", False))
+        paper = bool(getattr(self.settings, "EXCHANGE_PAPER_MODE", True))
+        return paper or not live
+
+    def _ensure_paper_or_fail_loud(self, op: str) -> None:
+        """В live-режиме без реальной реализации честно падаем NotImplementedError.
+
+        Не позволяем «тихо» симулировать ответы, пока флаг говорит «live».
+        """
+        if self._is_paper_mode():
+            return
+        raise NotImplementedError(
+            f"Live exchange call '{op}' is not implemented yet. "
+            "Set EXCHANGE_PAPER_MODE=true (or EXCHANGE_LIVE_TRADING_ENABLED=false) "
+            "to keep the service in paper-trading mode for MVP."
+        )
         
     async def __aenter__(self):
         """Async context manager entry"""
@@ -68,12 +96,11 @@ class ExchangeService:
             ).hexdigest()
             
             params["sign"] = signature
-            
-            # This would make an actual API call in production
-            # For now, we'll simulate a successful validation
-            logger.info("Bybit credentials validation simulated")
+
+            self._ensure_paper_or_fail_loud("validate_bybit_credentials")
+            logger.warning("[PAPER] Bybit credentials validation skipped (paper mode)")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error validating Bybit credentials: {e}")
             return False
@@ -97,12 +124,11 @@ class ExchangeService:
             ).hexdigest()
             
             params["signature"] = signature
-            
-            # This would make an actual API call in production
-            # For now, we'll simulate a successful validation
-            logger.info("Binance credentials validation simulated")
+
+            self._ensure_paper_or_fail_loud("validate_binance_credentials")
+            logger.warning("[PAPER] Binance credentials validation skipped (paper mode)")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error validating Binance credentials: {e}")
             return False
@@ -158,23 +184,27 @@ class ExchangeService:
             ).hexdigest()
             
             order_params["sign"] = signature
-            
-            # In production, this would make an actual API call
-            # For now, we'll simulate a successful order placement
-            logger.info(f"Bybit order simulated: {symbol} {side} {quantity}")
-            
+
+            self._ensure_paper_or_fail_loud("place_bybit_order")
+            logger.warning(
+                "[PAPER] Bybit order NOT sent to exchange: %s %s %s (paper mode)",
+                symbol, side, quantity,
+            )
+
             return {
-                "order_id": f"bybit_{int(time.time())}",
-                "client_order_id": f"client_{int(time.time())}",
+                "mode": "paper",
+                "exchange": "bybit",
+                "order_id": f"paper_bybit_{int(time.time())}",
+                "client_order_id": f"paper_client_{int(time.time())}",
                 "symbol": symbol,
                 "side": side,
                 "order_type": order_type,
                 "quantity": quantity,
                 "price": price,
                 "status": "NEW",
-                "timestamp": timestamp
+                "timestamp": timestamp,
             }
-            
+
         except Exception as e:
             logger.error(f"Error placing Bybit order: {e}")
             raise
@@ -209,23 +239,27 @@ class ExchangeService:
             ).hexdigest()
             
             order_params["signature"] = signature
-            
-            # In production, this would make an actual API call
-            # For now, we'll simulate a successful order placement
-            logger.info(f"Binance order simulated: {symbol} {side} {quantity}")
-            
+
+            self._ensure_paper_or_fail_loud("place_binance_order")
+            logger.warning(
+                "[PAPER] Binance order NOT sent to exchange: %s %s %s (paper mode)",
+                symbol, side, quantity,
+            )
+
             return {
-                "orderId": f"binance_{int(time.time())}",
-                "clientOrderId": f"client_{int(time.time())}",
+                "mode": "paper",
+                "exchange": "binance",
+                "orderId": f"paper_binance_{int(time.time())}",
+                "clientOrderId": f"paper_client_{int(time.time())}",
                 "symbol": symbol,
                 "side": side,
                 "type": order_type,
                 "quantity": quantity,
                 "price": price,
                 "status": "NEW",
-                "timestamp": timestamp
+                "timestamp": timestamp,
             }
-            
+
         except Exception as e:
             logger.error(f"Error placing Binance order: {e}")
             raise
@@ -247,33 +281,27 @@ class ExchangeService:
             return None
     
     async def _get_bybit_price(self, symbol: str) -> Optional[Decimal]:
-        """Get current price from Bybit"""
+        """Get current price from Bybit (paper-mode: deterministic stub)."""
         try:
-            # In production, this would make an actual API call
-            # For now, we'll simulate a price
+            self._ensure_paper_or_fail_loud("get_bybit_price")
             base_price = 50000 if "BTC" in symbol else 3000 if "ETH" in symbol else 100
-            price_variation = 0  # ±1% variation
-            price = base_price * (1 + price_variation)
-            
-            logger.info(f"Bybit price simulated for {symbol}: {price}")
+            price = base_price
+            logger.warning("[PAPER] Bybit price for %s: %s (paper stub, not real)", symbol, price)
             return Decimal(str(price))
-            
+
         except Exception as e:
             logger.error(f"Error getting Bybit price: {e}")
             return None
-    
+
     async def _get_binance_price(self, symbol: str) -> Optional[Decimal]:
-        """Get current price from Binance"""
+        """Get current price from Binance (paper-mode: deterministic stub)."""
         try:
-            # In production, this would make an actual API call
-            # For now, we'll simulate a price
+            self._ensure_paper_or_fail_loud("get_binance_price")
             base_price = 50000 if "BTC" in symbol else 3000 if "ETH" in symbol else 100
-            price_variation = 0  # ±1% variation
-            price = base_price * (1 + price_variation)
-            
-            logger.info(f"Binance price simulated for {symbol}: {price}")
+            price = base_price
+            logger.warning("[PAPER] Binance price for %s: %s (paper stub, not real)", symbol, price)
             return Decimal(str(price))
-            
+
         except Exception as e:
             logger.error(f"Error getting Binance price: {e}")
             return None
@@ -313,22 +341,23 @@ class ExchangeService:
             ).hexdigest()
             
             params["sign"] = signature
-            
-            # In production, this would make an actual API call
-            # For now, we'll simulate a balance
-            logger.info("Bybit balance simulated")
-            
+
+            self._ensure_paper_or_fail_loud("get_bybit_balance")
+            logger.warning("[PAPER] Bybit balance returned as paper stub (not real)")
+
             return {
+                "mode": "paper",
+                "exchange": "bybit",
                 "total_balance": 10000.0,
                 "available_balance": 9500.0,
                 "used_balance": 500.0,
                 "currencies": {
                     "USDT": {"total": 10000.0, "available": 9500.0},
                     "BTC": {"total": 0.1, "available": 0.09},
-                    "ETH": {"total": 1.5, "available": 1.4}
-                }
+                    "ETH": {"total": 1.5, "available": 1.4},
+                },
             }
-            
+
         except Exception as e:
             logger.error(f"Error getting Bybit balance: {e}")
             return {}
@@ -351,22 +380,23 @@ class ExchangeService:
             ).hexdigest()
             
             params["signature"] = signature
-            
-            # In production, this would make an actual API call
-            # For now, we'll simulate a balance
-            logger.info("Binance balance simulated")
-            
+
+            self._ensure_paper_or_fail_loud("get_binance_balance")
+            logger.warning("[PAPER] Binance balance returned as paper stub (not real)")
+
             return {
+                "mode": "paper",
+                "exchange": "binance",
                 "total_balance": 10000.0,
                 "available_balance": 9500.0,
                 "used_balance": 500.0,
                 "currencies": {
                     "USDT": {"total": 10000.0, "available": 9500.0},
                     "BTC": {"total": 0.1, "available": 0.09},
-                    "ETH": {"total": 1.5, "available": 1.4}
-                }
+                    "ETH": {"total": 1.5, "available": 1.4},
+                },
             }
-            
+
         except Exception as e:
             logger.error(f"Error getting Binance balance: {e}")
             return {}
@@ -408,11 +438,11 @@ class ExchangeService:
             ).hexdigest()
             
             params["sign"] = signature
-            
-            # In production, this would make an actual API call
-            logger.info(f"Bybit order cancel simulated: {order_id}")
+
+            self._ensure_paper_or_fail_loud("cancel_bybit_order")
+            logger.warning("[PAPER] Bybit order cancel skipped (paper mode): %s", order_id)
             return True
-            
+
         except Exception as e:
             logger.error(f"Error canceling Bybit order: {e}")
             return False
@@ -437,11 +467,11 @@ class ExchangeService:
             ).hexdigest()
             
             params["signature"] = signature
-            
-            # In production, this would make an actual API call
-            logger.info(f"Binance order cancel simulated: {order_id}")
+
+            self._ensure_paper_or_fail_loud("cancel_binance_order")
+            logger.warning("[PAPER] Binance order cancel skipped (paper mode): %s", order_id)
             return True
-            
+
         except Exception as e:
             logger.error(f"Error canceling Binance order: {e}")
-            return False 
+            return False

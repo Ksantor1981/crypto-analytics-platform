@@ -93,6 +93,31 @@ class TestSignalsAPI:
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
+    def test_telegram_webhook_disabled_without_token(self, client, monkeypatch):
+        """Регрессия F12: webhook закрыт, если TELEGRAM_INTEGRATION_TOKEN пуст."""
+        monkeypatch.delenv("TELEGRAM_INTEGRATION_TOKEN", raising=False)
+        r = client.post(
+            "/api/v1/signals/telegram/webhook",
+            json={"asset": "BTC", "direction": "LONG", "entry_price": 100.0, "channel_id": 1},
+        )
+        assert r.status_code == 503, r.text
+
+    def test_telegram_webhook_rejects_wrong_token(self, client, monkeypatch):
+        """Регрессия F12: 401 при неправильном/отсутствующем X-Integration-Token."""
+        monkeypatch.setenv("TELEGRAM_INTEGRATION_TOKEN", "secret-test-token-xxx")
+        r1 = client.post(
+            "/api/v1/signals/telegram/webhook",
+            json={"asset": "BTC", "direction": "LONG", "entry_price": 100.0, "channel_id": 1},
+        )
+        assert r1.status_code == 401, r1.text
+
+        r2 = client.post(
+            "/api/v1/signals/telegram/webhook",
+            json={"asset": "BTC", "direction": "LONG", "entry_price": 100.0, "channel_id": 1},
+            headers={"X-Integration-Token": "wrong"},
+        )
+        assert r2.status_code == 401, r2.text
+
     def test_get_signals_stats_channel(self, client):
         r = client.get("/api/v1/signals/stats/channel/1")
         assert r.status_code in (200, 404)

@@ -55,21 +55,21 @@ except ImportError as e:
     logger.warning(f"⚠️ Health router not available: {e}")
 
 try:
-    from api.predictions_fixed import router as predictions_router
+    from api.predictions import router as predictions_router
     routers.append(("predictions", predictions_router))
     logger.info("✅ Predictions router loaded")
 except ImportError as e:
     logger.warning(f"⚠️ Predictions router not available: {e}")
 
 try:
-    from api.backtesting_fixed import router as backtesting_router
+    from api.backtesting import router as backtesting_router
     routers.append(("backtesting", backtesting_router))
     logger.info("✅ Backtesting router loaded")
 except ImportError as e:
     logger.warning(f"⚠️ Backtesting router not available: {e}")
 
 try:
-    from api.risk_analysis_fixed import router as risk_analysis_router
+    from api.risk_analysis import router as risk_analysis_router
     routers.append(("risk_analysis", risk_analysis_router))
     logger.info("✅ Risk analysis router loaded")
 except ImportError as e:
