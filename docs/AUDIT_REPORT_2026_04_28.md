@@ -95,7 +95,13 @@ python scripts/validate_docs_sync.py
 - **OPENAPI_DOCS_ENABLED регрессия** — добавлены тесты `backend/tests/test_openapi_docs_flag.py` (default `/docs` → 200, `false` → 404 для `/docs` и `/redoc`).
 - **Postgres/Redis в проде не публикуются на 0.0.0.0** — в `docker-compose.production.yml` ports забинжены на `${POSTGRES_BIND_HOST:-127.0.0.1}` и `${REDIS_BIND_HOST:-127.0.0.1}`. Для полной приватной сети — снять блок `ports:`.
 - **Frontend конфиги дедуплицированы** — удалены мёртвые `frontend/.eslintrc.json` и `frontend/.prettierrc.js` (последний ссылался на не-установленный `@trivago/prettier-plugin-sort-imports`); единый источник правды — `.eslintrc.js` + `.prettierrc`.
-- **Next.js ESLint plugin** — отложен до миграции Next 14 → 16 (на текущей паре `next@14` + `react@19` `eslint-config-next@core-web-vitals` даёт `Converting circular structure to JSON`). Пометка прямо в `frontend/.eslintrc.js`.
+- **Next.js ESLint plugin** — на ветке `chore/nextjs-16-migration` починен:
+    - `eslint-config-next` понижен `^16.1.6` → `^14.2.35` (mismatch с `next@14` и был причиной `Converting circular structure to JSON`).
+    - `next/core-web-vitals` подключён в `.eslintrc.js`, дубль `eslintConfig` в `package.json` удалён.
+    - Удалены мёртвые `eslint-disable-next-line` на правила `react-hooks/incompatible-library|set-state-in-effect` (они есть только в `eslint-plugin-react-hooks@v6` canary).
+    - В `ResponsiveCard.tsx` точечный `jsx-a11y/no-static-element-interactions` disable (false positive).
+    - Verification: `next lint --max-warnings 0` ✔, `tsc --noEmit` ✔, `next build` ✔.
+    - Сама миграция `next@14 → next@16` — отдельным PR, чек-лист в `docs/MIGRATION_NEXT_16.md`.
 - **`print()` в продовом коде** → `logger.warning` в `backend/app/parsers/telegram_parser.py` (импорт telethon). Остальные `print(...)` локализованы в CLI-обвязках (`--auth/--check/--collect`, `if __name__ == "__main__":`, `test_validator()`) — оставлены как ожидаемое поведение.
 - **Bare `except: pass`** заменены на `logger.warning(..., exc_info=True)` / `logger.exception(...)` в `app/services/redis_cache.py` и `app/api/endpoints/dashboard.py` (cache fallback на DB больше не молчит).
 - **G4 (различимость execution models)** — закрыт: `backend/tests/test_execution_models_g4_distinguishable.py`, 5 тестов:

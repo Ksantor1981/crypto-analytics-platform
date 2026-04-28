@@ -133,6 +133,8 @@ export function ResponsiveList({
   return (
     <div className={`space-y-2 ${className}`}>
       {items.map(item => (
+        // role + tabIndex + onKeyDown задаются только если есть onClick — false positive a11y
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
         <div
           key={item.id}
           role={item.onClick ? 'button' : undefined}

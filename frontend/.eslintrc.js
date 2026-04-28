@@ -3,24 +3,17 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: [
     '@typescript-eslint',
-    'react',
-    'react-hooks',
     'import',
-    'jsx-a11y',
     'prettier'
   ],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    // type-aware strict rules (no-unsafe-*, strict-boolean) — отдельно в overrides для узких путей
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'plugin:jsx-a11y/recommended',
+    // next/core-web-vitals тянет react, react-hooks, jsx-a11y, next plugins.
+    // Должен быть совместим с next major: для next@14 — eslint-config-next@14.x.
+    'next/core-web-vitals',
     'plugin:import/recommended',
     'plugin:import/typescript',
-    // next/core-web-vitals намеренно НЕ подключаем здесь до миграции Next 14 -> 16:
-    // на текущей паре next@14 + react@19 даёт "Converting circular structure to JSON".
-    // План — включить вместе с PR Next.js 16 (см. AUDIT_REPORT_2026_04_28.md).
     'prettier'
   ],
   parserOptions: {
@@ -67,11 +60,6 @@ module.exports = {
     'react/react-in-jsx-scope': 'off', // Not needed in modern React
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
-    // React 19 / расширенные правила — слишком шумно для существующего UI без рефакторинга
-    'react-hooks/set-state-in-effect': 'off',
-    'react-hooks/refs': 'off',
-    'react-hooks/purity': 'off',
-    'react-hooks/immutability': 'off',
     'react/no-unknown-property': ['error', { ignore: ['jsx'] }],
 
     // Import rules
