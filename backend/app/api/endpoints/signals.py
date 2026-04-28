@@ -92,9 +92,15 @@ def get_signals(
 def get_signals_dashboard(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
-    """Get signals without JOIN - simple version for dashboard."""
+    """Get signals without JOIN - simple version for dashboard.
+
+    Authenticated-only: сигналы — premium-функционал по бизнес-модели Free/Premium.
+    Free пользователь видит свой dashboard, монетизация платных деталей —
+    через `/api/v1/signals/` (require_premium) и Stripe-подписку.
+    """
     query = db.query(Signal)
 
     # Get total count
@@ -134,8 +140,9 @@ def get_signals_dashboard(
 def get_signal(
     signal_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
-    """Retrieve a specific signal by its ID."""
+    """Retrieve a specific signal by its ID (authenticated-only)."""
     signal_service = SignalService(db)
     signal = signal_service.get_signal_by_id(signal_id)
     if not signal:

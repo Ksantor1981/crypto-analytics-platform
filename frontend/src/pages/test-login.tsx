@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
 
+const IS_PROD = process.env.NODE_ENV === 'production';
+
 export default function TestLoginPage() {
   const [email, setEmail] = useState('test@example.com');
   const [password, setPassword] = useState('test123');
@@ -13,6 +15,17 @@ export default function TestLoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { login, user, isAuthenticated } = useAuth();
+
+  if (IS_PROD) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-900 text-gray-100">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold">404</h1>
+          <p className="mt-2 text-gray-400">This page is not available in production.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleTestLogin = async () => {
     setIsLoading(true);

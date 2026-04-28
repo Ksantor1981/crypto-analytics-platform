@@ -27,6 +27,7 @@
 - [Security audit runbook](./docs/SECURITY_AUDIT_RUNBOOK.md) — pre-commit + секреты
 - [Прод-запуск и безопасность](./docs/PROD_LAUNCH_SECURITY_CHECKLIST.md) — секреты, сеть, TLS, OPENAPI в проде
 - [Аудит 2026-04-28](./docs/AUDIT_REPORT_2026_04_28.md) — что было сломано, что починено, что дальше
+- [Системный аудит 2026-04-28](./docs/SYSTEM_AUDIT_2026_04_28.md) — пошаговая ревизия против ТЗ: live smoke endpoint'ов, заглушки/моки, 14 находок (F1..F14)
 - [Аудит архитектора](./docs/ARCHITECT_READINESS_AUDIT.md) — готовность к production  
 - [Оценка статуса](./docs/ARCHITECT_STATUS_EVALUATION.md) — технический архитектор (текущее состояние)
 - [ML Pipeline](./ml-service/README.md) — train-скрипт, воспроизводимость  
@@ -119,6 +120,22 @@ Swagger: http://localhost:8000/docs
   `docker compose --profile celery-beat up -d`
 - Проверка с хоста после `up`:  
   `python backend/scripts/smoke_real_services.py --base-url http://127.0.0.1:8000`
+
+## Локальный backend без Docker (известные ограничения)
+
+Если запускаете backend на хосте (без Postgres) с SQLite — учитывайте ограничения, найденные в системном аудите ([`docs/SYSTEM_AUDIT_2026_04_28.md`](./docs/SYSTEM_AUDIT_2026_04_28.md), F6 + F8):
+
+```powershell
+$env:USE_SQLITE='true'
+$env:USE_ALEMBIC='false'        # F6: Alembic-миграции содержат `DEFAULT now()` (PG) — на SQLite используем Base.metadata.create_all
+$env:SCHEDULER_MODE='celery'    # F8: иначе фоновые циклы пишут в SQLite параллельно с register/login → `database is locked`
+$env:AUTO_SEED_DEMO_CHANNELS='false'
+$env:SECRET_KEY='dev-secret-32-chars-minimum'
+python -m uvicorn app.main:app --port 8000
+```
+
+- **F6 (Alembic + SQLite):** прогон `alembic upgrade head` на SQLite падает; для production используется PostgreSQL и `USE_ALEMBIC=true` в Docker Compose.
+- **F8 (SCHEDULER_MODE):** `asyncio` (default) запускает 8 background-loops + TradingScheduler. Для PostgreSQL это OK; для SQLite на хосте — обязательно `SCHEDULER_MODE=celery`.
 
 ## Тесты
 

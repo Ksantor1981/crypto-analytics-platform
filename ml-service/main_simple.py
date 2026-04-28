@@ -1,13 +1,23 @@
 """
 Crypto Analytics ML Service - Simplified Version
-Main FastAPI application without problematic imports
+DEV/CI-only entrypoint. Production использует `main.py` (см. ml-service/Dockerfile).
+См. AUDIT findings F4/F9 в docs/SYSTEM_AUDIT_2026_04_28.md.
 """
+
+import os
+import sys
+
+if (os.getenv("ENVIRONMENT", "development") or "development").lower() == "production":
+    sys.stderr.write(
+        "[ml-service/main_simple.py] FATAL: dev-only entrypoint, refusing to start "
+        "under ENVIRONMENT=production. Use main:app instead.\n"
+    )
+    raise SystemExit(1)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
-import os
 from datetime import datetime
 
 # Configure logging

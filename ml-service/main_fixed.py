@@ -1,13 +1,23 @@
 """
-Crypto Analytics ML Service - Fixed Version
-Main FastAPI application without problematic imports
+Crypto Analytics ML Service - Fixed Version (legacy entrypoint, не используется Docker).
+Production использует `main.py`. Этот файл — артефакт миграции _fixed→canonical (F9).
+См. docs/SYSTEM_AUDIT_2026_04_28.md.
 """
+
+import os
+import sys
+
+if (os.getenv("ENVIRONMENT", "development") or "development").lower() == "production":
+    sys.stderr.write(
+        "[ml-service/main_fixed.py] FATAL: legacy entrypoint, refusing to start "
+        "under ENVIRONMENT=production. Use main:app instead.\n"
+    )
+    raise SystemExit(1)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
-import os
 from datetime import datetime
 
 # Configure logging

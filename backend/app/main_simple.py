@@ -1,4 +1,18 @@
-# Упрощенная версия FastAPI приложения для тестирования
+# Упрощенная версия FastAPI приложения для тестирования.
+#
+# ВНИМАНИЕ: Это DEV/CI-only entrypoint. Содержит CORS allow_origins=["*"]
+# и фиктивные данные (`_generate_search_results`). Не предназначен для
+# production. См. AUDIT findings F4 в docs/SYSTEM_AUDIT_2026_04_28.md.
+
+import os
+import sys
+
+if (os.getenv("ENVIRONMENT", "development") or "development").lower() == "production":
+    sys.stderr.write(
+        "[main_simple.py] FATAL: this entrypoint is DEV/CI only "
+        "(open CORS, mock data). Refusing to start under ENVIRONMENT=production.\n"
+    )
+    raise SystemExit(1)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +24,6 @@ import random
 from datetime import datetime
 from typing import List, Dict, Optional
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

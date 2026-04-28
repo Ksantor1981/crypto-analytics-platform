@@ -155,10 +155,18 @@ async def get_telegram_channels_mock(
     current_user: User = Depends(get_current_active_user),
 ):
     """
-    Get list of configured Telegram channels (mock data without DB)
+    DEV-ONLY: фиктивные данные каналов без БД (для CI/локальной отладки).
+
+    В production (`ENVIRONMENT == "production"` или `DEBUG = false`) endpoint
+    закрыт 404, чтобы пользователи не получали маркетинговые цифры из mock'а.
     """
+    from ...core.config import get_settings as _get_settings
+    _s = _get_settings()
+    _env = (getattr(_s, "ENVIRONMENT", "development") or "development").lower()
+    _debug = bool(getattr(_s, "DEBUG", True))
+    if _env == "production" or not _debug:
+        raise HTTPException(status_code=404, detail="Mock endpoint disabled in production")
     try:
-        # Return mock data for testing
         mock_channels = [
             {
                 "id": 1,

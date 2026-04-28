@@ -102,6 +102,65 @@ def _scheduler_mode() -> str:
     return mode if mode in ("asyncio", "celery") else "asyncio"
 
 
+def _seed_execution_models(db_engine):
+    """
+    Идемпотентный seed каталога execution_models (фаза 10 canonical data plane).
+
+    Alembic-миграция `l6f7a8b9c0d1_execution_models.py` уже включает bulk_insert,
+    но при `USE_ALEMBIC=false` (dev / SQLite через `Base.metadata.create_all`)
+    миграция не выполняется и таблица остаётся пустой → admin API отдаёт `[]`,
+    G4-тесты падают на «нет такой модели».
+    """
+    from sqlalchemy.orm import Session
+    try:
+        with Session(db_engine) as session:
+            from app.models.execution_model import ExecutionModel
+            existing = session.query(ExecutionModel).count()
+            if existing > 0:
+                return
+            seed = [
+                ExecutionModel(
+                    model_key="market_on_publish",
+                    display_name="Market on publish",
+                    description="Вход по цене на момент публикации (см. MARKET_OUTCOME_POLICY §4, §6).",
+                    fill_rule={"variant": "price_at_publish", "policy_ref": "MARKET_OUTCOME_POLICY.md"},
+                    slippage_policy={"mode": "tbd", "policy_ref": "MARKET_OUTCOME_POLICY.md §7"},
+                    fee_policy={"mode": "tbd", "policy_ref": "MARKET_OUTCOME_POLICY.md §7"},
+                    expiry_policy={"mode": "tbd"},
+                    is_active=True,
+                    sort_order=10,
+                ),
+                ExecutionModel(
+                    model_key="first_touch_limit",
+                    display_name="First touch limit",
+                    description="Первое касание зоны входа по свечам (см. MARKET_OUTCOME_POLICY §6).",
+                    fill_rule={"variant": "first_touch_entry_zone", "policy_ref": "MARKET_OUTCOME_POLICY.md"},
+                    slippage_policy={"mode": "tbd"},
+                    fee_policy={"mode": "tbd"},
+                    expiry_policy={"mode": "tbd"},
+                    is_active=True,
+                    sort_order=20,
+                ),
+                ExecutionModel(
+                    model_key="midpoint_entry",
+                    display_name="Midpoint entry",
+                    description="Вход по середине зоны entry (entry_zone_low / entry_zone_high).",
+                    fill_rule={"variant": "midpoint_of_entry_zone", "policy_ref": "MARKET_OUTCOME_POLICY.md"},
+                    slippage_policy={"mode": "tbd"},
+                    fee_policy={"mode": "tbd"},
+                    expiry_policy={"mode": "tbd"},
+                    is_active=True,
+                    sort_order=30,
+                ),
+            ]
+            for em in seed:
+                session.add(em)
+            session.commit()
+            logger.info("Seeded %d execution_models (canonical data plane phase 10)", len(seed))
+    except Exception as e:
+        logger.warning("Seed execution_models error (non-critical): %s", e)
+
+
 def _seed_demo_data(db_engine):
     """Seed database with demo data if empty (отключается AUTO_SEED_DEMO_CHANNELS=false)."""
     if not getattr(settings, "AUTO_SEED_DEMO_CHANNELS", True):
@@ -204,6 +263,7 @@ async def lifespan(app: FastAPI):
                 else:
                     Base.metadata.create_all(bind=engine)
                     logger.info("Database tables created (create_all)")
+                _seed_execution_models(engine)
                 _seed_demo_data(engine)
             except Exception as db_error:
                 logger.error(f"Database initialization failed: {db_error}")
@@ -326,7 +386,8 @@ app = FastAPI(
     docs_url=_OPENAPI_DOCS_URL,
     redoc_url=_OPENAPI_REDOC_URL,
     lifespan=lifespan,
-    debug=getattr(settings, 'DEBUG', False)
+    debug=getattr(settings, 'DEBUG', False),
+    redirect_slashes=False,
 )
 
 # CORS: production — только BACKEND_CORS_ORIGINS; development — localhost/Docker + конфиг

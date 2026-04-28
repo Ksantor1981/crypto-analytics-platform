@@ -81,8 +81,15 @@ class TestSignalsAPI:
         r = client.get("/api/v1/signals/?channel_id=1", headers=auth_headers)
         assert r.status_code == 200
 
-    def test_get_signals_dashboard(self, client):
+    def test_get_signals_dashboard_requires_auth(self, client):
+        """Регрессия F2: /signals/dashboard больше НЕ публичный."""
         r = client.get("/api/v1/signals/dashboard")
+        assert r.status_code in (401, 403)
+
+    def test_get_signals_dashboard_with_auth(self, client, auth_headers):
+        if not auth_headers:
+            pytest.skip("Auth not available")
+        r = client.get("/api/v1/signals/dashboard", headers=auth_headers)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 

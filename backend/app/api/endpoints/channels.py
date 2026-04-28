@@ -113,16 +113,20 @@ def discover_channels(
     current_user: models.User = Depends(auth.get_current_active_user),
 ):
     """
-    Discover new channels with crypto signals and add them to the database.
-    - Automatically finds channels with trading signals
-    - Validates signals and adds valid ones to the database
-    - Returns summary of discovered channels and signals
+    DEV/CI-only: симулирует обнаружение каналов с фиктивными цифрами.
+
+    В production (`ENVIRONMENT == "production"` или `DEBUG = false`) endpoint
+    возвращает 404, чтобы фиктивные каналы (Crypto Signals Pro 85%, Binance
+    Signals 25k subscribers и т.п.) не утекали в реальные данные продукта.
+    Реальный discovery делается через scheduler / collection_pipeline.
     """
+    from app.core.config import get_settings as _get_settings
+    _s = _get_settings()
+    _env = (getattr(_s, "ENVIRONMENT", "development") or "development").lower()
+    _debug = bool(getattr(_s, "DEBUG", True))
+    if _env == "production" or not _debug:
+        raise HTTPException(status_code=404, detail="Mock discovery disabled in production")
     try:
-        # Упрощенная версия для тестирования
-        # В реальной реализации здесь будут сервисы
-        
-        # Симуляция обнаружения каналов
         discovered_channels = [
             {
                 "username": "crypto_signals_pro",
@@ -262,9 +266,12 @@ def get_channel_signals(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
+    current_user: models.User = Depends(auth.get_current_active_user),
 ):
     """
-    Retrieve signals from a specific channel with filtering options.
+    Retrieve signals from a specific channel (authenticated-only).
+    Сигналы — премиум-функционал; Free может видеть только антирейтинг
+    каналов (`GET /api/v1/channels/`) и их базовую статистику.
     """
     from app.services.signal_service import SignalService
     from app.schemas.signal import SignalFilterParams
